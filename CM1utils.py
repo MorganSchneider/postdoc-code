@@ -1,0 +1,502 @@
+
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jul 29 11:04:04 2022
+
+@author: morgan.schneider
+
+Functions for reading and plotting CM1 outputs.
+"""
+
+####################
+### Load modules ###
+####################
+
+import matplotlib.pyplot as plt
+import numpy as np
+import netCDF4 as nc
+import cmocean
+import pyart #need an earlier version of xarray -> 0.20.2 or earlier
+import pickle
+# import metpy.calc as mc
+# from metpy.plots import SkewT, Hodograph
+# from metpy.units import units
+# from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+# from glob import glob
+from scipy.ndimage import gaussian_filter
+import os
+from os.path import exists
+from matplotlib.ticker import MultipleLocator
+
+#%%
+######################
+### Define classes ###
+######################
+
+# Mimics the Matlab struct array
+# Literally just a dict that uses dot indexing instead of brackets
+# so not actually useful but it took me far too long to discover dicts
+class struct():
+    def __init__(self,**kwargs):
+        self.Set(**kwargs)
+    def Set(self,**kwargs):
+        self.__dict__.update(**kwargs)
+    def SetAttr(self,var,val):
+        self.__dict__[var] = val
+    def keys(self):
+        print(self.__dict__.keys())
+
+
+#%%
+########################
+### Define functions ###
+########################
+
+
+# Define colormaps for common cm1 variables
+cmaps = {
+    'u':       {'cm': cmocean.cm.balance, 'label': "u (m s$^{-1}$)"},
+    'v':       {'cm': cmocean.cm.balance, 'label': "v (m s$^{-1}$)"},
+    'w':       {'cm': cmocean.cm.balance, 'label': "w (m s$^{-1}$)"},
+    'wspd':    {'cm': 'HomeyerRainbow', 'label': "Wind speed (m s$^{-1}$)"},
+    'th':      {'cm': 'HomeyerRainbow', 'label': "\u03B8 (K)"},
+    'thpert':  {'cm': cmocean.cm.curl, 'label': "\u03B8' (K)"},
+    'thr':     {'cm': 'HomeyerRainbow', 'label': "\u03B8\u1D68 (K)"},
+    'thrpert': {'cm': cmocean.cm.curl, 'label': "\u03B8'\u1D68 (K)"},
+    'qv':      {'cm': 'viridis_r', 'label': "$q_v$ (g kg$^{-1}$)"},
+    'qvpert':  {'cm': 'BrBG', 'label': "$q_v$' (g kg$^{-1}$)"},
+    'qx':      {'cm': 'viridis_r', 'label': "$q$ (g kg$^{-1}$)"},
+    'prs':     {'cm': 'HomeyerRainbow', 'label': "p (hPa)"},
+    'prspert': {'cm': cmocean.cm.balance, 'label': "p' (hPa)"},
+    'pi':      {'cm': 'HomeyerRainbow', 'label': "\u03C0 (nondimensional)"},
+    'pipert':  {'cm': cmocean.cm.balance, 'label': "\u03C0' (nondimensional)"},
+    'rho':     {'cm': 'HomeyerRainbow', 'label': "\u03C1 (kg m$^{-3}$)"},
+    'xvort':   {'cm': cmocean.cm.balance, 'label': "\u03BE (s$^{-1}$)"},
+    'yvort':   {'cm': cmocean.cm.balance, 'label': "\u03B7 (s$^{-1}$)"},
+    'zvort':   {'cm': cmocean.cm.balance, 'label': "\u03B6 (s$^{-1}$)"},
+    'hvort':   {'cm': 'HomeyerRainbow', 'label': "\u03c9$_H$ (s$^{-1}$)"},
+    'vort':    {'cm': 'HomeyerRainbow', 'label': "\u03c9 (s$^{-1}$)"},
+    'OW':      {'cm': cmocean.cm.balance, 'label': "OW (s$^{-2}$)"},
+    'divh':    {'cm': cmocean.cm.balance, 'label': "\u25BD$_H$u (s$^{-1}$)"},
+    'dbz':     {'cm': 'NWSRef', 'label': "$Z_H$ (dBZ)"},
+    'pgf':     {'cm': cmocean.cm.balance, 'label': "PPGA (m s$^{-2}$)"},
+    'cape':    {'cm': 'pyart_HomeyerRainbow', 'label': "CAPE (J kg$^{-1}$)"},
+    'srh':     {'cm': 'pyart_HomeyerRainbow', 'label': "SRH (m$^{2}$ s$^{-2}$)"},
+    'z':       {'cm': 'pyart_HomeyerRainbow', 'label': "Height (m)"},
+    'scp':     {'cm': 'pyart_HomeyerRainbow', 'label': "SCP"},
+    'stp':     {'cm': 'pyart_HomeyerRainbow', 'label': "STP"},
+    'uh':      {'cm': 'pyart_HomeyerRainbow', 'label': "UH (m$^{2}$ s$^{-2}$)"}
+}
+
+
+# # Read CM1 output into user-defined struct object
+# def read_cm1out(fname, dsvars=None):
+#     # fname : full path to data file
+#     # dsvars: list of the names of desired variables to load
+    
+#     # Open output file
+#     ds = nc.Dataset(fname)
+#     if dsvars is not None:
+#         dsvars = np.array(dsvars)
+#     else:
+#         dsvars = np.array(list(ds.variables.keys()))
+#     # Read data into a struct object (defined above)
+#     df = struct()
+#     #df = {}
+#     for i in range(len(dsvars)):
+#         df.SetAttr(dsvars[i], ds.variables[dsvars[i]][:].data)
+#         #df.update({dsvars[i]: ds.variables[dsvars[i]][:].data})
+#     ds.close()
+    
+#     return df
+
+
+# Get vertical cross-sections of 3D fields along any diagonal line, plus a 1D vector for the diagonal horizontal coordinate
+def vert_cross_section(field, x, y, start=[0,0], end=[-1,-1], gety=False):
+    # start: xy coordinates of cross-section start point (array or tuple)
+    # end: xy coordinates of cross-section end point (array or tuple)
+    ix1 = np.where(x >= start[0])[0][0]
+    iy1 = np.where(y >= start[1])[0][0]
+    ix2 = np.where(x >= end[0])[0][0]
+    iy2 = np.where(y >= end[1])[0][0]
+    
+    xy = wrf.xy(field, start_point=(ix1,iy1), end_point=(ix2,iy2))
+    if gety:
+        x_cross = wrf.interp2dxy(np.moveaxis(np.tile(y, (field.shape[0],field.shape[2],1)), 2, 1), xy)
+    else:
+        x_cross = wrf.interp2dxy(np.tile(x, (field.shape[0],field.shape[1],1)), xy)
+    field_cross = wrf.interp2dxy(field, xy)
+    
+    return field_cross.data, x_cross[0].data
+    
+
+# Get magnitude of wind vectors projected onto an angle alpha (meant for getting horizontal winds along diagonal cross sections)
+def proj_winds(u, v, proj_angle):
+    if proj_angle > 2*np.pi:
+        proj_angle = proj_angle*np.pi/180 # convert to rads
+    
+    U_proj = u*np.sin(proj_angle) + v*np.cos(proj_angle)
+    V_proj = u*np.cos(proj_angle) - v*np.sin(proj_angle)
+    nu = U_proj * np.sin(proj_angle)
+    nv = U_proj * np.cos(proj_angle)
+    
+    return U_proj,nu,nv
+
+
+# Automate saving data to new or existing pickle file
+def save_to_pickle(data, pkl_fname, new_pkl=False):
+    # data: dict of variables to save
+    # pkl_fname: filename to save data to (includes path)
+    # new_pkl: True or False (if True, will overwrite any existing file)
+    if (not exists(pkl_fname)) | new_pkl:
+        dbfile = open(pkl_fname, 'wb')
+        pickle.dump(data, dbfile)
+        dbfile.close()
+    elif exists(pkl_fname):
+        dbfile = open(pkl_fname, 'rb')
+        save_data = pickle.load(dbfile)
+        dbfile.close()
+        
+        save_data.update(data)
+        dbfile = open(pkl_fname, 'wb')
+        pickle.dump(save_data, dbfile)
+        dbfile.close()
+
+
+# Envelope function for mkdir
+def mkdir(fp):
+    try:
+        os.mkdir(fp)
+    except FileExistsError:
+        pass
+
+
+# get index of value in a data array that's closest to a desired value
+def find_closest(data, val):
+    # data: array of data to search
+    # val: desired value
+    idx = np.abs(data - val).argmin()
+    return idx
+
+
+# Calculate an n-point moving block average
+def movmean(data, npts):
+    # data: 1-D vector of data
+    # npts: number of points to average
+    data_mean = np.convolve(data, np.ones(npts), 'same')/npts
+    return data_mean
+
+
+# Calculates storm-relative parcel trajectories from ground(domain)-relative
+def get_SR_positions(x, y, u_storm, v_storm, delta_t, center_index=None, forward=False):
+    # x,y: domain-relative positions in m. Time axis must be the first dimension and must be the same length as u_storm and v_storm!
+    # u_storm, v_storm: u and v components of storm motion, 1D arrays
+    # delta_t: parcel time step in s, float
+    # center_index: index of x/y position to calculate trajectories relative to. Default is last element
+    if center_index is None:
+        ti = len(u_storm) - 1
+    else:
+        ti = center_index
+    
+    x_sr = np.zeros(shape=x.shape, dtype=float)
+    y_sr = np.zeros(shape=y.shape, dtype=float)
+    x_sr[ti,:] = x[ti,:]
+    y_sr[ti,:] = y[ti,:]
+    inds = np.linspace(ti-1, 0, ti)
+    for i in inds:
+        i = int(i)
+        delta_x = np.sum(u_storm[i:ti] * delta_t)
+        delta_y = np.sum(v_storm[i:ti] * delta_t)
+        x_sr[i,:] = x[i] + delta_x
+        y_sr[i,:] = y[i] + delta_y
+    
+    if forward is True:
+        forward_inds = np.linspace(ti+1, len(u_storm)-1, len(u_storm)-ti-1)
+        for i in forward_inds:
+            i = int(i)
+            delta_x = np.sum(u_storm[ti:i] * delta_t)
+            delta_y = np.sum(v_storm[ti:i] * delta_t)
+            x_sr[i,:] = x[i] + delta_x
+            y_sr[i,:] = y[i] + delta_y
+    
+    return x_sr,y_sr
+    
+
+
+# Wrapper function for pcolormesh
+def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
+               cmap=None, cbar=True, cbfs=None, **kwargs):
+    if cmap is None:
+        cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
+    else:
+        cm, cb_label = cmap, cmaps[field]['label']
+    
+    if datalims is None:
+        datamin = None
+        datamax = None
+    else:
+        datamin = datalims[0]
+        datamax = datalims[1]
+    
+    # Create the plot
+    c = ax.pcolormesh(x, y, data, vmin=datamin, vmax=datamax, cmap=cm, **kwargs)
+
+    # Format the colorbar
+    # c.cmap.set_bad('grey', 1.0)
+    if cbar:
+        cb = plt.colorbar(c, ax=ax, extend='both')
+        cb.set_label(cb_label)
+        if np.max(np.abs(datalims)) < 0.1:
+            cb.formatter.set_powerlimits((0,0))
+        if cbfs is None:
+            cb.set_label(cb_label)
+        else:
+            cb.set_label(cb_label, fontsize=cbfs)
+    
+    if xlims is not None:
+        ax.set_xlim(xlims[0], xlims[1])
+    if ylims is not None:
+        ax.set_ylim(ylims[0], ylims[1])
+    
+    return c
+
+
+# Wrapper function for contourf
+def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None, ylims=None,
+                  cmap=None, cbar=True, cbfs=None, **kwargs):
+    if cmap is None:
+        cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
+    else:
+        cm, cb_label = cmap, cmaps[field]['label']
+    
+    if levels is None:
+        levs = None
+    else:
+        levs = levels
+    
+    if datalims is None:
+        datamin = None
+        datamax = None
+    else:
+        datamin = datalims[0]
+        datamax = datalims[1]
+    
+    c = ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contour(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    c.set_edgecolor('face')
+    
+    if cbar:
+        cb = plt.colorbar(c, ax=ax, extend='both')
+        cb.set_label(cb_label)
+        if np.max(np.abs(datalims)) < 0.1:
+            cb.formatter.set_powerlimits((0,0))
+        if cbfs is None:
+            cb.set_label(cb_label)
+        else:
+            cb.set_label(cb_label, fontsize=cbfs)
+    
+    if xlims is not None:
+        ax.set_xlim(xlims[0], xlims[1])
+    if ylims is not None:
+        ax.set_ylim(ylims[0], ylims[1])
+    
+    return c
+
+
+# Calculate individual CM1 reflectivity contributions (NSSL 2-moment microphysics only)
+def calc_dbz_contributions(qx, cx, rho, field, plot=False, **kwargs):
+    # qx = hydrometeor mixing ratio in kg/kg
+    # cx = hydrometeor number concentration in #/kg
+    # rho = air density matrix in kg/m^3
+    # field = 'rain', 'ice', 'snow', 'graupel', or 'hail'
+    
+    rho_l = 1000 # liquid water density
+    
+    if field == 'rain':
+        z = np.where(cx>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2 / cx, 0)
+        levs = [0.1, 1]
+    elif field == 'ice':
+        z = 750*(np.where(1e3*qx*rho > 1, 1, 1e3*qx*rho))**1.98
+        levs = [0.01, 0.02]
+    elif field == 'snow':
+        z = np.where(cx>0, 1e18*323.3226*(0.106214**2)*0.887762*0.189*(rho*qx)**2 / (4.590844*(917**2)*(0.2**(4/3))*cx), 0)
+        levs = [0.25, 1]
+    elif field == 'graupel':
+        z = np.where(cx>0, 0.224*20*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2 / cx, 0)
+        levs = [0.1, 0.2]
+    elif field == 'hail':
+        a = 0.5
+        g1 = (6+a)*(5+a)*(4+a) / ((3+a)*(2+a)*(1+a))
+        z = np.where(cx>0, 0.224*g1*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2 / cx, 0)
+        levs = [0.001, 0.003]
+    
+    if plot:
+        dbz = np.where(z>0, 10*np.log10(z), 0)
+        xf = kwargs.get('xf')
+        xh = kwargs.get('xh')
+        zf = kwargs.get('zf')
+        zh = kwargs.get('zh')
+        
+        fig, (ax1,ax2) = plt.subplots(1,2,figsize=(14,6))
+        
+        c1 = plot_cfill(xf, zf, dbz[0,:,1000,:], 'dbz', ax1, datalims=[0,80])
+        ax1.contour(xh, zh, 1000*qx[0,:,1000,:], levels=levs, colors='k', linewidths=1)
+        ax1.set_xlabel('x (km)')
+        ax1.set_ylabel('z (km)')
+        ax1.set_title(f"Z_{field}", fontsize=14)
+        ax1.set_xlim(-120,-20)
+        ax1.set_ylim(0,10)
+
+        c2 = plot_cfill(xf, zf, 1000*qx[0,:,1000,:], 'qr', ax2)
+        ax2.contour(xh, zh, 1000*qx[0,:,1000,:], levels=levs, colors='k', linewidths=1)
+        ax2.set_xlabel('x (km)')
+        ax2.set_ylabel('z (km)')
+        ax2.set_title(f"q_{field}", fontsize=14)
+        ax2.set_xlim(-120,-20)
+        ax2.set_ylim(0,10)
+        plt.show()
+        
+    return z
+    
+
+# Recalculate brightband-corrected CM1 reflectivity (NSSL 2-moment microphysics only)
+def calc_dbz(ds):
+    # Load data
+    rho = ds.variables['rho'][:].data # air density (kg/m3)
+    rho = 1.1
+    rho_l = 1000 # liquid water density (kg/m3)
+    
+    # print("Reading mixing ratios...")
+    qr = ds.variables['qr'][:].data # rain mixing ratio (kg/kg)
+    qi = ds.variables['qi'][:].data # ice crystal mixing ratio
+    qs = ds.variables['qs'][:].data # snow mixing ratio
+    qg = ds.variables['qg'][:].data # graupel mixing ratio
+    qhl = ds.variables['qhl'][:].data # hail mixing ratio
+    
+    # print("Reading number concentrations...")
+    crw = ds.variables['crw'][:].data # rain number concentration (#/kg)
+    #cci = ds.variables['cci'][:].data # ice crystal number concentration
+    csw = ds.variables['csw'][:].data # snow number concentration
+    chw = ds.variables['chw'][:].data # graupel number concentration
+    chl = ds.variables['chl'][:].data # hail number concentration
+    
+    # print("Calculating reflectivity contributions...")
+    with np.errstate(divide='ignore', invalid='ignore'):
+        z_rain = np.where(crw>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qr)**2 / crw, 0)
+        del crw,qr
+        z_ice = np.where(qi>1e-4, 750*(np.where(1e3*qi*rho>1, 1, 1e3*qi*rho))**1.98, 0)
+        del qi
+        z_snow = np.where(csw>0, 1e18*323.3226*(0.106214**2)*0.887762*0.189*(rho*qs)**2 / (4.590844*(917**2)*(0.2**(4/3))*csw), 0)
+        del csw,qs
+        z_graupel = np.where(chw>0, 0.224*20*1e18*(6/(np.pi*rho_l))**2 * (rho*qg)**2 / chw, 0)
+        del chw,qg
+        a = 0.5
+        g1 = (6+a)*(5+a)*(4+a) / ((3+a)*(2+a)*(1+a))
+        z_hail = np.where(chl>0, 0.224*g1*1e18*(6/(np.pi*rho_l))**2 * (rho*qhl)**2 / chl, 0)
+        del chl,qhl
+        
+        z = z_rain + z_ice + z_snow + z_graupel + z_hail
+        dbz = np.where(z>0, 10*np.log10(z), 0)
+        
+        del z_rain,z_ice,z_snow,z_graupel,z_hail,z,rho
+        
+    return dbz
+
+
+def calc_dbz_contributions_p3(qx, qnx, field, plot=False, **kwargs):
+    rho_l = 1000
+    rho_i = 900
+    rho = 1.1
+    
+    g0 = (6*5*4)/(3*2*1)
+    g05 = (6.5*5.5*4.5)/(3.5*2.5*1.5)
+    g20 = (26*25*24)/(23*22*21)
+    
+    if field == 'rain':
+        zx = np.where(qnx>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2 / qnx, 0)
+    elif field == 'ice':
+        zx = np.where(qnx>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
+        z0 = np.where(qnx>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
+        z20 = np.where(qnx>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
+        
+        zx = np.minimum(zx, z0)
+        zx = np.maximum(zx, z20)
+    
+    Zx = np.where(zx>0, 10*np.log10(zx), 0)
+        
+    return Zx
+
+
+def calc_dbz_p3(ds, dblmom=False):
+    rho_l = 1000
+    rho_i = 900
+    rho = 1.1
+    
+    g0 = (6*5*4)/(3*2*1)
+    g05 = (6.5*5.5*4.5)/(3.5*2.5*1.5)
+    g20 = (26*25*24)/(23*22*21)
+    
+    if dblmom:
+        qr = ds.variables['qr'][:].data[0,:,:,:]
+        qnr = ds.variables['nr'][:].data[0,:,:,:]
+        qi1 = ds.variables['qi'][:].data[0,:,:,:]
+        qi2 = ds.variables['qi2'][:].data[0,:,:,:]
+        qir1 = ds.variables['ri'][:].data[0,:,:,:]
+        qir2 = ds.variables['ri2'][:].data[0,:,:,:]
+        qni1 = ds.variables['ni'][:].data[0,:,:,:]
+        qni2 = ds.variables['ni2'][:].data[0,:,:,:]
+    else:
+        qr = ds.variables['qr'][:].data[0,:,:,:]
+        qnr = ds.variables['qnr'][:].data[0,:,:,:]
+        qi = ds.variables['qi'][:].data[0,:,:,:]
+        qir = ds.variables['qir'][:].data[0,:,:,:] #rime ice mass mixing ratio kg/kg
+        qni = ds.variables['qni'][:].data[0,:,:,:]
+    
+    with np.errstate(divide='ignore', invalid='ignore'):
+        zr = np.where(qnr>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qr)**2 / qnr, 0)
+        del qr,qnr
+        if dblmom:
+            zi1 = np.where(qni1>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
+            z01 = np.where(qni1>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
+            z201 = np.where(qni1>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
+            del qi1,qni1
+            
+            zi2 = np.where(qni2>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
+            z02 = np.where(qni2>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
+            z202 = np.where(qni2>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
+            del qi2,qni2
+            
+            zi1 = np.minimum(zi1, z01)
+            zi1 = np.maximum(zi1, z201)
+            zi2 = np.minimum(zi2, z02)
+            zi2 = np.maximum(zi2, z202)
+            del z01,z201,z02,z202
+            
+            zi = zi1 + zi2
+            del zi,zi2
+        else:
+            zi = np.where(qni>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
+            z0 = np.where(qni>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
+            z20 = np.where(qni>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
+            del qi,qni
+            
+            zi = np.minimum(zi, z0)
+            zi = np.maximum(zi, z20)
+            del z0,z20
+        
+        z = zr + zi
+        Z = np.where(z>0, 10*np.log10(z), 0)
+        del z,zr,zi
+        
+    return Z
+        
+    
+    
+
+
+
+
+
