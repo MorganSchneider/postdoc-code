@@ -362,7 +362,7 @@ plt.show()
 
 
 
-#%% 
+#%% Other random plots for zooming in on shit
 
 fp = 'C:/Users/mschne28/Documents/cm1out/wk_p3_250m/'
 
