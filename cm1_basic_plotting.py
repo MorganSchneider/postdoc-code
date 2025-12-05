@@ -11,12 +11,12 @@ from CM1utils import *
 
 # semi-slip test1 and test2 are the most interesting/bow echo-y
 # Cd = 0.0014 and 0.005
-fp = 'C:/Users/mschne28/Documents/cm1out/warmbub_p3_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 # fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
 fn = np.linspace(1,29,8)
 
 
-titlestr = "P3 triple-moment, dx=250m"
+titlestr = "Semi-slip, dx=250m"
 
 
 figsave = False
@@ -1296,7 +1296,7 @@ plt.show
 dblmom = False
 
 # ds = nc.Dataset('C:/Users/mschne28/Documents/cm1r21.1/run/cm1out_000007.nc')
-ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/warmbub_p3_3mom_1000m/cm1out_000021.nc')
+ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/wk_p3_500m/cm1out_000022.nc')
 
 rho_l = 1000
 rho_i = 900

@@ -226,7 +226,7 @@ def get_SR_positions(x, y, u_storm, v_storm, delta_t, center_index=None, forward
 
 # Wrapper function for pcolormesh
 def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
-               cmap=None, cbar=True, cbfs=None, **kwargs):
+               cmap=None, cbar=True, cbfs=None, cbticks=None, **kwargs):
     if cmap is None:
         cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
     else:
@@ -253,6 +253,8 @@ def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
             cb.set_label(cb_label)
         else:
             cb.set_label(cb_label, fontsize=cbfs)
+        if cbticks is not None:
+            cb.set_ticks(cbticks)
     
     if xlims is not None:
         ax.set_xlim(xlims[0], xlims[1])
@@ -264,7 +266,7 @@ def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
 
 # Wrapper function for contourf
 def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None, ylims=None,
-                  cmap=None, cbar=True, cbfs=None, **kwargs):
+                  cmap=None, cbar=True, cbfs=None, cbticks=None, **kwargs):
     if cmap is None:
         cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
     else:
@@ -297,6 +299,8 @@ def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None,
             cb.set_label(cb_label)
         else:
             cb.set_label(cb_label, fontsize=cbfs)
+        if cbticks is not None:
+            cb.set_ticks(cbticks)
     
     if xlims is not None:
         ax.set_xlim(xlims[0], xlims[1])

@@ -9,12 +9,19 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/wk_p3_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 # fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
 fn = np.linspace(21,28,8)
 
 
-titlestr = "WK profile, dx=250m"
+if 'semislip' in fp:
+    bbc = 'Semi-slip'
+elif 'freeslip' in fp:
+    bbc = 'Free-slip'
+elif 'noslip' in fp:
+    bbc = 'No-slip'
+
+titlestr = f"{bbc}, WK profile, dx=250m"
 
 
 figsave = False
@@ -79,7 +86,7 @@ for f in fn:
     
     plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[i,j], levels=np.linspace(0,70,15),
                   datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
-    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors='k', linestyles='-', linewidths=[0.5,1])
+    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5], colors='k', linestyles='-', linewidths=[0.5,1])
     # ax[i,j].contour(xh, yh, np.min(winterp, axis=0), levels=[-5], colors='b', linestyles='-', linewidths=1)
     ax[i,j].set_title(f"t = {time:.0f} s")
     fig.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
@@ -89,28 +96,40 @@ for f in fn:
     
     qix = 60
     
-    plot_contourf(xh, yh, thpert, 'thpert', ax1[i,j], levels=np.linspace(-10,10,21),
-                  datalims=[-10,10], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
     ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.02], colors='k', linestyles='-', linewidths=1)
     ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.008, pivot='middle')
     ax1[i,j].set_title(f"t = {time:.0f} s")
-    fig1.suptitle(f"Sfc thpert + sfc wind + max 0-1 km zeta=0.02 s$^{{-1}}$ ({titlestr})")
+    fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.02 s$^{{-1}}$ ({titlestr})")
     if (n==len(fn)-1) & (figsave):
         fig1.savefig(fp+f"figs/thpert.png", dpi=300)
 
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/wk_p3_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 
-titlestr = 'WK profile, dx=250m'
+if 'semislip' in fp:
+    bbc = 'Semi-slip'
+elif 'freeslip' in fp:
+    bbc = 'Free-slip'
+elif 'noslip' in fp:
+    bbc = 'No-slip'
+
+# dx = fp[47:-2]
+
+# if 'wk' in fp:
+#     bs = 'WK profile'
+
+titlestr = f"{bbc}, WK profile, dx=250m"
 
 ds = nc.Dataset(fp+"cm1out_000029.nc")
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
-dbz = ds.variables['dbz'][:].data[0,0,:,:]
-wspd = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+# dbz = ds.variables['dbz'][:].data[0,0,:,:]
+# wspd = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
 
 sws = ds.variables['sws'][:].data[0,:,:] #max sfc wind speed
 sws2 = ds.variables['sws2'][:].data[0,:,:] #translated max sfc wind speed
@@ -118,24 +137,12 @@ svs = ds.variables['svs'][:].data[0,:,:] #max sfc zeta
 sps = ds.variables['sps'][:].data[0,:,:] #min sfc p'
 sus = ds.variables['sus'][:].data[0,:,:] #max 5km w
 shs = ds.variables['shs'][:].data[0,:,:] #max integrated UH
-
-usfc = ds.variables['uinterp'][:].data[0,0,:,:]
-vsfc = ds.variables['vinterp'][:].data[0,0,:,:]
-winterp = ds.variables['winterp'][:].data[0,:,:,:]
-prspert = ds.variables['prs'][:].data[0,:,:,:] - ds.variables['prs0'][:].data[0,:,:,:]
-zvort = ds.variables['zvort'][:].data[0,:,:,:]
-xvort = ds.variables['xvort'][:].data[0,:,:,:]
-yvort = ds.variables['yvort'][:].data[0,:,:,:]
-hvort = np.sqrt(xvort**2 + yvort**2)
-vort = np.sqrt(xvort**2 + yvort**2 + zvort**2)
 ds.close()
 
 
 xl = [-150,150]
 yl = [-150,150]
 
-# xl = [-100,100]
-# yl = [-100,100]
 
 figsave = False
 
@@ -143,39 +150,58 @@ figsave = False
 
 
 
-# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-# plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<1), 'dbz', ax, levels=np.linspace(0,70,15),
-#               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbfs=14)
-# ax.contour(xh, yh, wspd, levels=[20,26,33], colors='k', linewidths=[0.75,1,2])
-# ax.set_title(f"Dbz, sfc wind speed at {time:.0f} s (NO HEAT SINK)", fontsize=16)
-# # plt.show()
                       
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, sws, 'wspd', ax, levels=np.linspace(0,40,21), 
-              datalims=[0,40], xlims=xl, ylims=yl, cmap='Reds', cbfs=14)
+c = plot_contourf(xh, yh, sws, 'wspd', ax,
+              levels=np.linspace(0,40,21), datalims=[0,40], 
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
 # ax.contour(xh, yh, svs, levels=[0.01,0.02], colors=[''])
-ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[1,2])
+ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[0.5,1.25])
 ax.set_title(f"7-h sfc wind swath ({titlestr})", fontsize=16)
+l1, = ax.plot([0,0], [190,200], '-k', linewidth=0.5)
+l2, = ax.plot([0,0], [190,200], '-k', linewidth=1)
+ax.legend(handles=[l1,l2], labels=['severe (26 m/s)','sig severe (33 m/s)'], loc='upper right', fontsize=10)
 if figsave:
     plt.savefig(fp+"figs/wspd_swath.png", dpi=300)
 
 
-# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-# plot_contourf(xh, yh, np.ma.masked_array(svs, svs<0.001), 'zvort', ax,
-#               levels=np.append(np.linspace(0,0.02,21), [0.05]), datalims=[0,0.02],
-#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14)
-# ax.set_title(f"7-h sfc zeta swath (HEAT SINK 3-4 h)", fontsize=16)
-# if figsave:
-#     plt.savefig(fp+"figs/zeta_swath.png", dpi=300)
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(svs, svs<0.001), 'zvort', ax,
+              levels=np.linspace(0,0.1,21), datalims=[0,0.1],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.1,11), extend='max')
+ax.set_title(f"7-h sfc zeta swath ({titlestr})", fontsize=16)
+if figsave:
+    plt.savefig(fp+"figs/zeta_swath.png", dpi=300)
 
 
-# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-# plot_contourf(xh, yh, dbz, 'dbz', ax, levels=np.linspace(0,70,8), datalims=[0,70], 
-#               xlims=xl, ylims=yl, cmap='Greys')
-# ax.contour(xh, yh, sws, levels=[26,33], colors=['lightcoral','r'], linewidths=1.5)
-# ax.contour(xh, yh, svs, levels=[0.01,0.02], colors=['dodgerblue','b'], linewidths=1.5)
-# ax.set_title(f"dbz, max sfc wspd, max sfc zeta -- dx=1000 m", fontsize=16)
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(sus, sus<1), 'w', ax,
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+ax.set_title(f"7-h 5-km updraft swath ({titlestr})", fontsize=16)
+if figsave:
+    plt.savefig(fp+"figs/updraft_swath.png", dpi=300)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(shs, shs<10), 'uh', ax,
+              levels=np.linspace(0,2000,21), datalims=[0,2000],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,2000,11), extend='max')
+ax.set_title(f"7-h UH swath ({titlestr})", fontsize=16)
+if figsave:
+    plt.savefig(fp+"figs/helicity_swath.png", dpi=300)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(sps/100, sps/100>-0.1), 'prspert', ax,
+              levels=np.linspace(-5,0,21), datalims=[-5,0],
+              xlims=xl, ylims=yl, cmap='Blues_r', cbfs=14, cbticks=np.linspace(-5,0,11), extend='min')
+ax.set_title(f"7-h sfc p' swath ({titlestr})", fontsize=16)
+if figsave:
+    plt.savefig(fp+"figs/prspert_swath.png", dpi=300)
+
+
 
 
 plt.show()
@@ -187,9 +213,19 @@ plt.show()
 
 #%% plot cm1 stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/wk_p3_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 
-titlestr = 'WK profile, dx=250m'
+
+if 'semislip' in fp:
+    bbc = 'Semi-slip'
+elif 'freeslip' in fp:
+    bbc = 'Free-slip'
+elif 'noslip' in fp:
+    bbc = 'No-slip'
+
+# dx = fp[47:-2]
+
+titlestr = f"{bbc}, WK profile, dx=250m"
 
 ds = nc.Dataset(fp+'cm1out_000001.nc')
 prs0 = ds.variables['prs0'][:].data[0,0,0,0]
@@ -274,11 +310,11 @@ l2,= ax[0].plot([0,25200], [26,26], 'red', linewidth=1.25)
 l3,= ax[0].plot([0,25200], [33,33], 'darkviolet', linewidth=1.25)
 ax[0].plot(time, swspmax, 'k', linewidth=2)
 ax[0].set_xlim([0,25200])
-ax[0].set_ylim([0,50])
+ax[0].set_ylim([0,62])
 # ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel('wspd (m/s)', fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
-ax[0].set_title(f"Max sfc wind speed ({titlestr})", fontsize=16)
+ax[0].set_title(f"Max lml wind speed ({titlestr})", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[0].yaxis.set_major_locator(MultipleLocator(10))
@@ -289,24 +325,25 @@ ax[0].legend(handles=[l1,l2,l3], labels=['sub-severe', 'severe', 'sig severe'],
 # l1,= ax[1].plot(time, sprsmax/100, 'r', linewidth=2)
 # l2,= ax[1].plot(time, sprsmin/100, 'b', linewidth=2)
 # ax[1].set_xlim([0,25200])
-# ax[1].set_ylim([-6,8])
+# ax[1].set_ylim([-24,12])
 # ax[1].set_xlabel('Time (s)', fontsize=14)
 # ax[1].set_ylabel("p' (mb)", fontsize=14)
 # ax[1].tick_params(axis='both', labelsize=12)
-# ax[1].set_title(f"max/min sfc prspert ({fp[35:-1]})", fontsize=16)
+# ax[1].set_title(f"max/min sfc p' ({titlestr})", fontsize=16)
 # ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 # ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 # ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 # ax[1].xaxis.set_minor_locator(MultipleLocator(900))
-# ax[1].yaxis.set_major_locator(MultipleLocator(2))
-# ax[1].yaxis.set_minor_locator(MultipleLocator(1))
+# ax[1].yaxis.set_major_locator(MultipleLocator(4))
+# ax[1].yaxis.set_minor_locator(MultipleLocator(2))
 # ax[1].axhline(0, color='k', linewidth=1)
+# ax[1].legend(handles=[l1,l2], labels=["max p'", "min p'"], loc='upper left', fontsize=14)
 
 l1,= ax[1].plot(time, movmean(vortsfc,5), 'lightcoral', linewidth=2)
 l2,= ax[1].plot(time, movmean(vort1km,5), 'r', linewidth=2)
 l3,= ax[1].plot(time, movmean(vort3km,5), 'maroon', linewidth=2)
 ax[1].set_xlim([0,25200])
-ax[1].set_ylim([0,0.16])
+ax[1].set_ylim([0,0.25])
 ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("zvort (1/s)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
@@ -315,9 +352,9 @@ ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 ax[1].xaxis.set_minor_locator(MultipleLocator(900))
-ax[1].yaxis.set_major_locator(MultipleLocator(0.02))
+ax[1].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[1].yaxis.set_minor_locator(MultipleLocator(0.01))
-ax[1].legend(handles=[l1,l2,l3], labels=['sfc','1km','3km'],
+ax[1].legend(handles=[l1,l2,l3], labels=['lml','1km','3km'],
              loc='upper left', fontsize=14)
 
 if figsave:
@@ -362,29 +399,162 @@ plt.show()
 
 
 
-#%% Other random plots for zooming in on shit
+#%% Plots for CWE 2026 extended abstract
 
-fp = 'C:/Users/mschne28/Documents/cm1out/wk_p3_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 
-titlestr = 'WK profile, dx=250m'
+# ds = nc.Dataset(fp+'cm1out_000001.nc')
+# prs0 = ds.variables['prs0'][:].data[0,0,0,0]
+# ds.close()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ds = nc.Dataset(fp+f"cm1out_stats.nc")
+time = ds.variables['mtime'][:].data
+wmax500 = ds.variables['wmax500'][:].data #max w at 500 m
+wmax1000 = ds.variables['wmax1000'][:].data #max w at 1000 m
+wmax2500 = ds.variables['wmax2500'][:].data #max w at 2500 m
+swspmax = ds.variables['swspmax'][:].data #max lml wspd
+vortsfc = ds.variables['vortsfc'][:].data #max lml vort
+vort1km = ds.variables['vort1km'][:].data #max 1km vort
+vort3km = ds.variables['vort3km'][:].data #max 3km vort
+ds.close()
 
 
+fp = 'C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/'
+ds = nc.Dataset(fp+f"cm1out_stats.nc")
+wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
+wmax1000_fs = ds.variables['wmax1000'][:].data #max w at 1000 m
+wmax2500_fs = ds.variables['wmax2500'][:].data #max w at 2500 m
+swspmax_fs = ds.variables['swspmax'][:].data #max sfc wspd
+vortsfc_fs = ds.variables['vortsfc'][:].data #max sfc vort
+vort1km_fs = ds.variables['vort1km'][:].data #max 1km vort
+vort3km_fs = ds.variables['vort3km'][:].data #max 3km vort
+ds.close()
 
+
+# fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
+# ds = nc.Dataset(fp+f"cm1out_stats.nc")
+# wmax500_ns = ds.variables['wmax500'][:].data #max w at 500 m
+# wmax1000_ns = ds.variables['wmax1000'][:].data #max w at 1000 m
+# wmax2500_ns = ds.variables['wmax2500'][:].data #max w at 2500 m
+# swspmax_ns = ds.variables['swspmax'][:].data #max sfc wspd
+# vortsfc_ns = ds.variables['vortsfc'][:].data #max sfc vort
+# vort1km_ns = ds.variables['vort1km'][:].data #max 1km vort
+# vort3km_ns = ds.variables['vort3km'][:].data #max 3km vort
+# ds.close()
+
+
+figsave = False
+
+
+
+fig,ax = plt.subplots(3, 1, figsize=(10,10), sharex=True, layout='constrained')
+
+l1,= ax[0].plot(time, movmean(vortsfc_fs,5), 'k', linewidth=2)
+# l2,= ax[0].plot(time, movmean(vortsfc_ns,5), 'dodgerblue', linewidth=2)
+l3,= ax[0].plot(time, movmean(vortsfc,5), 'crimson', linewidth=2)
+# l1,= ax[0].plot(time, vortsfc_fs, 'k', linewidth=2)
+# # l2,= ax[0].plot(time,vortsfc_ns, 'dodgerblue', linewidth=2)
+# l3,= ax[0].plot(time, vortsfc, 'crimson', linewidth=2)
+ax[0].set_xlim([0,25200])
+ax[0].set_ylim([0,0.3])
+ax[0].set_xlabel('Time (s)', fontsize=14)
+ax[0].set_ylabel("zeta (1/s)", fontsize=14)
+ax[0].tick_params(axis='both', labelsize=12)
+ax[0].set_title(f"Max LML zeta", fontsize=16)
+ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[0].xaxis.set_major_locator(MultipleLocator(3600))
+ax[0].xaxis.set_minor_locator(MultipleLocator(900))
+ax[0].yaxis.set_major_locator(MultipleLocator(0.05))
+ax[0].yaxis.set_minor_locator(MultipleLocator(0.025))
+ax[0].legend(handles=[l1,l3], labels=['free-slip','semi-slip'],
+             loc='upper left', fontsize=14)
+
+l4,= ax[1].plot(time, movmean(vort1km_fs,5), 'k', linewidth=2)
+# l5,= ax[1].plot(time, movmean(vort1km_ns,5), 'dodgerblue', linewidth=2)
+l6,= ax[1].plot(time, movmean(vort1km,5), 'crimson', linewidth=2)
+ax[1].set_xlim([0,25200])
+ax[1].set_ylim([0,0.25])
+ax[1].set_xlabel('Time (s)', fontsize=14)
+ax[1].set_ylabel("zeta (1/s)", fontsize=14)
+ax[1].tick_params(axis='both', labelsize=12)
+ax[1].set_title(f"Max 1-km zeta", fontsize=16)
+ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[1].xaxis.set_major_locator(MultipleLocator(3600))
+ax[1].xaxis.set_minor_locator(MultipleLocator(900))
+ax[1].yaxis.set_major_locator(MultipleLocator(0.05))
+ax[1].yaxis.set_minor_locator(MultipleLocator(0.025))
+# ax[1].legend(handles=[l4,l6], labels=['free-slip','semi-slip'],
+#              loc='upper left', fontsize=14)
+
+l7,= ax[2].plot(time, movmean(vort3km_fs,5), 'k', linewidth=2)
+# l8,= ax[2].plot(time, movmean(vort3km_ns,5), 'dodgerblue', linewidth=2)
+l9,= ax[2].plot(time, movmean(vort3km,5), 'crimson', linewidth=2)
+ax[2].set_xlim([0,25200])
+ax[2].set_ylim([0,0.2])
+ax[2].set_xlabel('Time (s)', fontsize=14)
+ax[2].set_ylabel("zeta (1/s)", fontsize=14)
+ax[2].tick_params(axis='both', labelsize=12)
+ax[2].set_title(f"Max 3-km zeta", fontsize=16)
+ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[2].xaxis.set_major_locator(MultipleLocator(3600))
+ax[2].xaxis.set_minor_locator(MultipleLocator(900))
+ax[2].yaxis.set_major_locator(MultipleLocator(0.05))
+ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
+# ax[2].legend(handles=[l7,l9], labels=['free-slip','semi-slip'],
+#              loc='upper left', fontsize=14)
+
+plt.show()
+
+#%%
+
+
+fig,ax = plt.subplots(2, 1, figsize=(10,8), sharex=True, layout='constrained')
+
+l1,= ax[0].plot(time, movmean(wmax1000_fs,5), 'k', linewidth=2)
+# l2,= ax[0].plot(time, movmean(wmax1000_ns,5), 'dodgerblue', linewidth=2)
+l3,= ax[0].plot(time, movmean(wmax1000,5), 'crimson', linewidth=2)
+ax[0].set_xlim([0,25200])
+ax[0].set_ylim([0,30])
+ax[0].set_xlabel('Time (s)', fontsize=14)
+ax[0].set_ylabel("w (m/s)", fontsize=14)
+ax[0].tick_params(axis='both', labelsize=12)
+ax[0].set_title(f"Max 1-km w", fontsize=16)
+ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[0].xaxis.set_major_locator(MultipleLocator(3600))
+ax[0].xaxis.set_minor_locator(MultipleLocator(900))
+ax[0].yaxis.set_major_locator(MultipleLocator(5))
+ax[0].yaxis.set_minor_locator(MultipleLocator(2.5))
+ax[0].legend(handles=[l1,l3], labels=['free-slip','semi-slip'],
+             loc='upper left', fontsize=14)
+
+l4,= ax[1].plot(time, movmean(wmax2500_fs,5), 'k', linewidth=2)
+# l5,= ax[1].plot(time, movmean(wmax2500_ns,5), 'dodgerblue', linewidth=2)
+l6,= ax[1].plot(time, movmean(wmax2500,5), 'crimson', linewidth=2)
+ax[1].set_xlim([0,25200])
+ax[1].set_ylim([0,40])
+ax[1].set_xlabel('Time (s)', fontsize=14)
+ax[1].set_ylabel("w (m/s)", fontsize=14)
+ax[1].tick_params(axis='both', labelsize=12)
+ax[1].set_title(f"Max 2.5-km w", fontsize=16)
+ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[1].xaxis.set_major_locator(MultipleLocator(3600))
+ax[1].xaxis.set_minor_locator(MultipleLocator(900))
+ax[1].yaxis.set_major_locator(MultipleLocator(5))
+ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
+# ax[1].legend(handles=[l4,l6], labels=['free-slip','semi-slip'],
+#              loc='upper left', fontsize=14)
+
+
+
+
+
+
+plt.show()
 
 
 
