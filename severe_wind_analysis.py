@@ -446,11 +446,11 @@ vort3km_ns = ds.variables['vort3km'][:].data[:421] #max 3km vort
 ds.close()
 
 
-figsave = False
+figsave = True
 
 
 
-fig,ax = plt.subplots(3, 1, figsize=(10,10), sharex=True, layout='constrained')
+fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 
 l1,= ax[0].plot(time, movmean(vortsfc_fs,5), 'k', linewidth=2)
 l2,= ax[0].plot(time, movmean(vortsfc_ns,5), 'dodgerblue', linewidth=2)
@@ -460,17 +460,17 @@ l3,= ax[0].plot(time, movmean(vortsfc,5), 'crimson', linewidth=2)
 # l3,= ax[0].plot(time, vortsfc, 'crimson', linewidth=2)
 ax[0].set_xlim([0,25200])
 ax[0].set_ylim([0,0.3])
-ax[0].set_xlabel('Time (s)', fontsize=14)
+# ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel("zeta (1/s)", fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
-ax[0].set_title(f"Max LML zeta", fontsize=16)
+ax[0].set_title(f"Max LML vertical vorticity", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[0].xaxis.set_major_locator(MultipleLocator(3600))
 ax[0].xaxis.set_minor_locator(MultipleLocator(900))
 ax[0].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[0].yaxis.set_minor_locator(MultipleLocator(0.025))
-ax[0].legend(handles=[l1,l2,l3], labels=['free-slip','no-slip','semi-slip'],
+ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
              loc='upper left', fontsize=14)
 
 l4,= ax[1].plot(time, movmean(vort1km_fs,5), 'k', linewidth=2)
@@ -478,17 +478,17 @@ l5,= ax[1].plot(time, movmean(vort1km_ns,5), 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time, movmean(vort1km,5), 'crimson', linewidth=2)
 ax[1].set_xlim([0,25200])
 ax[1].set_ylim([0,0.25])
-ax[1].set_xlabel('Time (s)', fontsize=14)
+# ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("zeta (1/s)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
-ax[1].set_title(f"Max 1-km zeta", fontsize=16)
+ax[1].set_title(f"Max 1-km vertical vorticity", fontsize=16)
 ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[1].yaxis.set_minor_locator(MultipleLocator(0.025))
-# ax[1].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
+# ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
 l7,= ax[2].plot(time, movmean(vort3km_fs,5), 'k', linewidth=2)
@@ -499,81 +499,84 @@ ax[2].set_ylim([0,0.2])
 ax[2].set_xlabel('Time (s)', fontsize=14)
 ax[2].set_ylabel("zeta (1/s)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
-ax[2].set_title(f"Max 3-km zeta", fontsize=16)
+ax[2].set_title(f"Max 3-km vertical vorticity", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[2].xaxis.set_major_locator(MultipleLocator(3600))
 ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
-# ax[2].legend(handles=[l7,l8,l9], labels=['free-slip','no-slip','semi-slip'],
+# ax[2].legend(handles=[l7,l8,l9], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
-plt.show()
+if figsave:
+    plt.savefig('C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/zeta_all_timeseries.png', dpi=300)
+# plt.show()
 
-#%%
+#%
 
 
-fig,ax = plt.subplots(3, 1, figsize=(10,10), sharex=True, layout='constrained')
+fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 
 l1,= ax[0].plot(time, movmean(wmax1000_fs,5), 'k', linewidth=2)
 l2,= ax[0].plot(time, movmean(wmax1000_ns,5), 'dodgerblue', linewidth=2)
 l3,= ax[0].plot(time, movmean(wmax1000,5), 'crimson', linewidth=2)
 ax[0].set_xlim([0,25200])
 ax[0].set_ylim([0,30])
-ax[0].set_xlabel('Time (s)', fontsize=14)
+# ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel("w (m/s)", fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
-ax[0].set_title(f"Max 1-km w", fontsize=16)
+ax[0].set_title(f"Max 1-km updraft speed", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[0].xaxis.set_major_locator(MultipleLocator(3600))
 ax[0].xaxis.set_minor_locator(MultipleLocator(900))
 ax[0].yaxis.set_major_locator(MultipleLocator(5))
 ax[0].yaxis.set_minor_locator(MultipleLocator(2.5))
-ax[0].legend(handles=[l1,l2,l3], labels=['free-slip','no-slip','semi-slip'],
+ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
              loc='upper left', fontsize=14)
 
 l4,= ax[1].plot(time, movmean(wmax2500_fs,5), 'k', linewidth=2)
 l5,= ax[1].plot(time, movmean(wmax2500_ns,5), 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time, movmean(wmax2500,5), 'crimson', linewidth=2)
 ax[1].set_xlim([0,25200])
-ax[1].set_ylim([0,40])
-ax[1].set_xlabel('Time (s)', fontsize=14)
+ax[1].set_ylim([10,40])
+# ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("w (m/s)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
-ax[1].set_title(f"Max 2.5-km w", fontsize=16)
+ax[1].set_title(f"Max 2.5-km updraft speed", fontsize=16)
 ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(5))
 ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
-# ax[1].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
+# ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
 l7,= ax[2].plot(time, movmean(wmax5000_fs,5), 'k', linewidth=2)
 l8,= ax[2].plot(time, movmean(wmax5000_ns,5), 'dodgerblue', linewidth=2)
 l9,= ax[2].plot(time, movmean(wmax5000,5), 'crimson', linewidth=2)
 ax[2].set_xlim([0,25200])
-ax[2].set_ylim([0,50])
+ax[2].set_ylim([20,50])
 ax[2].set_xlabel('Time (s)', fontsize=14)
 ax[2].set_ylabel("w (m/s)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
-ax[2].set_title(f"Max 5-km w", fontsize=16)
+ax[2].set_title(f"Max 5-km updraft speed", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[2].xaxis.set_major_locator(MultipleLocator(3600))
 ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(5))
 ax[2].yaxis.set_minor_locator(MultipleLocator(2.5))
-# ax[2].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
+# ax[2].legend(handles=[l7,l8,l9], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
 
+if figsave:
+    plt.savefig('C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/w_all_timeseries.png', dpi=300)
 
-
-plt.show()
+# plt.show()
 
 
 
