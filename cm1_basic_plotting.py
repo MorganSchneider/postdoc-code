@@ -1407,3 +1407,48 @@ ax.set_title('cref (model)')
 
 
 
+
+#%% resave all the cm1out_stats variables for the noslip sim because I fucked up
+
+# Reprocess reflectivity if needed
+if False:
+    ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/cm1out_stats.nc')
+    ds2 = nc.Dataset('C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/cm1out_stats2.nc', 'r+', clobber=True)
+    
+    xh = ds.variables['xh'][:].data
+    yh = ds.variables['yh'][:].data
+    zh = ds.variables['zh'][:].data
+    newtime = np.linspace(0,25200,421)
+    
+    ds2.createDimension('xh', size=len(xh))
+    ds2.createDimension('yh', size=len(yh))
+    ds2.createDimension('zh', size=len(zh))
+    ds2.createDimension('time', size=len(newtime))
+    
+    cx = ds2.createVariable('xh', 'f4', ('xh'))
+    cx.units = 'm'; cx.long_name = 'west-east location'; cx.axis = 'X'; cx[:] = xh[:]
+    cy = ds2.createVariable('yh', 'f4', ('yh'))
+    cy.units = 'm'; cy.long_name = 'south-north location'; cy.axis = 'Y'; cy[:] = yh[:]
+    cz = ds2.createVariable('zh', 'f4', ('zh'))
+    cz.units = 'm'; cz.long_name = 'height'; cz.axis = 'Z'; cz[:] = zh[:]
+    ct = ds2.createVariable('time', 'f4', ('time'))
+    ct.units = 's'; ct.long_name = 'time'; ct.axis='T'; ct[:] = newtime[:]
+    cmt = ds2.createVariable('mtime', 'f4', ('time'))
+    cmt.units = 's'; cmt.long_name = 'model time (seconds since beginning of s)'; cmt[:] = newtime[:]
+    
+    dvars = list(ds.variables.keys())[5:]
+    for v in dvars:
+        print(f"Variable: {v}")
+        data = ds.variables[v][:].data[:421]
+        tmp = ds2.createVariable(v, 'f4', ('time'))
+        tmp.units = ds.variables[v].units
+        tmp.long_name = ds.variables[v].long_name
+        tmp[:] = data[:]
+    
+    ds2.close()
+    ds.close()
+
+
+
+
+

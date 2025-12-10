@@ -9,9 +9,9 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
 # fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
-fn = np.linspace(21,28,8)
+fn = np.linspace(1,29,8)
 
 
 if 'semislip' in fp:
@@ -108,7 +108,7 @@ for f in fn:
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
@@ -213,7 +213,7 @@ plt.show()
 
 #%% plot cm1 stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
 
 
 if 'semislip' in fp:
@@ -412,6 +412,7 @@ time = ds.variables['mtime'][:].data
 wmax500 = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000 = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500 = ds.variables['wmax2500'][:].data #max w at 2500 m
+wmax5000 = ds.variables['wmax5000'][:].data #max w at 5000 m
 swspmax = ds.variables['swspmax'][:].data #max lml wspd
 vortsfc = ds.variables['vortsfc'][:].data #max lml vort
 vort1km = ds.variables['vort1km'][:].data #max 1km vort
@@ -424,6 +425,7 @@ ds = nc.Dataset(fp+f"cm1out_stats.nc")
 wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_fs = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500_fs = ds.variables['wmax2500'][:].data #max w at 2500 m
+wmax5000_fs = ds.variables['wmax5000'][:].data #max w at 5000 m
 swspmax_fs = ds.variables['swspmax'][:].data #max sfc wspd
 vortsfc_fs = ds.variables['vortsfc'][:].data #max sfc vort
 vort1km_fs = ds.variables['vort1km'][:].data #max 1km vort
@@ -431,16 +433,17 @@ vort3km_fs = ds.variables['vort3km'][:].data #max 3km vort
 ds.close()
 
 
-# fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
-# ds = nc.Dataset(fp+f"cm1out_stats.nc")
-# wmax500_ns = ds.variables['wmax500'][:].data #max w at 500 m
-# wmax1000_ns = ds.variables['wmax1000'][:].data #max w at 1000 m
-# wmax2500_ns = ds.variables['wmax2500'][:].data #max w at 2500 m
-# swspmax_ns = ds.variables['swspmax'][:].data #max sfc wspd
-# vortsfc_ns = ds.variables['vortsfc'][:].data #max sfc vort
-# vort1km_ns = ds.variables['vort1km'][:].data #max 1km vort
-# vort3km_ns = ds.variables['vort3km'][:].data #max 3km vort
-# ds.close()
+fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
+ds = nc.Dataset(fp+f"cm1out_stats.nc")
+wmax500_ns = ds.variables['wmax500'][:].data[:421] #max w at 500 m
+wmax1000_ns = ds.variables['wmax1000'][:].data[:421] #max w at 1000 m
+wmax2500_ns = ds.variables['wmax2500'][:].data[:421] #max w at 2500 m
+wmax5000_ns = ds.variables['wmax5000'][:].data[:421] #max w at 5000 m
+swspmax_ns = ds.variables['swspmax'][:].data[:421] #max sfc wspd
+vortsfc_ns = ds.variables['vortsfc'][:].data[:421] #max sfc vort
+vort1km_ns = ds.variables['vort1km'][:].data[:421] #max 1km vort
+vort3km_ns = ds.variables['vort3km'][:].data[:421] #max 3km vort
+ds.close()
 
 
 figsave = False
@@ -450,10 +453,10 @@ figsave = False
 fig,ax = plt.subplots(3, 1, figsize=(10,10), sharex=True, layout='constrained')
 
 l1,= ax[0].plot(time, movmean(vortsfc_fs,5), 'k', linewidth=2)
-# l2,= ax[0].plot(time, movmean(vortsfc_ns,5), 'dodgerblue', linewidth=2)
+l2,= ax[0].plot(time, movmean(vortsfc_ns,5), 'dodgerblue', linewidth=2)
 l3,= ax[0].plot(time, movmean(vortsfc,5), 'crimson', linewidth=2)
 # l1,= ax[0].plot(time, vortsfc_fs, 'k', linewidth=2)
-# # l2,= ax[0].plot(time,vortsfc_ns, 'dodgerblue', linewidth=2)
+# l2,= ax[0].plot(time,vortsfc_ns, 'dodgerblue', linewidth=2)
 # l3,= ax[0].plot(time, vortsfc, 'crimson', linewidth=2)
 ax[0].set_xlim([0,25200])
 ax[0].set_ylim([0,0.3])
@@ -467,11 +470,11 @@ ax[0].xaxis.set_major_locator(MultipleLocator(3600))
 ax[0].xaxis.set_minor_locator(MultipleLocator(900))
 ax[0].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[0].yaxis.set_minor_locator(MultipleLocator(0.025))
-ax[0].legend(handles=[l1,l3], labels=['free-slip','semi-slip'],
+ax[0].legend(handles=[l1,l2,l3], labels=['free-slip','no-slip','semi-slip'],
              loc='upper left', fontsize=14)
 
 l4,= ax[1].plot(time, movmean(vort1km_fs,5), 'k', linewidth=2)
-# l5,= ax[1].plot(time, movmean(vort1km_ns,5), 'dodgerblue', linewidth=2)
+l5,= ax[1].plot(time, movmean(vort1km_ns,5), 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time, movmean(vort1km,5), 'crimson', linewidth=2)
 ax[1].set_xlim([0,25200])
 ax[1].set_ylim([0,0.25])
@@ -485,11 +488,11 @@ ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[1].yaxis.set_minor_locator(MultipleLocator(0.025))
-# ax[1].legend(handles=[l4,l6], labels=['free-slip','semi-slip'],
+# ax[1].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
 #              loc='upper left', fontsize=14)
 
 l7,= ax[2].plot(time, movmean(vort3km_fs,5), 'k', linewidth=2)
-# l8,= ax[2].plot(time, movmean(vort3km_ns,5), 'dodgerblue', linewidth=2)
+l8,= ax[2].plot(time, movmean(vort3km_ns,5), 'dodgerblue', linewidth=2)
 l9,= ax[2].plot(time, movmean(vort3km,5), 'crimson', linewidth=2)
 ax[2].set_xlim([0,25200])
 ax[2].set_ylim([0,0.2])
@@ -503,7 +506,7 @@ ax[2].xaxis.set_major_locator(MultipleLocator(3600))
 ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
-# ax[2].legend(handles=[l7,l9], labels=['free-slip','semi-slip'],
+# ax[2].legend(handles=[l7,l8,l9], labels=['free-slip','no-slip','semi-slip'],
 #              loc='upper left', fontsize=14)
 
 plt.show()
@@ -511,10 +514,10 @@ plt.show()
 #%%
 
 
-fig,ax = plt.subplots(2, 1, figsize=(10,8), sharex=True, layout='constrained')
+fig,ax = plt.subplots(3, 1, figsize=(10,10), sharex=True, layout='constrained')
 
 l1,= ax[0].plot(time, movmean(wmax1000_fs,5), 'k', linewidth=2)
-# l2,= ax[0].plot(time, movmean(wmax1000_ns,5), 'dodgerblue', linewidth=2)
+l2,= ax[0].plot(time, movmean(wmax1000_ns,5), 'dodgerblue', linewidth=2)
 l3,= ax[0].plot(time, movmean(wmax1000,5), 'crimson', linewidth=2)
 ax[0].set_xlim([0,25200])
 ax[0].set_ylim([0,30])
@@ -528,11 +531,11 @@ ax[0].xaxis.set_major_locator(MultipleLocator(3600))
 ax[0].xaxis.set_minor_locator(MultipleLocator(900))
 ax[0].yaxis.set_major_locator(MultipleLocator(5))
 ax[0].yaxis.set_minor_locator(MultipleLocator(2.5))
-ax[0].legend(handles=[l1,l3], labels=['free-slip','semi-slip'],
+ax[0].legend(handles=[l1,l2,l3], labels=['free-slip','no-slip','semi-slip'],
              loc='upper left', fontsize=14)
 
 l4,= ax[1].plot(time, movmean(wmax2500_fs,5), 'k', linewidth=2)
-# l5,= ax[1].plot(time, movmean(wmax2500_ns,5), 'dodgerblue', linewidth=2)
+l5,= ax[1].plot(time, movmean(wmax2500_ns,5), 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time, movmean(wmax2500,5), 'crimson', linewidth=2)
 ax[1].set_xlim([0,25200])
 ax[1].set_ylim([0,40])
@@ -546,10 +549,26 @@ ax[1].xaxis.set_major_locator(MultipleLocator(3600))
 ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(5))
 ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
-# ax[1].legend(handles=[l4,l6], labels=['free-slip','semi-slip'],
+# ax[1].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
 #              loc='upper left', fontsize=14)
 
-
+l7,= ax[2].plot(time, movmean(wmax5000_fs,5), 'k', linewidth=2)
+l8,= ax[2].plot(time, movmean(wmax5000_ns,5), 'dodgerblue', linewidth=2)
+l9,= ax[2].plot(time, movmean(wmax5000,5), 'crimson', linewidth=2)
+ax[2].set_xlim([0,25200])
+ax[2].set_ylim([0,50])
+ax[2].set_xlabel('Time (s)', fontsize=14)
+ax[2].set_ylabel("w (m/s)", fontsize=14)
+ax[2].tick_params(axis='both', labelsize=12)
+ax[2].set_title(f"Max 5-km w", fontsize=16)
+ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
+ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax[2].xaxis.set_major_locator(MultipleLocator(3600))
+ax[2].xaxis.set_minor_locator(MultipleLocator(900))
+ax[2].yaxis.set_major_locator(MultipleLocator(5))
+ax[2].yaxis.set_minor_locator(MultipleLocator(2.5))
+# ax[2].legend(handles=[l4,l5,l6], labels=['free-slip','no-slip','semi-slip'],
+#              loc='upper left', fontsize=14)
 
 
 
