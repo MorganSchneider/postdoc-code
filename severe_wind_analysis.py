@@ -647,7 +647,7 @@ thpertc = ds.variables['th'][:].data[0,0:iz5,iy,ix][:,iyc,ixc] - ds.variables['t
 thr = ds.variables['th'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv'][:].data[0,0,iy,ix] - 
             (ds.variables['qc'][:].data[0,0,iy,ix] + ds.variables['qr'][:].data[0,0,iy,ix] + 
              ds.variables['qi'][:].data[0,0,iy,ix]))
-# thr = ds.variables['th'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv'][:].data[0,0,iy,ix] - 
+# thr = ds.variables['th'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv'][:].data[0,0,iy,ix] - #for updated P3 scheme
 #             (ds.variables['qc'][:].data[0,0,iy,ix] + ds.variables['qr'][:].data[0,0,iy,ix] + 
 #              ds.variables['qi1'][:].data[0,0,iy,ix] + ds.variables['qi2'][:].data[0,0,iy,ix] +
 #              ds.variables['qi3'][:].data[0,0,iy,ix] + ds.variables['qi4'][:].data[0,0,iy,ix]))
@@ -738,7 +738,7 @@ if figsave:
 
 #%%
 
-zvlevs = [-0.003, 0.01, 0.025, 0.05, 0.1]
+zvlevs = [-0.005, 0.01, 0.025, 0.05, 0.1]
 zvlabs = [f"\u03B6={zvlevs[i]} s$^{{-1}}$" for i in range(len(zvlevs))]
 zvlws = [0.5, 0.5, 0.75, 1, 2]
 zvlss = ['--', '-', '-', '-', '-']
