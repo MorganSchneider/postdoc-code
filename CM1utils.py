@@ -410,9 +410,10 @@ def calc_dbz(ds):
     return dbz
 
 
-def calc_dbz_contributions_p3(qx, qnx, field, plot=False, **kwargs):
+def calc_dbz_contributions_p3(qx, nx, bi, field, plot=False, **kwargs):
     rho_l = 1000
     rho_i = 900
+    # rho_i = 1/bi
     rho = 1.1
     
     g0 = (6*5*4)/(3*2*1)
@@ -420,11 +421,12 @@ def calc_dbz_contributions_p3(qx, qnx, field, plot=False, **kwargs):
     g20 = (26*25*24)/(23*22*21)
     
     if field == 'rain':
-        zx = np.where(qnx>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2 / qnx, 0)
+        rho_l = 1000
+        zx = np.where(nx>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qx)**2/nx, 0)
     elif field == 'ice':
-        zx = np.where(qnx>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
-        z0 = np.where(qnx>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
-        z20 = np.where(qnx>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qx)**2/qnx, 0)
+        zx = np.where(nx>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qx)**2/nx, 0)
+        z0 = np.where(nx>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qx)**2/nx, 0)
+        z20 = np.where(nx>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qx)**2/nx, 0)
         
         zx = np.minimum(zx, z0)
         zx = np.maximum(zx, z20)
@@ -497,8 +499,85 @@ def calc_dbz_p3(ds, dblmom=False):
         
     return Z
         
+
+
+def calc_dbz_p3_v2(ds, nCat=1):
+    rho_l = 1000
+    rho = 1.1
+    
+    g0 = (6*5*4)/(3*2*1)
+    g05 = (6.5*5.5*4.5)/(3.5*2.5*1.5)
+    g20 = (26*25*24)/(23*22*21)
     
     
+    with np.errstate(divide='ignore', invalid='ignore'):
+        qr = ds.variables['qr'][:].data[0,:,:,:]
+        nr = ds.variables['nr'][:].data[0,:,:,:]
+        zr = np.where(nr>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qr)**2 / nr, 0)
+        del qr,nr
+        
+        if nCat >= 1:
+            qi1 = ds.variables['qi1'][:].data[0,:,:,:]
+            ni1 = ds.variables['ni1'][:].data[0,:,:,:]
+            bi1 = ds.variables['bi1'][:].data[0,:,:,:]
+            rhoi1 = 1/bi1
+            
+            zi1 = np.where(ni1>0, 0.224*1e18*g05*(6/(np.pi*rhoi1))**2 * (rho*qi1)**2/ni1, 0)
+            z0 = np.where(ni1>0, 0.224*1e18*g0*(6/(np.pi*rhoi1))**2 * (rho*qi1)**2/ni1, 0)
+            z20 = np.where(ni1>0, 0.224*1e18*g20*(6/(np.pi*rhoi1))**2 * (rho*qi1)**2/ni1, 0)
+            zi1 = np.minimum(zi1, z0)
+            zi1 = np.maximum(zi1, z20)
+            zi = zi1
+            del qi1,ni1,bi1,rhoi1,zi1,z0,z20
+            
+        if nCat >= 2:
+            qi2 = ds.variables['qi1'][:].data[0,:,:,:]
+            ni2 = ds.variables['ni1'][:].data[0,:,:,:]
+            bi2 = ds.variables['bi1'][:].data[0,:,:,:]
+            rhoi2 = 1/bi2
+            
+            zi2 = np.where(ni2>0, 0.224*1e18*g05*(6/(np.pi*rhoi2))**2 * (rho*qi2)**2/ni2, 0)
+            z0 = np.where(ni2>0, 0.224*1e18*g0*(6/(np.pi*rhoi2))**2 * (rho*qi2)**2/ni2, 0)
+            z20 = np.where(ni2>0, 0.224*1e18*g20*(6/(np.pi*rhoi2))**2 * (rho*qi2)**2/ni2, 0)
+            zi2 = np.minimum(zi2, z0)
+            zi2 = np.maximum(zi2, z20)
+            zi = zi + zi2
+            del qi2,ni2,bi2,rhoi2,zi2,z0,z20
+            
+        if nCat >= 3:
+            qi3 = ds.variables['qi3'][:].data[0,:,:,:]
+            ni3 = ds.variables['ni3'][:].data[0,:,:,:]
+            bi3 = ds.variables['bi3'][:].data[0,:,:,:]
+            rhoi3 = 1/bi3
+            
+            zi3 = np.where(ni3>0, 0.224*1e18*g05*(6/(np.pi*rhoi3))**2 * (rho*qi3)**2/ni3, 0)
+            z0 = np.where(ni3>0, 0.224*1e18*g0*(6/(np.pi*rhoi3))**2 * (rho*qi3)**2/ni3, 0)
+            z20 = np.where(ni3>0, 0.224*1e18*g20*(6/(np.pi*rhoi3))**2 * (rho*qi3)**2/ni3, 0)
+            zi3 = np.minimum(zi3, z0)
+            zi3 = np.maximum(zi3, z20)
+            zi = zi + zi3
+            del qi3,ni3,bi3,rhoi3,zi3,z0,z20
+            
+        if nCat >= 4:
+            qi4 = ds.variables['qi4'][:].data[0,:,:,:]
+            ni4 = ds.variables['ni4'][:].data[0,:,:,:]
+            bi4 = ds.variables['bi4'][:].data[0,:,:,:]
+            rhoi4 = 1/bi4
+            
+            zi4 = np.where(ni4>0, 0.224*1e18*g05*(6/(np.pi*rhoi4))**2 * (rho*qi4)**2/ni4, 0)
+            z0 = np.where(ni4>0, 0.224*1e18*g0*(6/(np.pi*rhoi4))**2 * (rho*qi4)**2/ni4, 0)
+            z20 = np.where(ni4>0, 0.224*1e18*g20*(6/(np.pi*rhoi4))**2 * (rho*qi4)**2/ni4, 0)
+            zi4 = np.minimum(zi4, z0)
+            zi4 = np.maximum(zi4, z20)
+            zi = zi + zi4
+            del qi4,ni4,bi4,rhoi4,zi4,z0,z20
+        
+        z = zr + zi
+        Z = np.where(z>0, 10*np.log10(z), 0)
+        del z,zr,zi
+        
+    return Z
+
 
 
 

@@ -9,7 +9,7 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 # fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
 fn = np.linspace(1,29,8)
 
@@ -70,8 +70,8 @@ for f in fn:
     xl = [-150,150]
     yl = [-150,150]
     
-    xl = [-100,100]
-    yl = [-100,100]
+    # xl = [-100,100]
+    # yl = [-100,100]
     
     
     n = (f-fn[0])/(fn[1]-fn[0])
@@ -86,7 +86,7 @@ for f in fn:
     
     plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[i,j], levels=np.linspace(0,70,15),
                   datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
-    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5], colors='k', linestyles='-', linewidths=[0.5,1])
+    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors='k', linestyles='-', linewidths=[0.5,1])
     # ax[i,j].contour(xh, yh, np.min(winterp, axis=0), levels=[-5], colors='b', linestyles='-', linewidths=1)
     ax[i,j].set_title(f"t = {time:.0f} s")
     fig.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
@@ -98,10 +98,10 @@ for f in fn:
     
     plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
                   datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
-    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.02], colors='k', linestyles='-', linewidths=1)
-    ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.008, pivot='middle')
+    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.025], colors='k', linestyles='-', linewidths=1)
+    ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     ax1[i,j].set_title(f"t = {time:.0f} s")
-    fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.02 s$^{{-1}}$ ({titlestr})")
+    fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
     if (n==len(fn)-1) & (figsave):
         fig1.savefig(fp+f"figs/thpert.png", dpi=300)
 
@@ -577,6 +577,256 @@ if figsave:
     plt.savefig('C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/w_all_timeseries.png', dpi=300)
 
 # plt.show()
+
+
+
+#%% Zooming into the TLV in freeslip?
+
+fp = 'C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/'
+# fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
+fn = 25
+
+
+if 'semislip' in fp:
+    bbc = 'Semi-slip'
+elif 'freeslip' in fp:
+    bbc = 'Free-slip'
+elif 'noslip' in fp:
+    bbc = 'No-slip'
+
+titlestr = f"{bbc}, WK profile"
+
+
+
+
+
+
+
+xl = [-60,-10]
+yl = [-110,-60]
+
+
+ds = nc.Dataset(fp+f"cm1out_{fn:06d}.nc")
+time = ds.variables['time'][:].data[0]
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz1 = np.where(zh>1)[0][0]
+iz2 = np.where(zh>2)[0][0]
+iz3 = np.where(zh>3)[0][0]
+iz5 = np.where(zh>5)[0][0]
+ix1 = np.argmin(np.abs(xh-xl[0]))
+ix2 = np.argmin(np.abs(xh-xl[1]))
+iy1 = np.argmin(np.abs(yh-yl[0]))
+iy2 = np.argmin(np.abs(yh-yl[1]))
+ix = slice(ix1,ix2)
+iy = slice(iy1,iy2)
+
+
+
+xh = xh[ix]
+yh = yh[iy]
+zh = zh[0:iz5]
+
+dbz = ds.variables['dbz'][:].data[0,0,iy,ix]
+thpert = ds.variables['th'][:].data[0,0,iy,ix] - ds.variables['th0'][:].data[0,0,iy,ix]
+uinterp = ds.variables['uinterp'][:].data[0,0:iz1,iy,ix]
+vinterp = ds.variables['vinterp'][:].data[0,0:iz1,iy,ix]
+winterp = ds.variables['winterp'][:].data[0,0:iz2,iy,ix]
+zvort = ds.variables['zvort'][:].data[0,0:iz1,iy,ix]
+
+ic = np.where(np.max(zvort, axis=0) == np.max(np.max(zvort, axis=0)))
+ixc = slice(ic[1][0]-40, ic[1][0]+41)
+iyc = ic[0][0]
+
+zvortc = ds.variables['zvort'][:].data[0,0:iz5,iy,ix][:,iyc,ixc]
+winterpc = ds.variables['winterp'][:].data[0,0:iz5,iy,ix][:,iyc,ixc]
+thpertc = ds.variables['th'][:].data[0,0:iz5,iy,ix][:,iyc,ixc] - ds.variables['th0'][:].data[0,0:iz5,iy,ix][:,iyc,ixc]
+
+### P3 scheme
+thr = ds.variables['th'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv'][:].data[0,0,iy,ix] - 
+            (ds.variables['qc'][:].data[0,0,iy,ix] + ds.variables['qr'][:].data[0,0,iy,ix] + 
+             ds.variables['qi'][:].data[0,0,iy,ix]))
+# thr = ds.variables['th'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv'][:].data[0,0,iy,ix] - 
+#             (ds.variables['qc'][:].data[0,0,iy,ix] + ds.variables['qr'][:].data[0,0,iy,ix] + 
+#              ds.variables['qi1'][:].data[0,0,iy,ix] + ds.variables['qi2'][:].data[0,0,iy,ix] +
+#              ds.variables['qi3'][:].data[0,0,iy,ix] + ds.variables['qi4'][:].data[0,0,iy,ix]))
+thr0 = ds.variables['th0'][:].data[0,0,iy,ix] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,iy,ix])
+thrpert = thr - thr0
+del thr,thr0
+
+u_gr = uinterp + ds.variables['umove'][:].data[0]
+v_gr = vinterp + ds.variables['vmove'][:].data[0]
+
+ds.close()
+
+
+#%%
+
+figsave = False
+
+
+
+xleg = [200,201]
+yleg = [200,201]
+
+# zvlevs = [0.025, 0.05, 0.1]
+# zvlabs = [f"\u03B6={zvlevs[i]} s$^{-1}$" for i in range(len(zvlevs))]
+# zvcols = ['k', 'k', 'k']
+# zvlws = [1, 1.5, 2]
+# wlevs = [5, 10]
+# wlabs = [f"w={wlevs[i]} m/s" for i in range(len(wlevs))]
+# wcols = ['xkcd:slate', 'xkcd:slate']
+# wlws = [0.5, 1]
+# labs = list(np.append(zvlabs, wlabs))
+# cols = list(np.append(zvcols, wcols))
+# lws = list(np.append(zvlws, wlws))
+# l = []
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax, levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow')
+ax.contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors='xkcd:slate', linestyles='-', linewidths=[0.5,1])
+ax.contour(xh, yh, np.max(zvort, axis=0), levels=[0.025, 0.05, 0.1], colors='k', linestyles='-', linewidths=[1,1.5,2])
+l1, = ax.plot(xleg, yleg, 'k', linewidth=1, label="\u03B6=0.025 s$^{-1}$")
+l2, = ax.plot(xleg, yleg, 'k', linewidth=1.5, label="\u03B6=0.05 s$^{-1}$")
+l3, = ax.plot(xleg, yleg, 'k', linewidth=2, label="\u03B6=0.1 s$^{-1}$")
+l4, = ax.plot(xleg, yleg, c='xkcd:slate', linewidth=0.5, label="w=5 m/s")
+l5, = ax.plot(xleg, yleg, c='xkcd:slate', linewidth=1, label="w=10 m/s")
+ax.legend(handles=[l1,l2,l3,l4,l5], ncol=2, loc='upper left', fontsize=10)
+ax.set_title(f"Sfc dbz, max 0-2 km w, max 0-1 km \u03B6, t={time:.0f} s\n ({titlestr}) ")
+ax.set_xlabel('x (km)')
+ax.set_ylabel('y (km)')
+if figsave:
+    fig.savefig(fp+f"figs/dbz.png", dpi=300)
+
+
+qix = 8
+
+
+# zvlevs = [0.025, 0.05, 0.1]
+# zvlabs = [f"\u03B6={zvlevs[i]} s$^{-1}$" for i in range(len(zvlevs))]
+# zvcols = ['k','k','r']
+# zvlws = [1,2,2]
+# l = []
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, thrpert, 'thpert', ax, levels=np.linspace(-12,12,25),
+              datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance')
+ax.contour(xh, yh, np.max(zvort, axis=0), levels=[0.025,0.05,0.1], colors=['k','k','r'], linestyles='-', linewidths=[1,2,2])
+ax.quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=500, width=0.003, pivot='middle')
+l1, = ax.plot(xleg, yleg, 'k', linewidth=1, label="\u03B6=0.025 s$^{-1}$")
+l2, = ax.plot(xleg, yleg, 'k', linewidth=2, label="\u03B6=0.05 s$^{-1}$")
+l3, = ax.plot(xleg, yleg, 'r', linewidth=2, label="\u03B6=0.1 s$^{-1}$")
+ax.legend(handles=[l1,l2,l3], loc='upper left', fontsize=10)
+# for c,lw in zip(zvcols,zvlws):
+#     l1, = ax.plot(xleg, yleg, color=c, linewidth=lw)
+#     l = list(np.append(l, l1))
+# ax.legend(handles=l, labels=zvlabs, loc='upper left', fontsize=10)
+ax.set_title(f"Sfc \u03B8'\u1D68, max 0-1 km \u03B6, t={time:.0f} s\n ({titlestr}) ")
+ax.set_xlabel('x (km)')
+ax.set_ylabel('y (km)')
+if figsave:
+    fig.savefig(fp+f"figs/thrpert.png", dpi=300)
+
+
+
+
+
+
+#%%
+
+zvlevs = [-0.003, 0.01, 0.025, 0.05, 0.1]
+zvlabs = [f"\u03B6={zvlevs[i]} s$^{{-1}}$" for i in range(len(zvlevs))]
+zvlws = [0.5, 0.5, 0.75, 1, 2]
+zvlss = ['--', '-', '-', '-', '-']
+l = []
+
+xlc = [xh[ixc][0], xh[ixc][-1]]
+
+
+fig,ax = plt.subplots(1, 1, figsize=(9,4), subplot_kw=dict(box_aspect=0.5), layout='constrained')
+plot_contourf(xh[ixc], zh, winterpc, 'w', ax, levels=np.linspace(-36,36,37),
+              datalims=[-35,35], xlims=xlc, ylims=[0,5], cmap='balance')
+ax.contour(xh[ixc], zh, zvortc, levels=zvlevs, colors='k', linestyles=zvlss, linewidths=zvlws)
+# l1, = ax.plot(xleg, yleg, 'k', linewidth=0.5, label="\u03B6=0.01 s$^{-1}$")
+# l2, = ax.plot(xleg, yleg, 'k', linewidth=0.75, label="\u03B6=0.025 s$^{-1}$")
+# l3, = ax.plot(xleg, yleg, 'k', linewidth=1, label="\u03B6=0.05 s$^{-1}$")
+# l4, = ax.plot(xleg, yleg, 'k', linewidth=2, label="\u03B6=0.1 s$^{-1}$")
+# ax.legend(handles=[l1,l2,l3], loc='upper left', fontsize=10)
+for ls,lw in zip(zvlss,zvlws):
+    l1, = ax.plot(xleg, yleg, color='k', linestyle=ls, linewidth=lw)
+    l = list(np.append(l, l1))
+ax.legend(handles=l, labels=zvlabs, loc='upper left', fontsize=8)
+ax.set_xlabel('x (km)')
+ax.set_ylabel('z (km)')
+ax.set_title(f"Cross section through \u03B6-max at t={time:.0f} s\n w shaded, \u03B6 contour ({titlestr}) ")
+plt.show()
+
+
+
+# wlevs = [-10, -4, 4, 10, 15, 20]
+# wlabs = [f"w={wlevs[i]} m/s" for i in range(len(wlevs))]
+# wcols = ['b', 'b', 'k', 'k', 'k', 'k']
+# wlss = ['--', '--', '-', '-', '-', '-']
+# wlws = [1, 0.5, 0.5, 1, 1.5, 2]
+# l = []
+
+# fig,ax = plt.subplots(1, 1, figsize=(9,4), subplot_kw=dict(box_aspect=0.5), layout='constrained')
+# plot_contourf(xh[ixc], zh, zvortc, 'zvort', ax, levels=np.linspace(-0.15,0.15,31),
+#               datalims=[-0.15,0.15], xlims=xlc, ylims=[0,5], cmap='balance')
+# # ax.contour(xh[ixc], zh, winterpc, levels=[-10,-4], colors='b', linewidths=[1,0.5])
+# # ax.contour(xh[ixc], zh, winterpc, levels=[4,10,15,20], colors='k', linewidths=[0.5,1,1.5,2])
+# ax.contour(xh[ixc], zh, winterpc, levels=wlevs, colors=wcols, linestyles=wlss, linewidths=wlws)
+# for c,ls,lw in zip(wcols,wlss,wlws):
+#     l1, = ax.plot(xleg, yleg, color=c, linestyle=ls, linewidth=lw)
+#     l = list(np.append(l,l1))
+# ax.legend(handles=l, labels=wlabs, loc='upper left', fontsize=8)
+# ax.set_xlabel('x (km)')
+# ax.set_ylabel('z (km)')
+# ax.set_title(f"Cross section through \u03B6-max at t={time:.0f} s\n \u03B6 shaded, w contour ({titlestr}) ")
+# plt.show()
+
+
+#%%
+
+wlevs = [-6, -3, 3, 6, 10, 15, 20]
+wcols = ['b', 'b', 'r', 'r', 'r', 'r', 'r']
+wlss = ['--', '--', '--', '--', '-', '-', '-']
+wlws = [0.75, 0.5, 0.5, 0.75, 0.75, 1.25, 1.75]
+wlabs = [f"w={wlevs[i]} m/s" for i in range(len(wlevs))]
+
+zvlevs = [-0.005, 0.01, 0.05, 0.1]
+zvcols = ['k', 'k', 'k', 'k']
+zvlws = [0.5, 0.75, 1.25, 2]
+zvlss = ['--', '-', '-', '-']
+zvlabs = [f"\u03B6={zvlevs[i]} s$^{{-1}}$" for i in range(len(zvlevs))]
+
+labs = list(np.append(zvlabs, wlabs))
+l = []
+
+fig,ax = plt.subplots(1, 1, figsize=(9,4), subplot_kw=dict(box_aspect=0.5), layout='constrained')
+plot_contourf(xh[ixc], zh, thpertc, 'thpert', ax, levels=np.linspace(-12,12,21),
+              datalims=[-12,12], xlims=xlc, ylims=[0,5], cmap=cmocean.cm.balance)
+
+cw = ax.contour(xh[ixc], zh, winterpc, levels=wlevs, colors=wcols, linestyles=wlss, linewidths=wlws)
+ax.clabel(cw, inline=True, fmt="%.0f", fontsize=7, inline_spacing=2)
+for lab in cw.labelTexts:
+    lab.set_rotation(0)
+
+# cz = ax.contour(xh[ixc], zh, zvortc, levels=zvlevs, colors=zvcols, linestyles=zvlss, linewidths=zvlws)
+# for c,ls,lw in zip(zvcols,zvlss,zvlws): #zvort contours
+#     l1, = ax.plot(xleg, yleg, color=c, linestyle=ls, linewidth=lw)
+#     l = list(np.append(l, l1))
+# ax.legend(handles=l, labels=zvlabs, loc='upper left', fontsize=8)
+
+ax.set_xlabel('x (km)')
+ax.set_ylabel('z (km)')
+ax.set_title(f"Cross section through \u03B6-max at t={time:.0f} s\n \u03B8' shaded, w and \u03B6 contour ({titlestr}) ")
+
+plt.show()
 
 
 
