@@ -11,12 +11,14 @@ from CM1utils import *
 
 # semi-slip test1 and test2 are the most interesting/bow echo-y
 # Cd = 0.0014 and 0.005
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
-# fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
-fn = np.linspace(1,29,8)
+# fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
+fn = np.linspace(2,9,8)
 
+p3_version = 'old'
 
-titlestr = "Semi-slip, dx=250m"
+# titlestr = "Semi-slip, dx=250m"
+titlestr = f"Test - {p3_version} P3"
 
 
 figsave = False
@@ -25,7 +27,7 @@ fig,ax = plt.subplots(2, 4, figsize=(9.5,5), sharex=True, sharey=True, subplot_k
 fig1,ax1 = plt.subplots(2, 4, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 
 for f in fn:
-    ds = nc.Dataset(fp+f"cm1out_{f:06.0f}.nc")
+    ds = nc.Dataset(fp+f"cm1out_{f:06.0f}_{p3_version}P3.nc")
     time = ds.variables['time'][:].data[0]
     xh = ds.variables['xh'][:].data
     yh = ds.variables['yh'][:].data
@@ -60,8 +62,8 @@ for f in fn:
     xl = [-150,150]
     yl = [-150,150]
     
-    # xl = [-100,50]
-    # yl = [-75,75]
+    xl = [-60,60]
+    yl = [-60,60]
     
     
     n = (f-fn[0])/(fn[1]-fn[0])
@@ -84,16 +86,17 @@ for f in fn:
         fig.savefig(fp+f"figs/dbz.png", dpi=300)
     
     
-    qix = 60
+    qix = 3
     
-    plot_contourf(xh, yh, thpert, 'thpert', ax1[i,j], levels=np.linspace(-15,15,31),
-                  datalims=[-15,15], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    plot_contourf(xh, yh, thpert, 'thpert', ax1[i,j], levels=np.linspace(-8,8,17), #was levels=np.linspace(-15,15,31), datalims=[-15,15]
+                  datalims=[-8,8], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
     ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.02], colors='k', linestyles='-', linewidths=1)
     ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     ax1[i,j].set_title(f"t = {time:.0f} s")
-    fig1.suptitle(f"Sfc thpert + sfc wind + max 0-1 km zeta=0.02 s$^{{-1}}$ ({titlestr})")
+    fig1.suptitle(f"Sfc thpert + sfc winds + max 0-1 km zeta=0.02 s$^{{-1}}$ ({titlestr})")
     if (n==len(fn)-1) & (figsave):
         fig1.savefig(fp+f"figs/thpert.png", dpi=300)
+
 
 
 

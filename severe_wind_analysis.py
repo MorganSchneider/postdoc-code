@@ -9,8 +9,8 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
-# fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
+# fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/new_p3_test/'
 fn = np.linspace(1,29,8)
 
 
@@ -21,7 +21,8 @@ elif 'freeslip' in fp:
 elif 'noslip' in fp:
     bbc = 'No-slip'
 
-titlestr = f"{bbc}, WK profile, dx=250m"
+# titlestr = f"{bbc}, WK profile, dx=250m"
+titlestr = "New P3, WK profile, dx=1000m"
 
 
 figsave = False
@@ -108,7 +109,7 @@ for f in fn:
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
