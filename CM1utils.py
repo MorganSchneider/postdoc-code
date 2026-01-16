@@ -311,7 +311,7 @@ def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None,
 
 
 # Calculate individual CM1 reflectivity contributions (NSSL 2-moment microphysics only)
-def calc_dbz_contributions(qx, cx, rho, field, plot=False, **kwargs):
+def calc_dbz_contributions_nssl(qx, cx, rho, field, plot=False, **kwargs):
     # qx = hydrometeor mixing ratio in kg/kg
     # cx = hydrometeor number concentration in #/kg
     # rho = air density matrix in kg/m^3
@@ -367,7 +367,7 @@ def calc_dbz_contributions(qx, cx, rho, field, plot=False, **kwargs):
     
 
 # Recalculate brightband-corrected CM1 reflectivity (NSSL 2-moment microphysics only)
-def calc_dbz(ds):
+def calc_dbz_nssl(ds):
     # Load data
     rho = ds.variables['rho'][:].data # air density (kg/m3)
     rho = 1.1
@@ -434,74 +434,9 @@ def calc_dbz_contributions_p3(qx, nx, bi, field, plot=False, **kwargs):
     Zx = np.where(zx>0, 10*np.log10(zx), 0)
         
     return Zx
-
-
-def calc_dbz_p3(ds, dblmom=False):
-    rho_l = 1000
-    rho_i = 900
-    rho = 1.1
-    
-    g0 = (6*5*4)/(3*2*1)
-    g05 = (6.5*5.5*4.5)/(3.5*2.5*1.5)
-    g20 = (26*25*24)/(23*22*21)
-    
-    if dblmom:
-        qr = ds.variables['qr'][:].data[0,:,:,:]
-        qnr = ds.variables['nr'][:].data[0,:,:,:]
-        qi1 = ds.variables['qi'][:].data[0,:,:,:]
-        qi2 = ds.variables['qi2'][:].data[0,:,:,:]
-        qir1 = ds.variables['ri'][:].data[0,:,:,:]
-        qir2 = ds.variables['ri2'][:].data[0,:,:,:]
-        qni1 = ds.variables['ni'][:].data[0,:,:,:]
-        qni2 = ds.variables['ni2'][:].data[0,:,:,:]
-    else:
-        qr = ds.variables['qr'][:].data[0,:,:,:]
-        qnr = ds.variables['qnr'][:].data[0,:,:,:]
-        qi = ds.variables['qi'][:].data[0,:,:,:]
-        qir = ds.variables['qir'][:].data[0,:,:,:] #rime ice mass mixing ratio kg/kg
-        qni = ds.variables['qni'][:].data[0,:,:,:]
-    
-    with np.errstate(divide='ignore', invalid='ignore'):
-        zr = np.where(qnr>0, 20*1e18*(6/(np.pi*rho_l))**2 * (rho*qr)**2 / qnr, 0)
-        del qr,qnr
-        if dblmom:
-            zi1 = np.where(qni1>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
-            z01 = np.where(qni1>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
-            z201 = np.where(qni1>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi1)**2/qni1, 0)
-            del qi1,qni1
-            
-            zi2 = np.where(qni2>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
-            z02 = np.where(qni2>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
-            z202 = np.where(qni2>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi2)**2/qni2, 0)
-            del qi2,qni2
-            
-            zi1 = np.minimum(zi1, z01)
-            zi1 = np.maximum(zi1, z201)
-            zi2 = np.minimum(zi2, z02)
-            zi2 = np.maximum(zi2, z202)
-            del z01,z201,z02,z202
-            
-            zi = zi1 + zi2
-            del zi,zi2
-        else:
-            zi = np.where(qni>0, 0.224*1e18*g05*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
-            z0 = np.where(qni>0, 0.224*1e18*g0*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
-            z20 = np.where(qni>0, 0.224*1e18*g20*(6/(np.pi*rho_i))**2 * (rho*qi)**2/qni, 0)
-            del qi,qni
-            
-            zi = np.minimum(zi, z0)
-            zi = np.maximum(zi, z20)
-            del z0,z20
-        
-        z = zr + zi
-        Z = np.where(z>0, 10*np.log10(z), 0)
-        del z,zr,zi
-        
-    return Z
         
 
-
-def calc_dbz_p3_v2(ds, nCat=1):
+def calc_dbz_p3(ds, nCat=1):
     rho_l = 1000
     rho = 1.1
     
