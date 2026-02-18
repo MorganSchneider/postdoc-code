@@ -9,8 +9,8 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-# fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
-fp = 'C:/Users/mschne28/Documents/cm1out/new_p3_test/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_500m/'
+
 fn = np.linspace(1,29,8)
 
 
@@ -21,8 +21,8 @@ elif 'freeslip' in fp:
 elif 'noslip' in fp:
     bbc = 'No-slip'
 
-# titlestr = f"{bbc}, WK profile, dx=250m"
-titlestr = "New P3, WK profile, dx=1000m"
+titlestr = f"{bbc}, WK profile, dx=500m"
+# titlestr = "New P3 -- Fir, modded"
 
 
 figsave = False
@@ -57,7 +57,10 @@ for f in fn:
     ### P3 scheme
     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
-                 ds.variables['qi'][:].data[0,0,:,:]))
+                 ds.variables['qi1'][:].data[0,0,:,:] +
+                 ds.variables['qi2'][:].data[0,0,:,:] + 
+                 ds.variables['qi3'][:].data[0,0,:,:]))
+                 # ds.variables['qi4'][:].data[0,0,:,:]))
     thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
     thrpert = thr - thr0
     del thr,thr0
@@ -95,21 +98,21 @@ for f in fn:
         fig.savefig(fp+f"figs/dbz.png", dpi=300)
     
     
-    qix = 60
+    qix = 30
     
     plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
                   datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
-    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.025], colors='k', linestyles='-', linewidths=1)
+    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.01], colors='k', linestyles='-', linewidths=1)
     ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     ax1[i,j].set_title(f"t = {time:.0f} s")
-    fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.01 s$^{{-1}}$ ({titlestr})")
     if (n==len(fn)-1) & (figsave):
         fig1.savefig(fp+f"figs/thpert.png", dpi=300)
 
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_500m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
@@ -123,7 +126,7 @@ elif 'noslip' in fp:
 # if 'wk' in fp:
 #     bs = 'WK profile'
 
-titlestr = f"{bbc}, WK profile, dx=250m"
+titlestr = f"{bbc}, WK profile, dx=500"
 
 ds = nc.Dataset(fp+"cm1out_000029.nc")
 time = ds.variables['time'][:].data[0]
@@ -132,8 +135,9 @@ yh = ds.variables['yh'][:].data
 # dbz = ds.variables['dbz'][:].data[0,0,:,:]
 # wspd = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
 
+# hail = ds.variables['hail'][:].data[0,:,:]
+# hail2 = ds.variables['hail2'][:].data[0,:,:]
 sws = ds.variables['sws'][:].data[0,:,:] #max sfc wind speed
-sws2 = ds.variables['sws2'][:].data[0,:,:] #translated max sfc wind speed
 svs = ds.variables['svs'][:].data[0,:,:] #max sfc zeta
 sps = ds.variables['sps'][:].data[0,:,:] #min sfc p'
 sus = ds.variables['sus'][:].data[0,:,:] #max 5km w
@@ -169,38 +173,39 @@ if figsave:
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
 plot_contourf(xh, yh, np.ma.masked_array(svs, svs<0.001), 'zvort', ax,
-              levels=np.linspace(0,0.1,21), datalims=[0,0.1],
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.1,11), extend='max')
+              levels=np.linspace(0,0.05,21), datalims=[0,0.05],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
 ax.set_title(f"7-h sfc zeta swath ({titlestr})", fontsize=16)
 if figsave:
     plt.savefig(fp+"figs/zeta_swath.png", dpi=300)
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, np.ma.masked_array(sus, sus<1), 'w', ax,
-              levels=np.linspace(0,40,21), datalims=[0,40],
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
-ax.set_title(f"7-h 5-km updraft swath ({titlestr})", fontsize=16)
-if figsave:
-    plt.savefig(fp+"figs/updraft_swath.png", dpi=300)
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, np.ma.masked_array(sus, sus<1), 'w', ax,
+#               levels=np.linspace(0,40,21), datalims=[0,40],
+#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+# ax.set_title(f"7-h 5-km updraft swath ({titlestr})", fontsize=16)
+# if figsave:
+#     plt.savefig(fp+"figs/updraft_swath.png", dpi=300)
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, np.ma.masked_array(shs, shs<10), 'uh', ax,
-              levels=np.linspace(0,2000,21), datalims=[0,2000],
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,2000,11), extend='max')
-ax.set_title(f"7-h UH swath ({titlestr})", fontsize=16)
-if figsave:
-    plt.savefig(fp+"figs/helicity_swath.png", dpi=300)
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, np.ma.masked_array(shs, shs<10), 'uh', ax,
+#               levels=np.linspace(0,2000,21), datalims=[0,2000],
+#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,2000,11), extend='max')
+# ax.set_title(f"7-h UH swath ({titlestr})", fontsize=16)
+# if figsave:
+#     plt.savefig(fp+"figs/helicity_swath.png", dpi=300)
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, np.ma.masked_array(sps/100, sps/100>-0.1), 'prspert', ax,
-              levels=np.linspace(-5,0,21), datalims=[-5,0],
-              xlims=xl, ylims=yl, cmap='Blues_r', cbfs=14, cbticks=np.linspace(-5,0,11), extend='min')
-ax.set_title(f"7-h sfc p' swath ({titlestr})", fontsize=16)
-if figsave:
-    plt.savefig(fp+"figs/prspert_swath.png", dpi=300)
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, np.ma.masked_array(sps/100, sps/100>-0.1), 'prspert', ax,
+#               levels=np.linspace(-5,0,21), datalims=[-5,0],
+#               xlims=xl, ylims=yl, cmap='Blues_r', cbfs=14, cbticks=np.linspace(-5,0,11), extend='min')
+# ax.set_title(f"7-h sfc p' swath ({titlestr})", fontsize=16)
+# if figsave:
+#     plt.savefig(fp+"figs/prspert_swath.png", dpi=300)
+
 
 
 
@@ -214,7 +219,7 @@ plt.show()
 
 #%% plot cm1 stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/noslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_500m/'
 
 
 if 'semislip' in fp:
@@ -226,7 +231,7 @@ elif 'noslip' in fp:
 
 # dx = fp[47:-2]
 
-titlestr = f"{bbc}, WK profile, dx=250m"
+titlestr = f"{bbc}, WK profile, dx=500m"
 
 ds = nc.Dataset(fp+'cm1out_000001.nc')
 prs0 = ds.variables['prs0'][:].data[0,0,0,0]
