@@ -9,9 +9,9 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
-fn = np.linspace(1,17,5)
+fn = np.linspace(1,29,8)
 
 
 if 'semislip' in fp:
@@ -31,7 +31,7 @@ titlestr = f"{bbc}, WK profile, dx=250m"
 figsave = False
 
 fig,ax = plt.subplots(2, 4, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-fig1,ax1 = plt.subplots(2, 4, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig1,ax1 = plt.subplots(2, 4, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 
 for f in fn:
     ds = nc.Dataset(fp+f"cm1out_{f:06.0f}.nc")
@@ -45,31 +45,22 @@ for f in fn:
     
     
     dbz = ds.variables['dbz'][:].data[0,0,:,:]
-    # cref = ds.variables['cref'][:].data[0,:,:]
-    thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
-    uinterp = ds.variables['uinterp'][:].data[0,0:iz1,:,:]
-    vinterp = ds.variables['vinterp'][:].data[0,0:iz1,:,:]
     winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
-    zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
-    
-    ### NSSL scheme
+    # thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    # uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    # vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    # zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
     # thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
     #             (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
-    #              ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] + 
-    #              ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
-    ### P3 scheme
-    thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
-                (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
-                 ds.variables['qi1'][:].data[0,0,:,:] +
-                 ds.variables['qi2'][:].data[0,0,:,:] + 
-                 ds.variables['qi3'][:].data[0,0,:,:]))
-                 # ds.variables['qi4'][:].data[0,0,:,:]))
-    thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
-    thrpert = thr - thr0
-    del thr,thr0
-    
-    u_gr = uinterp + ds.variables['umove'][:].data[0]
-    v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    #              ds.variables['qi1'][:].data[0,0,:,:] +
+    #              ds.variables['qi2'][:].data[0,0,:,:] + 
+    #              ds.variables['qi3'][:].data[0,0,:,:]))
+    #              # ds.variables['qi4'][:].data[0,0,:,:]))
+    # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+    # thrpert = thr - thr0
+    # del thr,thr0
+    # u_gr = uinterp + ds.variables['umove'][:].data[0]
+    # v_gr = vinterp + ds.variables['vmove'][:].data[0]
     
     ds.close()
     
@@ -93,11 +84,10 @@ for f in fn:
     
     plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[i,j], levels=np.linspace(0,70,15),
                   datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
-    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors='k', linestyles='-', linewidths=[0.5,1])
-    # ax[i,j].contour(xh, yh, np.min(winterp, axis=0), levels=[-5], colors='b', linestyles='-', linewidths=1)
+    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
     if n == 0:
-        l1, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.5)
-        l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=1)
+        l1, = ax[0,0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+        l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.75)
         ax[0,0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper right', fontsize=10)
     ax[i,j].set_title(f"t = {time:.0f} s")
     # fig.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
@@ -106,25 +96,223 @@ for f in fn:
         fig.savefig(fp+f"figs/dbz.png", dpi=300)
     
     
+    # qix = 60
+    
+    # plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
+    #               datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    # ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
+    # ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    # if n == 0:
+    #     l3, = ax1[0,0].plot([190,200], [190,200], '-r', linewidth=1)
+    #     ax1[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
+    # ax1[i,j].set_title(f"t = {time:.0f} s")
+    # # fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    # fig1.suptitle(f"{sim}")
+    # if (n==len(fn)-1) & (figsave):
+    #     fig1.savefig(fp+f"figs/thrpert.png", dpi=300)
+
+
+
+
+
+#%% Overview plot for the CWE conference
+
+
+fn = np.linspace(5,29,4)
+
+fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+
+if 'semislip' in fp:
+    bbc = 'Semi-slip'
+    sim = 'SEMISLIP'
+elif 'freeslip' in fp:
+    bbc = 'Free-slip'
+    sim = 'FREESLIP'
+elif 'noslip' in fp:
+    bbc = 'No-slip'
+    sim = 'NOSLIP'
+
+titlestr = f"{bbc}, WK profile, dx=250m"
+# titlestr = "New P3 -- Fir, modded"
+
+
+figsave = False
+
+
+
+# fig,ax = plt.subplots(3, 4, figsize=(9.5,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig1,ax1 = plt.subplots(3, 4, figsize=(9.5,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+
+for f in fn:
+    # Semi-slip
+    ds = nc.Dataset(fp1 + f"cm1out_{f:06.0f}.nc")
+    time = ds.variables['time'][:].data[0]
+    xh = ds.variables['xh'][:].data
+    yh = ds.variables['yh'][:].data
+    zh = ds.variables['zh'][:].data
+    iz1 = np.where(zh>1)[0][0]
+    iz2 = np.where(zh>2)[0][0]
+    iz3 = np.where(zh>3)[0][0]
+    
+    
+    # dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    # winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    # # thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
+    
+    thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+                (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+                 ds.variables['qi1'][:].data[0,0,:,:] +
+                 ds.variables['qi2'][:].data[0,0,:,:] + 
+                 ds.variables['qi3'][:].data[0,0,:,:]))
+    thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+    thrpert = thr - thr0
+    del thr,thr0
+    
+    u_gr = uinterp + ds.variables['umove'][:].data[0]
+    v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    
+    ds.close()
+    
+    
+    xl = [-150,150]
+    yl = [-150,150]
+    
+    
+    n = int((f-fn[0])/(fn[1]-fn[0]))
+    # i = int(np.floor(n/4))
+    # j = int(np.mod(n,4))
+    
+    if f == 29:
+        cb_flag = True
+    else:
+        cb_flag = False
+    
+    
+    # plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[0,n], levels=np.linspace(0,70,15),
+    #               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
+    # ax[0,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # if n == 0:
+    #     l1, = ax[0,0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+    #     l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.75)
+    #     ax[0,0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper right', fontsize=10)
+    # ax[0,n].set_title(f"t = {time:.0f} s")
+    # if n == 0:
+    #     ax[0,n].set_ylabel('y (km)', fontsize=12)
+    
+    
     qix = 60
     
-    plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
+    plot_contourf(xh, yh, thrpert, 'thpert', ax1[0,n], levels=np.linspace(-12,12,25),
                   datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
-    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.025], colors='r', linestyles='-', linewidths=1)
-    ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[0,::qix,::qix], v_gr[0,::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    ax1[0,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
+    ax1[0,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     if n == 0:
         l3, = ax1[0,0].plot([190,200], [190,200], '-r', linewidth=1)
-        ax1[0,0].legend(handles=[l3], labels=["\u03B6=0.025 s$^{-1}$"], loc='upper right', fontsize=10)
-    ax1[i,j].set_title(f"t = {time:.0f} s")
-    # fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
-    fig1.suptitle(f"{sim}")
-    if (n==len(fn)-1) & (figsave):
-        fig1.savefig(fp+f"figs/thrpert.png", dpi=300)
+        ax1[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
+    ax1[0,n].set_title(f"t = {time:.0f} s")
+    if n == 0:
+        ax1[0,n].set_ylabel('y (km)', fontsize=12)
+    
+    
+    
+    
+    # Free-slip
+    ds = nc.Dataset(fp2 + f"cm1out_{f:06.0f}.nc")
+    
+    # dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    # winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    # thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
+    
+    thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+                (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+                 ds.variables['qi1'][:].data[0,0,:,:] +
+                 ds.variables['qi2'][:].data[0,0,:,:] + 
+                 ds.variables['qi3'][:].data[0,0,:,:]))
+    thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+    thrpert = thr - thr0
+    del thr,thr0
+    
+    u_gr = uinterp + ds.variables['umove'][:].data[0]
+    v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    
+    ds.close()
+    
+    
+    # plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[1,n], levels=np.linspace(0,70,15),
+    #               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
+    # ax[1,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # if n == 0:
+    #     ax[1,n].set_ylabel('y (km)', fontsize=12)
+    
+    
+    plot_contourf(xh, yh, thrpert, 'thpert', ax1[1,n], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    ax1[1,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
+    ax1[1,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    if n == 0:
+        ax1[1,n].set_ylabel('y (km)', fontsize=12)
+    
+    
+    
+    # No-slip
+    ds = nc.Dataset(fp3 + f"cm1out_{f:06.0f}.nc")
+    
+    # dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    # winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    # thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
+    
+    thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+                (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+                 ds.variables['qi1'][:].data[0,0,:,:] +
+                 ds.variables['qi2'][:].data[0,0,:,:] + 
+                 ds.variables['qi3'][:].data[0,0,:,:]))
+    thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+    thrpert = thr - thr0
+    del thr,thr0
+    
+    u_gr = uinterp + ds.variables['umove'][:].data[0]
+    v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    
+    ds.close()
+    
+    
+    # plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[2,n], levels=np.linspace(0,70,15),
+    #               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
+    # ax[2,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # ax[2,n].set_xlabel('x (km)', fontsize=12)
+    # if n == 0:
+    #     ax[2,n].set_ylabel('y (km)', fontsize=12)
+    # if (f==fn[-1]) & (figsave):
+    #     fig.savefig(fp1+f"figs/dbz_all.png", dpi=300)
+    
+    
+    plot_contourf(xh, yh, thrpert, 'thpert', ax1[2,n], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    ax1[2,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
+    ax1[2,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    ax1[2,n].set_xlabel('x (km)', fontsize=12)
+    if n == 0:
+        ax1[2,n].set_ylabel('y (km)', fontsize=12)
+    if (f==fn[-1]) & (figsave):
+        fig1.savefig(fp1+f"figs/thrpert_all.png", dpi=300)
+
+
 
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
@@ -248,7 +436,7 @@ plt.show()
 
 #%% plot cm1 stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
 
 if 'semislip' in fp:
@@ -550,7 +738,7 @@ ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
 #              loc='upper left', fontsize=14)
 
 if figsave:
-    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/zeta_all_timeseries.png', dpi=300)
+    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/figs/zeta_all_timeseries.png', dpi=300)
 # plt.show()
 
 #%
@@ -614,7 +802,7 @@ ax[2].yaxis.set_minor_locator(MultipleLocator(2.5))
 
 
 if figsave:
-    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/w_all_timeseries.png', dpi=300)
+    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/figs/w_all_timeseries.png', dpi=300)
 
 # plt.show()
 
