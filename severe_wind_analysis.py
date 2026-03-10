@@ -9,9 +9,9 @@ from CM1utils import *
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
 
-fn = np.linspace(1,37,10)
+fn = np.linspace(1,17,5)
 ncols = 5
 
 
@@ -48,7 +48,7 @@ for f in fn:
     
     dbz = ds.variables['dbz'][:].data[0,0,:,:]
     winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
-    # # thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    # # thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
     # uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
     # vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
     # zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
@@ -65,7 +65,7 @@ for f in fn:
     #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
     #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
     #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
-    #                  ds.variables['qg'][:].data[0,0,:,:])) # + ds.variables['qhl'][:].data[0,0,:,:]))
+    #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
     # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
     # thrpert = thr - thr0
     # del thr,thr0

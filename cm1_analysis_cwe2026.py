@@ -32,8 +32,8 @@ fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
 figsave = False
 
-plot_dbz = False
-plot_thr = True
+plot_dbz = True
+plot_thr = False
 
 
 if plot_dbz:
@@ -112,7 +112,7 @@ if plot_dbz:
         if n == 0:
             ax[2,n].set_ylabel('y (km)', fontsize=12)
         if (f==fn[-1]) & (figsave):
-            fig.savefig(fp2+f"figs/dbz_all.png", dpi=300)
+            fig.savefig(fp2+f"figs/dbz_all_v2.png", dpi=300)
         
 
 
@@ -151,7 +151,7 @@ if plot_thr:
         #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
         #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
         #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
-        #                  ds.variables['qg'][:].data[0,0,:,:])) # + ds.variables['qhl'][:].data[0,0,:,:]))
+        #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
         # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
         # thrpert = thr - thr0
         # del thr,thr0
@@ -264,10 +264,13 @@ if plot_thr:
         if n == 0:
             ax[2,n].set_ylabel('y (km)', fontsize=12)
         if (f==fn[-1]) & (figsave):
-            fig.savefig(fp2+f"figs/thrpert_all.png", dpi=300)
+            fig.savefig(fp2+f"figs/thrpert_all_v2.png", dpi=300)
 
 
 #%% Time series plots
+
+from scipy import stats
+
 
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 ds = nc.Dataset(fp1+f"cm1out_stats.nc")
@@ -284,14 +287,18 @@ vort3km_fs = ds.variables['vort3km'][:].data #max 3km vort
 sthpmin_fs = ds.variables['sthpmin'][:].data #min sfc thpert
 pratemax_fs = ds.variables['pratemax'][:].data #max sfc rain rate
 sratemax_fs = ds.variables['sratemax'][:].data #max sfc hail rate
+psratemax_fs = pratemax_fs + sratemax_fs
 ds.close()
 
+data_fs = {'wmax500':wmax500_fs, 'wmax1000':wmax1000_fs, 'wmax2500':wmax2500_fs, 'wmax5000':wmax5000_fs,
+          'vortsfc':vortsfc_fs, 'vort1km':vort1km_fs, 'vort2km':vort2km_fs, 'vort3km':vort3km_fs,
+          'swspmax':swspmax_fs, 'sthpmin':sthpmin_fs, 'pratemax':pratemax_fs, 'sratemax':sratemax_fs, 'psratemax':psratemax_fs}
 stdev_fs = {'wmax500':np.std(wmax500_fs), 'wmax1000':np.std(wmax1000_fs), 'wmax2500':np.std(wmax2500_fs), 'wmax5000':np.std(wmax5000_fs),
           'vortsfc':np.std(vortsfc_fs), 'vort1km':np.std(vort1km_fs), 'vort2km':np.std(vort2km_fs), 'vort3km':np.std(vort3km_fs),
-          'swspmax':np.std(swspmax_fs), 'sthpmin':np.std(sthpmin_fs), 'pratemax':np.std(pratemax_fs), 'sratemax':np.std(sratemax_fs)}
+          'swspmax':np.std(swspmax_fs), 'sthpmin':np.std(sthpmin_fs), 'pratemax':np.std(pratemax_fs), 'sratemax':np.std(sratemax_fs), 'psratemax':np.std(psratemax_fs)}
 var_fs = {'wmax500':np.var(wmax500_fs), 'wmax1000':np.var(wmax1000_fs), 'wmax2500':np.var(wmax2500_fs), 'wmax5000':np.var(wmax5000_fs),
           'vortsfc':np.var(vortsfc_fs), 'vort1km':np.var(vort1km_fs), 'vort2km':np.var(vort2km_fs), 'vort3km':np.var(vort3km_fs),
-          'swspmax':np.var(swspmax_fs), 'sthpmin':np.var(sthpmin_fs), 'pratemax':np.var(pratemax_fs), 'sratemax':np.var(sratemax_fs)}
+          'swspmax':np.var(swspmax_fs), 'sthpmin':np.var(sthpmin_fs), 'pratemax':np.var(pratemax_fs), 'sratemax':np.var(sratemax_fs), 'psratemax':np.var(psratemax_fs)}
 
 
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
@@ -308,14 +315,18 @@ vort3km_ss = ds.variables['vort3km'][:].data #max 3km vort
 sthpmin_ss = ds.variables['sthpmin'][:].data #min sfc thpert
 pratemax_ss = ds.variables['pratemax'][:].data #max sfc rain rate
 sratemax_ss = ds.variables['sratemax'][:].data #max sfc hail rate
+psratemax_ss = pratemax_ss + sratemax_ss
 ds.close()
 
+data_ss = {'wmax500':wmax500_ss, 'wmax1000':wmax1000_ss, 'wmax2500':wmax2500_ss, 'wmax5000':wmax5000_ss,
+          'vortsfc':vortsfc_ss, 'vort1km':vort1km_ss, 'vort2km':vort2km_ss, 'vort3km':vort3km_ss,
+          'swspmax':swspmax_ss, 'sthpmin':sthpmin_ss, 'pratemax':pratemax_ss, 'sratemax':sratemax_ss, 'psratemax':psratemax_ss}
 stdev_ss = {'wmax500':np.std(wmax500_ss), 'wmax1000':np.std(wmax1000_ss), 'wmax2500':np.std(wmax2500_ss), 'wmax5000':np.std(wmax5000_ss),
           'vortsfc':np.std(vortsfc_ss), 'vort1km':np.std(vort1km_ss), 'vort2km':np.std(vort2km_ss), 'vort3km':np.std(vort3km_ss),
-          'swspmax':np.std(swspmax_ss), 'sthpmin':np.std(sthpmin_ss), 'pratemax':np.std(pratemax_ss), 'sratemax':np.std(sratemax_ss)}
+          'swspmax':np.std(swspmax_ss), 'sthpmin':np.std(sthpmin_ss), 'pratemax':np.std(pratemax_ss), 'sratemax':np.std(sratemax_ss), 'psratemax':np.std(psratemax_ss)}
 var_ss = {'wmax500':np.var(wmax500_ss), 'wmax1000':np.var(wmax1000_ss), 'wmax2500':np.var(wmax2500_ss), 'wmax5000':np.var(wmax5000_ss),
           'vortsfc':np.var(vortsfc_ss), 'vort1km':np.var(vort1km_ss), 'vort2km':np.var(vort2km_ss), 'vort3km':np.var(vort3km_ss),
-          'swspmax':np.var(swspmax_ss), 'sthpmin':np.var(sthpmin_ss), 'pratemax':np.var(pratemax_ss), 'sratemax':np.var(sratemax_ss)}
+          'swspmax':np.var(swspmax_ss), 'sthpmin':np.var(sthpmin_ss), 'pratemax':np.var(pratemax_ss), 'sratemax':np.var(sratemax_ss), 'psratemax':np.var(psratemax_ss)}
 
 
 fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
@@ -332,16 +343,103 @@ vort3km_ns = ds.variables['vort3km'][:].data #max 3km vort
 sthpmin_ns = ds.variables['sthpmin'][:].data #min sfc thpert
 pratemax_ns = ds.variables['pratemax'][:].data #max sfc rain rate
 sratemax_ns = ds.variables['sratemax'][:].data #max sfc hail rate
+psratemax_ns = pratemax_ns + sratemax_ns
 ds.close()
 
+data_ns = {'wmax500':wmax500_ns, 'wmax1000':wmax1000_ns, 'wmax2500':wmax2500_ns, 'wmax5000':wmax5000_ns,
+          'vortsfc':vortsfc_ns, 'vort1km':vort1km_ns, 'vort2km':vort2km_ns, 'vort3km':vort3km_ns,
+          'swspmax':swspmax_ns, 'sthpmin':sthpmin_ns, 'pratemax':pratemax_ns, 'sratemax':sratemax_ns, 'psratemax':psratemax_ns}
 stdev_ns = {'wmax500':np.std(wmax500_ns), 'wmax1000':np.std(wmax1000_ns), 'wmax2500':np.std(wmax2500_ns), 'wmax5000':np.std(wmax5000_ns),
           'vortsfc':np.std(vortsfc_ns), 'vort1km':np.std(vort1km_ns), 'vort2km':np.std(vort2km_ns), 'vort3km':np.std(vort3km_ns),
-          'swspmax':np.std(swspmax_ns), 'sthpmin':np.std(sthpmin_ns), 'pratemax':np.std(pratemax_ns), 'sratemax':np.std(sratemax_ns)}
+          'swspmax':np.std(swspmax_ns), 'sthpmin':np.std(sthpmin_ns), 'pratemax':np.std(pratemax_ns), 'sratemax':np.std(sratemax_ns), 'psratemax':np.std(psratemax_ns)}
 var_ns = {'wmax500':np.var(wmax500_ns), 'wmax1000':np.var(wmax1000_ns), 'wmax2500':np.var(wmax2500_ns), 'wmax5000':np.var(wmax5000_ns),
           'vortsfc':np.var(vortsfc_ns), 'vort1km':np.var(vort1km_ns), 'vort2km':np.var(vort2km_ns), 'vort3km':np.var(vort3km_ns),
-          'swspmax':np.var(swspmax_ns), 'sthpmin':np.var(sthpmin_ns), 'pratemax':np.var(pratemax_ns), 'sratemax':np.var(sratemax_ns)}
+          'swspmax':np.var(swspmax_ns), 'sthpmin':np.var(sthpmin_ns), 'pratemax':np.var(pratemax_ns), 'sratemax':np.var(sratemax_ns), 'psratemax':np.var(psratemax_ns)}
 
 
+
+t_stats = {'ssfs':{}, 'nsfs':{}, 'ssns':{}}
+p_vals_ttest = {'ssfs':{}, 'nsfs':{}, 'ssns':{}}
+f_stats_anova = {}
+p_vals_anova = {}
+
+for key in list(data_fs.keys()):
+    # ANOVA test
+    f_stat, p_val = stats.f_oneway(data_fs[key], data_ss[key], data_ns[key])
+    f_stats_anova.update({key:f_stat})
+    p_vals_anova.update({key:p_val})
+    
+    # Paired t-test between semislip and freeslip
+    t_stat, p_val = stats.ttest_ind(data_ss[key], data_fs[key], equal_var=False)
+    t_stats['ssfs'].update({key:t_stat})
+    p_vals_ttest['ssfs'].update({key:p_val})
+    
+    # Paired t-test between noslip and freeslip
+    t_stat, p_val = stats.ttest_ind(data_ns[key], data_fs[key], equal_var=False)
+    t_stats['nsfs'].update({key:t_stat})
+    p_vals_ttest['nsfs'].update({key:p_val})
+    
+    # Paired t-test between semislip and noslip
+    t_stat, p_val = stats.ttest_ind(data_ss[key], data_ns[key], equal_var=False)
+    t_stats['ssns'].update({key:t_stat})
+    p_vals_ttest['ssns'].update({key:p_val})
+
+
+
+
+
+
+# Statistically significant ANOVA (p<0.05)
+# wmax1000 -- p=0.001
+# wmax2500 -- p=0.018
+# wmax5000 -- p=0.0000138
+# vortsfc -- p=2.53 e-215
+# swspmax -- p=3.62 e-261
+# sthpmin -- p=0.0001
+# pratemax -- p=0.0002
+# sratemax -- p=1.17 e-9
+# psratemax -- p=0.0002
+
+# Statistically significant t-test (p<0.05)
+#   Semislip/freeslip
+# wmax500 -- p=0.015
+# wmax1000 -- p=1.15 e-5
+# wmax2500 -- p=3.35 e-6
+# wmax5000 -- p=4.00 e-28
+# vortsfc -- p=1.45 e-47
+# swspmax -- p=3.17 e-107
+# sthpmin -- 4.20 e-23
+# pratemax -- p=5.64 e-10
+# sratemax -- p=5.36 e-6
+# psratemax -- p=7.68 e-10
+#
+#   Noslip/freeslip
+# wmax500 -- p=0.007
+# wmax1000 -- p=2.24 e-9
+# wmax2500 -- p=1.54 e-6
+# vortsfc -- p=5.98 e-177
+# swspmax -- p=8.74 e-216
+# sthpmin -- p=3.23 e-121
+# pratemax -- p=1.41 e-20
+# sratemax -- p=2.11 e-11
+# psratemax -- p=3.66 e-20
+#
+#   Semislip/noslip
+# wmax1000 -- p=0.002
+# wmax5000 -- p=6.67 e-27
+# vortsfc -- p=2.45 e-141
+# vort2km -- p=0.028
+# *vort3km -- p=0.054*
+# swspmax -- p=4.52 e-245
+# sthpmin -- p=3.67 e-90
+# *pratemax -- p=0.054*
+# sratemax -- p=0.0067
+
+
+# Best statistical significance: wmax1000, vortsfc, swspmax, sthpmin, sratemax, (pratemax)
+# Statistical significance from freeslip: wmax500, wmax1000, wmax2500, vortsfc, swspmax, sthpmin, pratemax, sratemax, psratemax
+
+#%%
 
 figsave = False
 
@@ -350,9 +448,9 @@ figsave = False
 
 fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 
-l1,= ax[0].plot(time, movmean(vortsfc_fs,5), 'k', linewidth=2)
-l2,= ax[0].plot(time, movmean(vortsfc_ns,5), 'dodgerblue', linewidth=2)
-l3,= ax[0].plot(time, movmean(vortsfc_ss,5), 'crimson', linewidth=2)
+l1,= ax[0].plot(time[:-2], movmean(vortsfc_fs,5)[:-2], 'k', linewidth=2)
+l2,= ax[0].plot(time[:-2], movmean(vortsfc_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l3,= ax[0].plot(time[:-2], movmean(vortsfc_ss,5)[:-2], 'crimson', linewidth=2)
 # l1,= ax[0].plot(time, vortsfc_fs, 'k', linewidth=2)
 # l2,= ax[0].plot(time, vortsfc_ns, 'dodgerblue', linewidth=2)
 # l3,= ax[0].plot(time, vortsfc_ss, 'crimson', linewidth=2)
@@ -371,9 +469,9 @@ ax[0].yaxis.set_minor_locator(MultipleLocator(0.025))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
              loc='upper left', fontsize=14)
 
-l4,= ax[1].plot(time, movmean(vort1km_fs,5), 'k', linewidth=2)
-l5,= ax[1].plot(time, movmean(vort1km_ns,5), 'dodgerblue', linewidth=2)
-l6,= ax[1].plot(time, movmean(vort1km_ss,5), 'crimson', linewidth=2)
+l4,= ax[1].plot(time[:-2], movmean(vort1km_fs,5)[:-2], 'k', linewidth=2)
+l5,= ax[1].plot(time[:-2], movmean(vort1km_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l6,= ax[1].plot(time[:-2], movmean(vort1km_ss,5)[:-2], 'crimson', linewidth=2)
 # l4,= ax[1].plot(time, vort1km_fs, 'k', linewidth=2)
 # l5,= ax[1].plot(time, vort1km_ns, 'dodgerblue', linewidth=2)
 # l6,= ax[1].plot(time, vort1km_ss, 'crimson', linewidth=2)
@@ -392,9 +490,9 @@ ax[1].yaxis.set_minor_locator(MultipleLocator(0.025))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
-l7,= ax[2].plot(time, movmean(vort3km_fs,5), 'k', linewidth=2)
-l8,= ax[2].plot(time, movmean(vort3km_ns,5), 'dodgerblue', linewidth=2)
-l9,= ax[2].plot(time, movmean(vort3km_ss,5), 'crimson', linewidth=2)
+l7,= ax[2].plot(time[:-2], movmean(vort3km_fs,5)[:-2], 'k', linewidth=2)
+l8,= ax[2].plot(time[:-2], movmean(vort3km_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l9,= ax[2].plot(time[:-2], movmean(vort3km_ss,5)[:-2], 'crimson', linewidth=2)
 # l7,= ax[2].plot(time, vort3km_fs, 'k', linewidth=2)
 # l8,= ax[2].plot(time, vort3km_ns, 'dodgerblue', linewidth=2)
 # l9,= ax[2].plot(time, vort3km_ss, 'crimson', linewidth=2)
@@ -423,9 +521,9 @@ if figsave:
 
 fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 
-l1,= ax[0].plot(time, movmean(wmax1000_fs,5), 'k', linewidth=2)
-l2,= ax[0].plot(time, movmean(wmax1000_ns,5), 'dodgerblue', linewidth=2)
-l3,= ax[0].plot(time, movmean(wmax1000_ss,5), 'crimson', linewidth=2)
+l1,= ax[0].plot(time[:-2], movmean(wmax1000_fs,5)[:-2], 'k', linewidth=2)
+l2,= ax[0].plot(time[:-2], movmean(wmax1000_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l3,= ax[0].plot(time[:-2], movmean(wmax1000_ss,5)[:-2], 'crimson', linewidth=2)
 ax[0].set_xlim([0,32400])
 ax[0].set_ylim([0,30])
 # ax[0].set_xlabel('Time (s)', fontsize=14)
@@ -441,9 +539,9 @@ ax[0].yaxis.set_minor_locator(MultipleLocator(2.5))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
              loc='upper left', fontsize=14)
 
-l4,= ax[1].plot(time, movmean(wmax2500_fs,5), 'k', linewidth=2)
-l5,= ax[1].plot(time, movmean(wmax2500_ns,5), 'dodgerblue', linewidth=2)
-l6,= ax[1].plot(time, movmean(wmax2500_ss,5), 'crimson', linewidth=2)
+l4,= ax[1].plot(time[:-2], movmean(wmax2500_fs,5)[:-2], 'k', linewidth=2)
+l5,= ax[1].plot(time[:-2], movmean(wmax2500_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l6,= ax[1].plot(time[:-2], movmean(wmax2500_ss,5)[:-2], 'crimson', linewidth=2)
 ax[1].set_xlim([0,32400])
 ax[1].set_ylim([10,40])
 # ax[1].set_xlabel('Time (s)', fontsize=14)
@@ -459,9 +557,9 @@ ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
-l7,= ax[2].plot(time, movmean(wmax5000_fs,5), 'k', linewidth=2)
-l8,= ax[2].plot(time, movmean(wmax5000_ns,5), 'dodgerblue', linewidth=2)
-l9,= ax[2].plot(time, movmean(wmax5000_ss,5), 'crimson', linewidth=2)
+l7,= ax[2].plot(time[:-2], movmean(wmax5000_fs,5)[:-2], 'k', linewidth=2)
+l8,= ax[2].plot(time[:-2], movmean(wmax5000_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l9,= ax[2].plot(time[:-2], movmean(wmax5000_ss,5)[:-2], 'crimson', linewidth=2)
 ax[2].set_xlim([0,32400])
 ax[2].set_ylim([20,50]) #[20,50] for 5 km
 ax[2].set_xlabel('Time (s)', fontsize=14)
@@ -487,9 +585,9 @@ if figsave:
 
 fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 
-l1,= ax[0].plot(time, movmean(swspmax_fs,5), 'k', linewidth=2)
-l2,= ax[0].plot(time, movmean(swspmax_ns,5), 'dodgerblue', linewidth=2)
-l3,= ax[0].plot(time, movmean(swspmax_ss,5), 'crimson', linewidth=2)
+l1,= ax[0].plot(time[:-2], movmean(swspmax_fs,5)[:-2], 'k', linewidth=2)
+l2,= ax[0].plot(time[:-2], movmean(swspmax_ns,5)[:-2], 'dodgerblue', linewidth=2)
+l3,= ax[0].plot(time[:-2], movmean(swspmax_ss,5)[:-2], 'crimson', linewidth=2)
 ax[0].set_xlim([0,32400])
 ax[0].set_ylim([0,60])
 # ax[0].set_xlabel('Time (s)', fontsize=14)
@@ -505,9 +603,9 @@ ax[0].yaxis.set_minor_locator(MultipleLocator(5))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
              loc='upper left', fontsize=14)
 
-l4,= ax[1].plot(time, sthpmin_fs, 'k', linewidth=2)
-l5,= ax[1].plot(time, sthpmin_ns, 'dodgerblue', linewidth=2)
-l6,= ax[1].plot(time, sthpmin_ss, 'crimson', linewidth=2)
+l4,= ax[1].plot(time[:-2], sthpmin_fs[:-2], 'k', linewidth=2)
+l5,= ax[1].plot(time[:-2], sthpmin_ns[:-2], 'dodgerblue', linewidth=2)
+l6,= ax[1].plot(time[:-2], sthpmin_ss[:-2], 'crimson', linewidth=2)
 ax[1].set_xlim([0,32400])
 ax[1].set_ylim([-15,0])
 # ax[1].set_xlabel('Time (s)', fontsize=14)
@@ -523,31 +621,42 @@ ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
 
-l7,= ax[2].plot(time, movmean(pratemax_fs+sratemax_fs,5), 'k', linewidth=2)
-l8,= ax[2].plot(time, movmean(pratemax_ns+sratemax_ns,5), 'dodgerblue', linewidth=2)
-l9,= ax[2].plot(time, movmean(pratemax_ss+sratemax_ss,5), 'crimson', linewidth=2)
+l7,= ax[2].plot(time[:-2], movmean(pratemax_fs,5)[:-2], 'k', linewidth=2)
+ax[2].plot(time[:-2], movmean(pratemax_ns,5)[:-2], 'dodgerblue', linewidth=2)
+ax[2].plot(time[:-2], movmean(pratemax_ss,5)[:-2], 'crimson', linewidth=2)
 # l7,= ax[2].plot(time, pratemax_fs, 'k', linewidth=2)
 # l8,= ax[2].plot(time, sratemax_fs, '--k', linewidth=2)
 # ax[2].plot(time, pratemax_ns, 'dodgerblue', linewidth=2)
-# ax[2].plot(time, sratemax_ns, 'dodgerblue, linewidth=2, linestyle='--')
+# ax[2].plot(time, sratemax_ns, 'dodgerblue', linewidth=2, linestyle='--')
 # ax[2].plot(time, pratemax_ss, 'crimson', linewidth=2)
 # ax[2].plot(time, sratemax_ss, 'crimson', linewidth=2, linestyle='--')
 ax[2].set_xlim([0,32400])
 ax[2].set_ylim([0,0.1]) #[20,50] for 5 km
 ax[2].set_xlabel('Time (s)', fontsize=14)
-ax[2].set_ylabel("Precip. rate (kg m$^{-2}$ s$^{-1}$)", fontsize=14)
+ax[2].set_ylabel("Rain rate (kg m$^{-2}$ s$^{-1}$)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
-ax[2].set_title(f"Max. surface precip. rate", fontsize=16)
+ax[2].set_title(f"Max. surface rain/hail rate", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax[2].xaxis.set_major_locator(MultipleLocator(3600))
 ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(0.02))
 ax[2].yaxis.set_minor_locator(MultipleLocator(0.01))
+
+ax3 = ax[2].twinx()
+l8,= ax3.plot(time[:-2], movmean(sratemax_fs,5)[:-2], 'k', linewidth=1.5, linestyle='--')
+ax3.plot(time[:-2], movmean(sratemax_ns,5)[:-2], 'dodgerblue', linewidth=1.5, linestyle='--')
+ax3.plot(time[:-2], movmean(sratemax_ss,5)[:-2], 'crimson', linewidth=1.5, linestyle='--')
+ax3.set_ylim([0,0.001])
+ax3.set_ylabel("Hail rate (kg m$^{-2}$ s$^{-1}$)", fontsize=14)
+ax3.yaxis.set_major_locator(MultipleLocator(0.0002))
+ax3.yaxis.set_minor_locator(MultipleLocator(0.0001))
+ax3.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+ax3.tick_params(axis='y', labelsize=12)
 # ax[2].legend(handles=[l7,l8,l9], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 #              loc='upper left', fontsize=14)
-# ax[2].legend(handles=[l7,l8], labels=['Rain','Ice'],
-#              loc='upper left', fontsize=14)
+ax[2].legend(handles=[l7,l8], labels=['Rain','Hail'],
+             loc='upper left', fontsize=14)
 
 if figsave:
     plt.savefig(fp2+'figs/coldpool_all_timeseries.png', dpi=300)
