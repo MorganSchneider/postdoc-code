@@ -6,6 +6,8 @@ Created on Fri Mar  6 12:06:45 2026
 """
 
 from CM1utils import *
+import matpy.calc as mc
+from metpy.units import units
 
 #%% Overview plot for all 3 simulations - dbz and thrpert
 
@@ -34,6 +36,7 @@ figsave = False
 
 plot_dbz = True
 plot_thr = False
+plot_del2 = False
 
 
 if plot_dbz:
@@ -267,6 +270,177 @@ if plot_thr:
             fig.savefig(fp2+f"figs/thrpert_all_v2.png", dpi=300)
 
 
+
+if plot_del2:
+    fig,ax = plt.subplots(3, 5, figsize=(12.5,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+    
+    for f in fn:
+        ### Free-slip
+        ds = nc.Dataset(fp1 + f"cm1out_{f:06.0f}.nc")
+        time = ds.variables['time'][:].data[0]
+        xh = ds.variables['xh'][:].data
+        yh = ds.variables['yh'][:].data
+        zh = ds.variables['zh'][:].data
+        iz1 = np.where(zh>1)[0][0]
+        iz2 = np.where(zh>2)[0][0]
+        iz3 = np.where(zh>3)[0][0]
+        
+        uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+        vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+        u_gr = uinterp + ds.variables['umove'][:].data[0]
+        v_gr = vinterp + ds.variables['vmove'][:].data[0]
+        umove = ds.variables['umove'][:].data[0]
+        vmove = ds.variables['vmove'][:].data[0]
+        thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+        # # P3 3-moment scheme
+        # if 'qi1' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi1'][:].data[0,0,:,:] +
+        #                  ds.variables['qi2'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi3'][:].data[0,0,:,:]))
+        #                  # ds.variables['qi4'][:].data[0,0,:,:]))
+        # # NSSL 3-moment scheme
+        # elif 'qg' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
+        #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
+        #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
+        # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+        # thrpert = thr - thr0
+        # del thr,thr0
+        del2 = mc.laplacian(thrpert*units.K, delta=(250*units.m, 250*units.m))
+        del2thp = del2.magnitude
+        ds.close()
+        
+        
+        xl = [-150,150]
+        yl = [-150,150]
+        
+        
+        n = int((f-fn[0])/(fn[1]-fn[0]))
+        # i = int(np.floor(n/4))
+        # j = int(np.mod(n,4))
+        xn = xh + (umove*n*7200/1000)
+        yn = yh + (vmove*n*7200/1000)
+        
+        if f == fn[-1]:
+            cb_flag = True
+        else:
+            cb_flag = False
+        
+        
+        qix = 60
+        
+        c1 = ax[0,n].contourf(xh, yh, del2thp, levels=np.linspace(-5e-5,5e-5,21), vmin=-5e-5, vmax=5e-5, cmap='balance', antialiased=True)
+        c1.set_edgecolor('face')
+        if cb_flag:
+            cb = plt.colorbar(c1, ax=ax[0,n], extend='both')
+            cb.set_label("\u25BD$^2$\u03B8' (K m$^{-2}$)", fontsize=11)
+            cb.formatter.set_powerlimits((0,0))
+            cb.set_ticks(np.linspace(-5e-5,5e-5,11))
+        ax[0,n].set_xlim(xl)
+        ax[0,n].set_ylim(yl)
+        ax[0,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+        ax[0,n].set_title(f"t = {time:.0f} s")
+        if n == 0:
+            ax[0,n],set_ylabel('y (km)', fontsize=12)
+        
+        
+        
+        
+        ### Semi-slip
+        ds = nc.Dataset(fp2 + f"cm1out_{f:06.0f}.nc")
+        uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+        vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+        u_gr = uinterp + ds.variables['umove'][:].data[0]
+        v_gr = vinterp + ds.variables['vmove'][:].data[0]
+        thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+        # # P3 3-moment scheme
+        # if 'qi1' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi1'][:].data[0,0,:,:] +
+        #                  ds.variables['qi2'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi3'][:].data[0,0,:,:]))
+        #                  # ds.variables['qi4'][:].data[0,0,:,:]))
+        # # NSSL 3-moment scheme
+        # elif 'qg' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
+        #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
+        #                  ds.variables['qg'][:].data[0,0,:,:])) # + ds.variables['qhl'][:].data[0,0,:,:]))
+        # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+        # thrpert = thr - thr0
+        # del thr,thr0
+        del2 = mc.laplacian(thrpert*units.K, delta=(250*units.m, 250*units.m))
+        del2thp = del2.magnitude
+        ds.close()
+        
+        
+        c2 = ax[1,n].contourf(xh, yh, del2thp, levels=np.linspace(-5e-5,5e-5,21), vmin=-5e-5, vmax=5e-5, cmap='balance', antialiased=True)
+        c2.set_edgecolor('face')
+        if cb_flag:
+            cb = plt.colorbar(c2, ax=ax[1,n], extend='both')
+            cb.set_label("\u25BD$^2$\u03B8' (K m$^{-2}$)", fontsize=11)
+            cb.formatter.set_powerlimits((0,0))
+            cb.set_ticks(np.linspace(-5e-5,5e-5,11))
+        ax[1,n].set_xlim(xl)
+        ax[1,n].set_ylim(yl)
+        ax[1,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+        if n == 0:
+            ax[1,n].set_ylabel('y (km)', fontsize=12)
+        
+        
+        
+        
+        ### No-slip
+        ds = nc.Dataset(fp3 + f"cm1out_{f:06.0f}.nc")
+        uinterp = ds.variables['uinterp'][:].data[0,1,:,:]
+        vinterp = ds.variables['vinterp'][:].data[0,1,:,:]
+        u_gr = uinterp + ds.variables['umove'][:].data[0]
+        v_gr = vinterp + ds.variables['vmove'][:].data[0]
+        thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+        # # P3 3-moment scheme
+        # if 'qi1' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi1'][:].data[0,0,:,:] +
+        #                  ds.variables['qi2'][:].data[0,0,:,:] + 
+        #                  ds.variables['qi3'][:].data[0,0,:,:]))
+        #                  # ds.variables['qi4'][:].data[0,0,:,:]))
+        # # NSSL 3-moment scheme
+        # elif 'qg' in list(ds.variables.keys()):
+        #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
+        #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
+        #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
+        #                  ds.variables['qg'][:].data[0,0,:,:])) # + ds.variables['qhl'][:].data[0,0,:,:]))
+        # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+        # thrpert = thr - thr0
+        # del thr,thr0
+        del2 = mc.laplacian(thrpert*units.K, delta=(250*units.m, 250*units.m))
+        del2thp = del2.magnitude
+        ds.close()
+        
+        
+        c3 = ax[2,n].contourf(xh, yh, del2thp, levels=np.linspace(-5e-5,5e-5,21), vmin=-5e-5, vmax=5e-5, cmap='balance', antialiased=True)
+        c3.set_edgecolor('face')
+        if cb_flag:
+            cb = plt.colorbar(c3, ax=ax[2,n], extend='both')
+            cb.set_label("\u25BD$^2$\u03B8' (K m$^{-2}$)", fontsize=11)
+            cb.formatter.set_powerlimits((0,0))
+            cb.set_ticks(np.linspace(-5e-5,5e-5,11))
+        ax[2,n].set_xlim(xl)
+        ax[2,n].set_ylim(yl)
+        ax[2,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+        ax[2,n].set_xlabel('x (km)', fontsize=12)
+        if n == 0:
+            ax[2,n].set_ylabel('y (km)', fontsize=12)
+        if (f==fn[-1]) & (figsave):
+            fig.savefig(fp2+f"figs/del2thp_all_v2.png", dpi=300)
+
+
+
 #%% Time series plots
 
 from scipy import stats
@@ -279,6 +453,10 @@ wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_fs = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500_fs = ds.variables['wmax2500'][:].data #max w at 2500 m
 wmax5000_fs = ds.variables['wmax5000'][:].data #max w at 5000 m
+wmin500_fs = ds.variables['wmin500'][:].data #min w at 500 m
+wmin1000_fs = ds.variables['wmin1000'][:].data #min w at 1000 m
+wmin2500_fs = ds.variables['wmin2500'][:].data #min w at 2500 m
+wmin5000_fs = ds.variables['wmin5000'][:].data #min w at 5000 m
 swspmax_fs = ds.variables['swspmax'][:].data #max sfc wspd
 vortsfc_fs = ds.variables['vortsfc'][:].data #max sfc vort
 vort1km_fs = ds.variables['vort1km'][:].data #max 1km vort
@@ -291,12 +469,15 @@ psratemax_fs = pratemax_fs + sratemax_fs
 ds.close()
 
 data_fs = {'wmax500':wmax500_fs, 'wmax1000':wmax1000_fs, 'wmax2500':wmax2500_fs, 'wmax5000':wmax5000_fs,
+           'wmin500':wmin500_fs, 'wmin1000':wmin1000_fs, 'wmin2500':wmin2500_fs, 'wmin5000':wmin5000_fs,
           'vortsfc':vortsfc_fs, 'vort1km':vort1km_fs, 'vort2km':vort2km_fs, 'vort3km':vort3km_fs,
           'swspmax':swspmax_fs, 'sthpmin':sthpmin_fs, 'pratemax':pratemax_fs, 'sratemax':sratemax_fs, 'psratemax':psratemax_fs}
 stdev_fs = {'wmax500':np.std(wmax500_fs), 'wmax1000':np.std(wmax1000_fs), 'wmax2500':np.std(wmax2500_fs), 'wmax5000':np.std(wmax5000_fs),
+            'wmin500':np.std(wmin500_fs), 'wmin1000':np.std(wmin1000_fs), 'wmin2500':np.std(wmin2500_fs), 'wmin5000':np.std(wmin5000_fs),
           'vortsfc':np.std(vortsfc_fs), 'vort1km':np.std(vort1km_fs), 'vort2km':np.std(vort2km_fs), 'vort3km':np.std(vort3km_fs),
           'swspmax':np.std(swspmax_fs), 'sthpmin':np.std(sthpmin_fs), 'pratemax':np.std(pratemax_fs), 'sratemax':np.std(sratemax_fs), 'psratemax':np.std(psratemax_fs)}
 var_fs = {'wmax500':np.var(wmax500_fs), 'wmax1000':np.var(wmax1000_fs), 'wmax2500':np.var(wmax2500_fs), 'wmax5000':np.var(wmax5000_fs),
+          'wmin500':np.var(wmin500_fs), 'wmin1000':np.var(wmin1000_fs), 'wmin2500':np.var(wmin2500_fs), 'wmin5000':np.var(wmin5000_fs),
           'vortsfc':np.var(vortsfc_fs), 'vort1km':np.var(vort1km_fs), 'vort2km':np.var(vort2km_fs), 'vort3km':np.var(vort3km_fs),
           'swspmax':np.var(swspmax_fs), 'sthpmin':np.var(sthpmin_fs), 'pratemax':np.var(pratemax_fs), 'sratemax':np.var(sratemax_fs), 'psratemax':np.var(psratemax_fs)}
 
@@ -307,6 +488,10 @@ wmax500_ss = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_ss = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500_ss = ds.variables['wmax2500'][:].data #max w at 2500 m
 wmax5000_ss = ds.variables['wmax5000'][:].data #max w at 5000 m
+wmin500_ss = ds.variables['wmin500'][:].data #min w at 500 m
+wmin1000_ss = ds.variables['wmin1000'][:].data #min w at 1000 m
+wmin2500_ss = ds.variables['wmin2500'][:].data #min w at 2500 m
+wmin5000_ss = ds.variables['wmin5000'][:].data #min w at 5000 m
 swspmax_ss = ds.variables['swspmax'][:].data #max sfc wspd
 vortsfc_ss = ds.variables['vortsfc'][:].data #max sfc vort
 vort1km_ss = ds.variables['vort1km'][:].data #max 1km vort
@@ -319,12 +504,15 @@ psratemax_ss = pratemax_ss + sratemax_ss
 ds.close()
 
 data_ss = {'wmax500':wmax500_ss, 'wmax1000':wmax1000_ss, 'wmax2500':wmax2500_ss, 'wmax5000':wmax5000_ss,
+           'wmin500':wmin500_ss, 'wmin1000':wmin1000_ss, 'wmin2500':wmin2500_ss, 'wmin5000':wmin5000_ss,
           'vortsfc':vortsfc_ss, 'vort1km':vort1km_ss, 'vort2km':vort2km_ss, 'vort3km':vort3km_ss,
           'swspmax':swspmax_ss, 'sthpmin':sthpmin_ss, 'pratemax':pratemax_ss, 'sratemax':sratemax_ss, 'psratemax':psratemax_ss}
 stdev_ss = {'wmax500':np.std(wmax500_ss), 'wmax1000':np.std(wmax1000_ss), 'wmax2500':np.std(wmax2500_ss), 'wmax5000':np.std(wmax5000_ss),
+            'wmin500':np.std(wmin500_ss), 'wmin1000':np.std(wmin1000_ss), 'wmin2500':np.std(wmin2500_ss), 'wmin5000':np.std(wmin5000_ss),
           'vortsfc':np.std(vortsfc_ss), 'vort1km':np.std(vort1km_ss), 'vort2km':np.std(vort2km_ss), 'vort3km':np.std(vort3km_ss),
           'swspmax':np.std(swspmax_ss), 'sthpmin':np.std(sthpmin_ss), 'pratemax':np.std(pratemax_ss), 'sratemax':np.std(sratemax_ss), 'psratemax':np.std(psratemax_ss)}
 var_ss = {'wmax500':np.var(wmax500_ss), 'wmax1000':np.var(wmax1000_ss), 'wmax2500':np.var(wmax2500_ss), 'wmax5000':np.var(wmax5000_ss),
+          'wmin500':np.var(wmin500_ss), 'wmin1000':np.var(wmin1000_ss), 'wmin2500':np.var(wmin2500_ss), 'wmin5000':np.var(wmin5000_ss),
           'vortsfc':np.var(vortsfc_ss), 'vort1km':np.var(vort1km_ss), 'vort2km':np.var(vort2km_ss), 'vort3km':np.var(vort3km_ss),
           'swspmax':np.var(swspmax_ss), 'sthpmin':np.var(sthpmin_ss), 'pratemax':np.var(pratemax_ss), 'sratemax':np.var(sratemax_ss), 'psratemax':np.var(psratemax_ss)}
 
@@ -335,6 +523,10 @@ wmax500_ns = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_ns = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500_ns = ds.variables['wmax2500'][:].data #max w at 2500 m
 wmax5000_ns = ds.variables['wmax5000'][:].data #max w at 5000 m
+wmin500_ns = ds.variables['wmin500'][:].data #min w at 500 m
+wmin1000_ns = ds.variables['wmin1000'][:].data #min w at 1000 m
+wmin2500_ns = ds.variables['wmin2500'][:].data #min w at 2500 m
+wmin5000_ns = ds.variables['wmin5000'][:].data #min w at 5000 m
 swspmax_ns = ds.variables['swspmax'][:].data #max sfc wspd
 vortsfc_ns = ds.variables['vortsfc'][:].data #max sfc vort
 vort1km_ns = ds.variables['vort1km'][:].data #max 1km vort
@@ -347,12 +539,15 @@ psratemax_ns = pratemax_ns + sratemax_ns
 ds.close()
 
 data_ns = {'wmax500':wmax500_ns, 'wmax1000':wmax1000_ns, 'wmax2500':wmax2500_ns, 'wmax5000':wmax5000_ns,
+           'wmin500':wmin500_ns, 'wmin1000':wmin1000_ns, 'wmin2500':wmin2500_ns, 'wmin5000':wmin5000_ns,
           'vortsfc':vortsfc_ns, 'vort1km':vort1km_ns, 'vort2km':vort2km_ns, 'vort3km':vort3km_ns,
           'swspmax':swspmax_ns, 'sthpmin':sthpmin_ns, 'pratemax':pratemax_ns, 'sratemax':sratemax_ns, 'psratemax':psratemax_ns}
 stdev_ns = {'wmax500':np.std(wmax500_ns), 'wmax1000':np.std(wmax1000_ns), 'wmax2500':np.std(wmax2500_ns), 'wmax5000':np.std(wmax5000_ns),
+            'wmin500':np.std(wmin500_ns), 'wmin1000':np.std(wmin1000_ns), 'wmin2500':np.std(wmin2500_ns), 'wmin5000':np.std(wmin5000_ns),
           'vortsfc':np.std(vortsfc_ns), 'vort1km':np.std(vort1km_ns), 'vort2km':np.std(vort2km_ns), 'vort3km':np.std(vort3km_ns),
           'swspmax':np.std(swspmax_ns), 'sthpmin':np.std(sthpmin_ns), 'pratemax':np.std(pratemax_ns), 'sratemax':np.std(sratemax_ns), 'psratemax':np.std(psratemax_ns)}
 var_ns = {'wmax500':np.var(wmax500_ns), 'wmax1000':np.var(wmax1000_ns), 'wmax2500':np.var(wmax2500_ns), 'wmax5000':np.var(wmax5000_ns),
+          'wmin500':np.var(wmin500_ns), 'wmin1000':np.var(wmin1000_ns), 'wmin2500':np.var(wmin2500_ns), 'wmin5000':np.var(wmin5000_ns),
           'vortsfc':np.var(vortsfc_ns), 'vort1km':np.var(vort1km_ns), 'vort2km':np.var(vort2km_ns), 'vort3km':np.var(vort3km_ns),
           'swspmax':np.var(swspmax_ns), 'sthpmin':np.var(sthpmin_ns), 'pratemax':np.var(pratemax_ns), 'sratemax':np.var(sratemax_ns), 'psratemax':np.var(psratemax_ns)}
 
@@ -387,57 +582,6 @@ for key in list(data_fs.keys()):
 
 
 
-
-
-# Statistically significant ANOVA (p<0.05)
-# wmax1000 -- p=0.001
-# wmax2500 -- p=0.018
-# wmax5000 -- p=0.0000138
-# vortsfc -- p=2.53 e-215
-# swspmax -- p=3.62 e-261
-# sthpmin -- p=0.0001
-# pratemax -- p=0.0002
-# sratemax -- p=1.17 e-9
-# psratemax -- p=0.0002
-
-# Statistically significant t-test (p<0.05)
-#   Semislip/freeslip
-# wmax500 -- p=0.015
-# wmax1000 -- p=1.15 e-5
-# wmax2500 -- p=3.35 e-6
-# wmax5000 -- p=4.00 e-28
-# vortsfc -- p=1.45 e-47
-# swspmax -- p=3.17 e-107
-# sthpmin -- 4.20 e-23
-# pratemax -- p=5.64 e-10
-# sratemax -- p=5.36 e-6
-# psratemax -- p=7.68 e-10
-#
-#   Noslip/freeslip
-# wmax500 -- p=0.007
-# wmax1000 -- p=2.24 e-9
-# wmax2500 -- p=1.54 e-6
-# vortsfc -- p=5.98 e-177
-# swspmax -- p=8.74 e-216
-# sthpmin -- p=3.23 e-121
-# pratemax -- p=1.41 e-20
-# sratemax -- p=2.11 e-11
-# psratemax -- p=3.66 e-20
-#
-#   Semislip/noslip
-# wmax1000 -- p=0.002
-# wmax5000 -- p=6.67 e-27
-# vortsfc -- p=2.45 e-141
-# vort2km -- p=0.028
-# *vort3km -- p=0.054*
-# swspmax -- p=4.52 e-245
-# sthpmin -- p=3.67 e-90
-# *pratemax -- p=0.054*
-# sratemax -- p=0.0067
-
-
-# Best statistical significance: wmax1000, vortsfc, swspmax, sthpmin, sratemax, (pratemax)
-# Statistical significance from freeslip: wmax500, wmax1000, wmax2500, vortsfc, swspmax, sthpmin, pratemax, sratemax, psratemax
 
 #%%
 
@@ -668,7 +812,7 @@ if figsave:
 
 # Freeslip
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-ds = nc.Dataset(fp1+'cm1out_000029.nc')
+ds = nc.Dataset(fp1+'cm1out_000037.nc')
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
 sws_fs = ds.variables['sws'][:].data[0,:,:] #max sfc wind
@@ -680,7 +824,7 @@ ds.close()
 
 # Semislip
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-ds = nc.Dataset(fp2+'cm1out_000029.nc')
+ds = nc.Dataset(fp2+'cm1out_000037.nc')
 sws_ss = ds.variables['sws'][:].data[0,:,:]
 svs_ss = ds.variables['svs'][:].data[0,:,:]
 sus_ss = ds.variables['sus'][:].data[0,:,:]
@@ -689,7 +833,7 @@ ds.close()
 
 # Noslip
 fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
-ds = nc.Dataset(fp3+'cm1out_000029.nc')
+ds = nc.Dataset(fp3+'cm1out_000037.nc')
 sws_ns = ds.variables['sws'][:].data[0,:,:]
 svs_ns = ds.variables['svs'][:].data[0,:,:]
 sus_ns = ds.variables['sus'][:].data[0,:,:]
@@ -799,10 +943,247 @@ if figsave:
 plt.show()
 
 
-#%% Other plots?
+#%% Translated swaths
 
 
 
+fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+
+fn = np.linspace(5,37,9)
+
+
+ds = nc.Dataset(fp1+"cm1out_000001.nc")
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+umove = ds.variables['umove'][:].data
+vmove = ds.variables['vmove'][:].data
+ds.close()
+
+umove = 20
+vmove = 2
+
+
+x_added = umove*3600/1000
+nx_added = np.round(x_added/0.25)
+nxt_added = nx_added*(len(fn)-1)
+xt_added = nxt_added*0.25
+xn = np.arange(xh[0], xh[-1]+xt_added+0.25, 0.25)
+
+
+y_added = vmove*3600/1000 # y distance added per hour
+ny_added = np.round(y_added/0.25) # number of y grid points added per hour
+nyt_added = ny_added*(len(fn)-1) # total number y grid points added over 8 h
+yt_added = nyt_added*0.25  # total y distance added over 8 h (km)
+yn = np.arange(yh[0], yh[-1]+yt_added+0.25, 0.25)
+
+
+sws_fs = np.zeros(shape=(len(yn), len(xn)), dtype=float); svs_fs = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+sus_fs = np.zeros(shape=(len(yn), len(xn)), dtype=float); shs_fs = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+sws_ss = np.zeros(shape=(len(yn), len(xn)), dtype=float); svs_ss = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+sus_ss = np.zeros(shape=(len(yn), len(xn)), dtype=float); shs_ss = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+sws_ns = np.zeros(shape=(len(yn), len(xn)), dtype=float); svs_ns = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+sus_ns = np.zeros(shape=(len(yn), len(xn)), dtype=float); shs_ns = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+
+
+
+
+
+for f in fn:
+    n = (f-fn[0])/(fn[1]-fn[0])
+    
+    ix = slice(int(nx_added*n), int(nx_added*n + len(xh)))
+    iy = slice(int(ny_added*n), int(ny_added*n + len(yh)))
+    
+    # Freeslip
+    ds = nc.Dataset(fp1+f"cm1out_{f:06.0f}.nc")
+    sws2 = ds.variables['sws2'][:].data[0,:,:] #max sfc wind
+    svs2 = ds.variables['svs2'][:].data[0,:,:] #max sfc vort
+    sus2 = ds.variables['sus2'][:].data[0,:,:] #max 5km updraft
+    shs2 = ds.variables['shs2'][:].data[0,:,:] #max integrated UH
+    
+    sws_fs[iy,ix] = np.maximum(sws_fs[iy,ix], sws2)
+    svs_fs[iy,ix] = np.maximum(svs_fs[iy,ix], svs2)
+    sus_fs[iy,ix] = np.maximum(sus_fs[iy,ix], sus2)
+    shs_fs[iy,ix] = np.maximum(shs_fs[iy,ix], shs2)
+    ds.close()
+    
+    
+    # Semislip
+    ds = nc.Dataset(fp2+f"cm1out_{f:06.0f}.nc")
+    sws2 = ds.variables['sws2'][:].data[0,:,:]
+    svs2 = ds.variables['svs2'][:].data[0,:,:]
+    sus2 = ds.variables['sus2'][:].data[0,:,:]
+    shs2 = ds.variables['shs2'][:].data[0,:,:]
+    
+    sws_ss[iy,ix] = np.maximum(sws_ss[iy,ix], sws2)
+    svs_ss[iy,ix] = np.maximum(svs_ss[iy,ix], svs2)
+    sus_ss[iy,ix] = np.maximum(sus_ss[iy,ix], sus2)
+    shs_ss[iy,ix] = np.maximum(shs_ss[iy,ix], shs2)
+    ds.close()
+    
+    
+    # Noslip
+    ds = nc.Dataset(fp3+f"cm1out_{f:06.0f}.nc")
+    sws2 = ds.variables['sws2'][:].data[0,:,:]
+    svs2 = ds.variables['svs2'][:].data[0,:,:]
+    sus2 = ds.variables['sus2'][:].data[0,:,:]
+    shs2 = ds.variables['shs2'][:].data[0,:,:]
+    
+    sws_ns[iy,ix] = np.maximum(sws_ns[iy,ix], sws2)
+    svs_ns[iy,ix] = np.maximum(svs_ns[iy,ix], svs2)
+    sus_ns[iy,ix] = np.maximum(sus_ns[iy,ix], sus2)
+    shs_ns[iy,ix] = np.maximum(shs_ns[iy,ix], shs2)
+    ds.close()
+    
+#%%
+
+
+xn2 = xn - xh[0]
+yn2 = yn - yh[0]
+
+
+xl = [0,900]
+yl = [0,360]
+
+
+figsave = False
+
+
+# 5-km updraft swaths
+fig,ax = plt.subplots(3, 1, figsize=(10,11), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(aspect='equal'))
+
+plot_contourf(xn2, yn2, sus_fs, 'w', ax[0],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+# ax[0].contour(xn2, yn2, svs_fs, levels=[0.04], colors='k', linewidths=[0.75])
+# l1, = ax[0].plot([-190,-200], [-190,-200], '-k', linewidth=0.75)
+# ax[0].legend(handles=[l1], labels=["\u03B6=0.04 s$^{-1}$"], loc='lower left', fontsize=12)
+ax[0].set_title("5-km updraft", fontsize=16)
+ax[0].set_ylabel('y (km)', fontsize=14)
+
+
+plot_contourf(xn2, yn2, sus_ss, 'w', ax[1],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+# ax[1].contour(xn2, yn2, svs_ss, levels=[0.04], colors='k', linewidths=[0.75])
+ax[1].set_ylabel('y (km)', fontsize=14)
+
+
+plot_contourf(xn2, yn2, sus_ns, 'w', ax[2],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+# ax[2].contour(xn2, yn2, svs_ns, levels=[0.04], colors='k', linewidths=[0.75])
+ax[2].set_xlabel('x (km)', fontsize=14)
+ax[2].set_ylabel('y (km)', fontsize=14)
+
+if figsave:
+    plt.savefig(fp2+'figs/w5km_swaths.png', dpi=300)
+
+
+
+# Sfc wind speed swaths
+fig,ax = plt.subplots(3, 1, figsize=(10,11), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(aspect='equal'))
+
+plot_contourf(xn2, yn2, sws_fs, 'wspd', ax[0],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+ax[0].contour(xn2, yn2, sws_fs, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+l1, = ax[0].plot([-190,-200], [-190,-200], color='navy', linewidth=0.5)
+l2, = ax[0].plot([-190,-200], [-190,-200], '-k', linewidth=1)
+ax[0].legend(handles=[l1,l2], labels=['Severe (26 m/s)','Sig. Severe (33 m/s)'], loc='lower left', fontsize=12)
+ax[0].set_title("Surface wind speed", fontsize=16)
+ax[0].set_ylabel('y (km)', fontsize=14)
+
+
+plot_contourf(xn2, yn2, sws_ss, 'wspd', ax[1],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+ax[1].contour(xn2, yn2, sws_ss, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+ax[1].set_ylabel('y (km)', fontsize=14)
+
+
+plot_contourf(xn2, yn2, sws_ns, 'wspd', ax[2],
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+ax[2].contour(xn2, yn2, sws_ns, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+ax[2].set_xlabel('x (km)', fontsize=14)
+ax[2].set_ylabel('y (km)', fontsize=14)
+
+if figsave:
+    plt.savefig(fp2+'figs/wspd_swaths.png', dpi=300)
+
+
+
+# Sfc vorticity swaths
+fig,ax = plt.subplots(3, 1, figsize=(10,11), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(aspect='equal'))
+
+plot_contourf(xn2, yn2, svs_fs, 'zvort', ax[0],
+              levels=np.linspace(0,0.05,21), datalims=[0,0.05],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
+# ax[0].contour(xn2, yn2, sus_fs, levels=[20,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+# l2, = ax[0].plot([-190,-200], [-190,-200], color='dimgray', linewidth=0.75)
+# l3, = ax[0].plot([-190,-200], [-190,-200], '-k', linewidth=1.5)
+# ax[0].legend(handles=[l2,l3], labels=['w=20 m/s','w=35 m/s'], loc='upper right', fontsize=12)
+ax[0].contour(xn2, yn2, sws_fs, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+l3, = ax[0].plot([-190,-200], [-190,-200], color='navy', linewidth=0.5)
+l4, = ax[0].plot([-190,-200], [-190,-200], '-k', linewidth=1)
+ax[0].legend(handles=[l3,l4], labels=['Severe (26 m/s)','Sig. Severe (33 m/s)'], loc='lower left', fontsize=12)
+ax[0].set_title("Surface vorticity", fontsize=16)
+ax[0].set_ylabel('y (km)', fontsize=14)
+
+plot_contourf(xn2, yn2, svs_ss, 'zvort', ax[1],
+              levels=np.linspace(0,0.05,21), datalims=[0,0.05],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
+# ax[1].contour(xn2, yn2, sus_ss, levels=[20,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+ax[1].contour(xn2, yn2, sws_ss, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+ax[1].set_ylabel('y (km)', fontsize=14)
+
+plot_contourf(xn2, yn2, svs_ns, 'zvort', ax[2],
+              levels=np.linspace(0,0.05,21), datalims=[0,0.05],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
+# ax[2].contour(xn2, yn2, sus_ns, levels=[20,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+ax[2].contour(xn2, yn2, sws_ns, levels=[26,33], colors=['navy','k'], linewidths=[0.5,1])
+ax[2].set_xlabel('x (km)', fontsize=14)
+ax[2].set_ylabel('y (km)', fontsize=14)
+
+if figsave:
+    plt.savefig(fp2+'figs/vort_swaths.png', dpi=300)
+
+
+
+# Max updraft helicity swaths
+fig,ax = plt.subplots(3, 1, figsize=(10,11), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(aspect='equal'))
+
+plot_contourf(xn2, yn2, shs_fs, 'uh', ax[0],
+              levels=np.linspace(0,1600,17), datalims=[0,1600],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,1600,9), extend='max')
+# ax[0].contour(xn2, yn2, sus_fs, levels=[25,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+# l5, = ax[0].plot([-190,-200], [-190,-200], color='dimgray', linewidth=0.75)
+# l6, = ax[0].plot([-190,-200], [-190,-200], '-k', linewidth=1.5)
+# ax[0].legend(handles=[l5,l6], labels=['w=25 m/s','w=35 m/s'], loc='lower left', fontsize=12)
+ax[0].set_title("Updraft helicity", fontsize=16)
+ax[0].set_ylabel('y (km)', fontsize=14)
+
+plot_contourf(xn2, yn2, shs_ss, 'uh', ax[1],
+              levels=np.linspace(0,1600,17), datalims=[0,1600],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,1600,9), extend='max')
+# ax[1].contour(xn2, yn2, sus_ss, levels=[25,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+ax[1].set_ylabel('y (km)', fontsize=14)
+
+plot_contourf(xn2, yn2, shs_ns, 'uh', ax[2],
+              levels=np.linspace(0,1600,17), datalims=[0,1600],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,1600,9), extend='max')
+# ax[2].contour(xn2, yn2, sus_ns, levels=[25,35], colors=['dimgray','k'], linewidths=[0.75,1.5])
+ax[2].set_xlabel('x (km)', fontsize=14)
+ax[2].set_ylabel('y (km)', fontsize=14)
+
+if figsave:
+    plt.savefig(fp2+'figs/UH_swaths.png', dpi=300)
+
+
+plt.show()
 
 
 

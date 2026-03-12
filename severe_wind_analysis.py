@@ -6,12 +6,14 @@ Created on Wed Dec  3 09:57:54 2025
 """
 
 from CM1utils import *
+import matpy.calc as mc
+from metpy.units import units
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
 
-fn = np.linspace(1,17,5)
+fn = np.linspace(1,37,10)
 ncols = 5
 
 
@@ -25,15 +27,20 @@ elif 'noslip' in fp:
     bbc = 'No-slip'
     sim = 'NOSLIP'
 
-titlestr = f"{bbc}, NSSL 3mom, dx=500m"
+titlestr = f"{bbc}, P3 3mom, dx=250m"
 # titlestr = "New P3 -- Fir, modded"
 
 
 figsave = False
 
 
-fig,ax = plt.subplots(2, ncols, figsize=(11.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig,ax = plt.subplots(2, ncols, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 # fig1,ax1 = plt.subplots(2, ncols, figsize=(9.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig2,ax2 = plt.subplots(2, ncols, figsize=(10,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+
+# fig,ax = plt.subplots(2, ncols, figsize=(11.75,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig1,ax1 = plt.subplots(2, ncols, figsize=(12,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig2,ax2 = plt.subplots(2, ncols, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 
 for f in fn:
     ds = nc.Dataset(fp+f"cm1out_{f:06.0f}.nc")
@@ -46,12 +53,14 @@ for f in fn:
     iz3 = np.where(zh>3)[0][0]
     
     
-    dbz = ds.variables['dbz'][:].data[0,0,:,:]
-    winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
-    # # thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
-    # uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
-    # vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
-    # zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
+    # dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    # winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    zvort = ds.variables['zvort'][:].data[0,0:iz1,:,:]
+    thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    u_gr = uinterp + ds.variables['umove'][:].data[0]
+    v_gr = vinterp + ds.variables['vmove'][:].data[0]
     # ### P3 3-moment scheme
     # if 'qi1' in list(ds.variables.keys()):
     #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
@@ -69,8 +78,9 @@ for f in fn:
     # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
     # thrpert = thr - thr0
     # del thr,thr0
-    # u_gr = uinterp + ds.variables['umove'][:].data[0]
-    # v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    del2 = mc.laplacian(thrpert*units.K, deltas=(250*units.m, 250*units.m))
+    del2thp = del2.magnitude
+    del2units = del2.units
     
     ds.close()
     
@@ -92,35 +102,55 @@ for f in fn:
         cb_flag = False
     
     
-    plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[i,j], levels=np.linspace(0,70,15),
-                  datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
-    ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
-    if n == 0:
-        l1, = ax[0,0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
-        l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.75)
-        ax[0,0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper right', fontsize=10)
-    ax[i,j].set_title(f"t = {time:.0f} s")
-    # fig.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
-    fig.suptitle(f"{sim}")
-    if (n==len(fn)-1) & (figsave):
-        fig.savefig(fp+f"figs/dbz.png", dpi=300)
+    qix = 60
     
     
-    # qix = 30
-    
-    # plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
-    #               datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
-    # ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
-    # ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    # plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax[i,j], levels=np.linspace(0,70,15),
+    #               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag)
+    # ax[i,j].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
     # if n == 0:
-    #     l3, = ax1[0,0].plot([190,200], [190,200], '-r', linewidth=1)
-    #     ax1[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
-    # ax1[i,j].set_title(f"t = {time:.0f} s")
-    # # fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
-    # fig1.suptitle(f"{sim}")
+    #     l1, = ax[0,0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+    #     l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.75)
+    #     ax[0,0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper right', fontsize=10)
+    # ax[i,j].set_title(f"t = {time:.0f} s")
+    # # fig.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
+    # fig.suptitle(f"{sim}")
     # if (n==len(fn)-1) & (figsave):
-    #     fig1.savefig(fp+f"figs/thrpert.png", dpi=300)
-
+    #     fig.savefig(fp+f"figs/dbz.png", dpi=300)
+    
+    
+    
+    plot_contourf(xh, yh, thrpert, 'thpert', ax1[i,j], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag)
+    ax1[i,j].contour(xh, yh, np.max(zvort, axis=0), levels=[0.03], colors='r', linestyles='-', linewidths=1)
+    ax1[i,j].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    if n == 0:
+        l3, = ax1[0,0].plot([190,200], [190,200], '-r', linewidth=1)
+        ax1[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
+    ax1[i,j].set_title(f"t = {time:.0f} s")
+    # fig1.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    fig1.suptitle(f"{sim}")
+    if (n==len(fn)-1) & (figsave):
+        fig1.savefig(fp+f"figs/thrpert.png", dpi=300)
+    
+    
+    
+    c = ax2[i,j].contourf(xh, yh, del2thp, levels=np.linspace(-5e-5,5e-5,21), vmin=-5e-5, vmax=5e-5, cmap='balance', antialiased=True)
+    c.set_edgecolor('face')
+    if cb_flag:
+        cb = plt.colorbar(c, ax=ax2[i,j], extend='both')
+        cb.set_label("\u25BD$^2$\u03B8' (K m$^{-2}$)", fontsize=11)
+        cb.formatter.set_powerlimits((0,0))
+        cb.set_ticks(np.linspace(-5e-5,5e-5,11))
+    ax2[i,j].set_xlim(xl)
+    ax2[i,j].set_ylim(yl)
+    ax2[i,j].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    ax2[i,j].set_title(f"t = {time:.0f} s")
+    fig2.suptitle(f"{sim} -- \u25BD$^2$\u03B8'")
+    if (n==len(fn)-1) & (figsave):
+        fig2.savefig(fp+f"figs/thp_laplacian.png", dpi=300)
+    
+    
 
 
 
@@ -128,7 +158,7 @@ for f in fn:
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
@@ -147,7 +177,7 @@ elif 'noslip' in fp:
 
 titlestr = f"{bbc}, WK profile, dx=250"
 
-ds = nc.Dataset(fp+"cm1out_000029.nc")
+ds = nc.Dataset(fp+"cm1out_000009.nc")
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -161,6 +191,8 @@ svs = ds.variables['svs'][:].data[0,:,:] #max sfc zeta
 sps = ds.variables['sps'][:].data[0,:,:] #min sfc p'
 sus = ds.variables['sus'][:].data[0,:,:] #max 5km w
 shs = ds.variables['shs'][:].data[0,:,:] #max integrated UH
+sus2 = ds.variables['sus2'][:].data[0,:,:]
+svs2 = ds.variables['svs2'][:].data[0,:,:]
 ds.close()
 
 
@@ -176,37 +208,37 @@ figsave = False
 
                       
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-c = plot_contourf(xh, yh, sws, 'wspd', ax,
-              levels=np.linspace(0,40,21), datalims=[0,40], 
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
-# ax.contour(xh, yh, svs, levels=[0.01,0.02], colors=[''])
-ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[0.5,1.25])
-# ax.set_title(f"7-h sfc wind swath ({titlestr})", fontsize=16)
-ax.set_title(f"{sim} - Surface wind swath", fontsize=16)
-l1, = ax.plot([190,200], [190,200], '-k', linewidth=0.5)
-l2, = ax.plot([190,200], [190,200], '-k', linewidth=1)
-ax.legend(handles=[l1,l2], labels=['Severe (26 m/s)','Sig. Severe (33 m/s)'], loc='upper right', fontsize=12)
-if figsave:
-    plt.savefig(fp+"figs/wspd_swath.png", dpi=300)
-
-
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, np.ma.masked_array(svs, svs<0.001), 'zvort', ax,
-              levels=np.linspace(0,0.05,21), datalims=[0,0.05],
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
-# ax.set_title(f"7-h sfc zeta swath ({titlestr})", fontsize=16)
-ax.set_title(f"{sim} - Surface vorticity swath", fontsize=16)
-# ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[0.5,1])
-# l1, = ax.plot([0,0], [190,200], '-k', linewidth=0.5)
-# l2, = ax.plot([0,0], [190,200], '-k', linewidth=1)
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# c = plot_contourf(xh, yh, sws, 'wspd', ax,
+#               levels=np.linspace(0,40,21), datalims=[0,40], 
+#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+# # ax.contour(xh, yh, svs, levels=[0.01,0.02], colors=[''])
+# ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[0.5,1.25])
+# # ax.set_title(f"7-h sfc wind swath ({titlestr})", fontsize=16)
+# ax.set_title(f"{sim} - Surface wind swath", fontsize=16)
+# l1, = ax.plot([190,200], [190,200], '-k', linewidth=0.5)
+# l2, = ax.plot([190,200], [190,200], '-k', linewidth=1)
 # ax.legend(handles=[l1,l2], labels=['Severe (26 m/s)','Sig. Severe (33 m/s)'], loc='upper right', fontsize=12)
-ax.contour(xh, yh, sus, levels=[20,40], colors='k', linewidths=[0.75,1.5])
-l1, = ax.plot([190,200], [190,200], '-k', linewidth=0.75)
-l2, = ax.plot([190,200], [190,200], '-k', linewidth=1.5)
-ax.legend(handles=[l1,l2], labels=['w=20 m/s','w=40 m/s'], loc='upper right', fontsize=12)
-if figsave:
-    plt.savefig(fp+"figs/zeta_swath.png", dpi=300)
+# if figsave:
+#     plt.savefig(fp+"figs/wspd_swath.png", dpi=300)
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, np.ma.masked_array(svs, svs<0.001), 'zvort', ax,
+#               levels=np.linspace(0,0.05,21), datalims=[0,0.05],
+#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,0.05,11), extend='max')
+# # ax.set_title(f"7-h sfc zeta swath ({titlestr})", fontsize=16)
+# ax.set_title(f"{sim} - Surface vorticity swath", fontsize=16)
+# # ax.contour(xh, yh, sws, levels=[26,33], colors='k', linewidths=[0.5,1])
+# # l1, = ax.plot([0,0], [190,200], '-k', linewidth=0.5)
+# # l2, = ax.plot([0,0], [190,200], '-k', linewidth=1)
+# # ax.legend(handles=[l1,l2], labels=['Severe (26 m/s)','Sig. Severe (33 m/s)'], loc='upper right', fontsize=12)
+# ax.contour(xh, yh, sus, levels=[20,40], colors='k', linewidths=[0.75,1.5])
+# l1, = ax.plot([190,200], [190,200], '-k', linewidth=0.75)
+# l2, = ax.plot([190,200], [190,200], '-k', linewidth=1.5)
+# ax.legend(handles=[l1,l2], labels=['w=20 m/s','w=40 m/s'], loc='upper right', fontsize=12)
+# if figsave:
+#     plt.savefig(fp+"figs/zeta_swath.png", dpi=300)
 
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
@@ -220,6 +252,17 @@ ax.legend(handles=[l1], labels=["\u03B6=0.04 s$^{-1}$"], loc='upper right', font
 ax.set_title(f"{sim} - 5-km updraft swath", fontsize=16)
 if figsave:
     plt.savefig(fp+"figs/updraft_swath.png", dpi=300)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+plot_contourf(xh, yh, np.ma.masked_array(sus2, sus2<1), 'w', ax,
+              levels=np.linspace(0,40,21), datalims=[0,40],
+              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
+ax.contour(xh, yh, svs2, levels=[0.04], colors='k', linewidths=[0.75])
+l1, = ax.plot([190,200], [190,200], '-k', linewidth=0.75)
+l2, = ax.plot([190,200], [190,200], '-k', linewidth=1)
+ax.legend(handles=[l1], labels=["\u03B6=0.04 s$^{-1}$"], loc='upper right', fontsize=12)
+ax.set_title(f"{sim} - Translated 5-km updraft swath", fontsize=16)
 
 
 # fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
@@ -240,10 +283,17 @@ if figsave:
 #     plt.savefig(fp+"figs/prspert_swath.png", dpi=300)
 
 
-
-
-
 plt.show()
+
+
+
+
+# Hourly statistics?
+
+
+
+
+
 
 #%% Multi-panel swaths for CWE?
 
@@ -993,6 +1043,194 @@ ax.set_ylabel('z (km)')
 ax.set_title(f"Cross section through \u03B6-max at t={time:.0f} s\n \u03B8' shaded, w and \u03B6 contour ({titlestr}) ")
 
 plt.show()
+
+
+
+#%% Base state soundings
+
+from metpy.plots import SkewT, Hodograph
+import metpy.calc as mc
+from metpy.units import units
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+# Effective Shear Algorithm
+def effective_layer(p, T, Td, h, height_layer=False):
+    '''This function determines the effective inflow layer for a convective sounding.
+    
+    Input:
+      - p: sounding pressure with units
+      - T: sounding temperature with units
+      - Td: sounding dewpoint temperature with units
+      - h: sounding heights with units
+      
+    Returns:
+      - pbot/hbot, ptop/htop: pressure/height of the bottom level, pressure/height of the top level
+    '''
+    
+    pbot = None
+    
+    for i in range(p.shape[0]):
+        prof = mc.parcel_profile(p[i:], T[i], Td[i])
+        sbcape, sbcin = mc.cape_cin(p[i:], T[i:], Td[i:], prof)
+        if sbcape >= 100 * units('J/kg') and sbcin > -250 * units('J/kg'):
+            pbot = p[i]
+            hbot = h[i]
+            bot_idx = i
+            break
+    if not pbot:
+        return None, None
+    
+    for i in range(bot_idx+1, p.shape[0]):
+        prof = mc.parcel_profile(p[i:], T[i], Td[i])
+        sbcape, sbcin = mc.cape_cin(p[i:], T[i:], Td[i:], prof)
+        if sbcape < 100 * units('J/kg') or sbcin < -250 * units('J/kg'):
+            ptop = p[i]
+            htop = h[i]
+            break
+            
+    if height_layer:
+        return hbot, htop
+    else:
+        return pbot, ptop
+
+effl = effective_layer(prs0/100*units.hPa, T0*units.K, Td0*units.K, zh*1000*units.m, height_layer=True)
+ebot = effl[0].magnitude
+etop = effl[1].magnitude
+
+
+ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/cm1out_000001.nc')
+zh = ds.variables['zh'][:].data # km
+umove = ds.variables['umove'][:].data
+vmove = ds.variables['vmove'][:].data
+u0 = ds.variables['u0'][:].data[0,:,0,0] + umove # m/s
+v0 = ds.variables['v0'][:].data[0,:,0,0] + vmove # m/s
+th0 = ds.variables['th0'][:].data[0,:,0,0] # K
+qv0 = ds.variables['qv0'][:].data[0,:,0,0] # kg/kg
+prs0 = ds.variables['prs0'][:].data[0,:,0,0] # Pa
+ds.close()
+
+T0 = th0 * (prs0/100000.)**0.286
+e0 = (qv0 * prs0/100) / (0.622+qv0)
+Td0 = 243.5 / ((17.67/(np.log(e0/6.112)))-1) + 273.15
+
+
+# Calculate sounding parameters
+bwnd = mc.bunkers_storm_motion(prs0/100*units.hPa, u0*units('m/s'), v0*units('m/s'), zh*1000*units.m)
+uBR = bwnd[0].magnitude[0]
+vBR = bwnd[0].magnitude[1]
+uBL = bwnd[1].magnitude[0]
+vBL = bwnd[1].magnitude[1]
+u06 = bwnd[2].magnitude[0]
+v06 = bwnd[2].magnitude[1]
+smBR = np.sqrt(uBR**2 + vBR**2)
+angBR = 180 + np.arctan2(uBR, vBR)*180/np.pi
+VH06 = np.sqrt(u06**2 + v06**2)
+ang06 = 180 + np.arctan2(u06, v06)*180/np.pi
+
+T_parcel = mc.parcel_profile(prs0/100*units.hPa, T0[0]*units.K, Td0[0]*units.K)
+# CC = mc.cape_cin(prs0/100*units.hPa, T0*units.K, Td0*units.K, T_parcel)
+# cape = CC[0].magnitude
+# cin = CC[1].magnitude
+MU = mc.most_unstable_cape_cin(prs0/100*units.hPa, T0*units.K, Td0*units.K, height=zh*1000*units.m)
+mucape = MU[0].magnitude
+mucin = MU[1].magnitude
+SB = mc.surface_based_cape_cin(prs0/100*units.hPa, T0*units.K, Td0*units.K)
+sbcape = SB[0].magnitude
+sbcin = SB[1].magnitude
+ML = mc.mixed_layer_cape_cin(prs0/100*units.hPa, T0*units.K, Td0*units.K, height=zh*1000*units.m)
+mlcape = ML[0].magnitude
+mlcin = ML[1].magnitude
+DC = mc.downdraft_cape(prs0/100*units.hPa, T0*units.K, Td0*units.K)
+dcape = DC[0].magnitude
+
+lcl = mc.lcl(prs0/100*units.hPa, T0[0]*units.K, Td0[0]*units.K)
+plcl = lcl[0].magnitude[0]
+ilcl = np.where(prs0/100 <= plcl)[0][0]
+zlcl = zh[ilcl]*1000
+
+el = mc.el(prs0/100*units.hPa, T0*units.K, Td0*units.K)
+pel = el[0].magnitude
+iel = np.where(prs0/100 <= pel)[0][0]
+zel = zh[iel]*1000
+
+
+shr6km = mc.bulk_shear(prs0/100*units.hPa, u0*units('m/s'), v0*units('m/s'), height=zh*1000*units.m, bottom=10*units.m, depth=6000*units.m)
+ushr06 = shr6km[0].magnitude
+vshr06 = shr6km[1].magnitude
+shr06 = np.sqrt(ushr06**2 + vshr06**2)
+angSHR = 180 + np.arctan2(ushr06, vshr06)*180/np.pi
+shrE = mc.bulk_shear(prs0/100*units.hPa, u0*units('m/s'), v0*units('m/s'), height=zh*1000*units.m, bottom=ebot*units.m, depth=(zel-ebot)*units.m)
+uEBS = shrE[0].magnitude
+vEBS = shrE[1].magnitude
+ebs = np.sqrt(uEBS**2 + vEBS**2)
+angEBS = 180 + np.arctan2(uEBS, vEBS)*180/np.pi
+
+srh5 = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=500*units.m, storm_u=uBR*units('m/s'), storm_v=vBR*units('m/s'))
+srh500 = srh5[2].magnitude
+srh1 = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=1000*units.m, storm_u=uBR*units('m/s'), storm_v=vBR*units('m/s'))
+srh1km = srh1[2].magnitude
+srh3 = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=3000*units.m, storm_u=uBR*units('m/s'), storm_v=vBR*units('m/s'))
+srh3km = srh3[2].magnitude
+srhe = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=(etop-ebot)*units.m, bottom=ebot*units.m, storm_u=uBR*units('m/s'), storm_v=vBR*units('m/s'))
+esrh = srhe[2].magnitude
+
+supcom = mc.supercell_composite(mucape*units('J/kg'), esrh*units('m^2/s^2'), ebs*units('m/s'))
+scp = supcom[0].magnitude
+sigtor = mc.significant_tornado(sbcape*units('J/kg'), zlcl*units.m, srh500*units('m^2/s^2'), shr06*units('m/s'))
+stp = sigtor[0].magnitude
+
+
+
+print("---BASE STATE PROFILE---")
+print(f"Profile top:          {1000*max(zh)+140:.0f} m")
+print(f"MUCAPE,MUCIN:         {mucape:.0f} J/kg, {mucin:.0f} J/kg")
+print(f"SBCAPE,SBCIN:         {sbcape:.0f} J/kg, {sbcin:.0f} J/kg")
+print(f"MLCAPE,MLCIN:         {mlcape:.0f} J/kg, {mlcin:.0f} J/kg")
+print(f"DCAPE:                {dcape:.0f} J/kg")
+print(f"LCL height:           {zlcl:.0f} m ({plcl:.0f} hPa)")
+print(f"Eff. inflow layer:    {ebot:.0f} m-{etop:.0f} m")
+print(f"Bunkers RM:           {smBR:.1f} m/s at {angBR:.0f} deg (Vector: {uBR:.1f} m/s, {vBR:.1f} m/s)")
+print(f"0-6 km mean wind:     {VH06:.1f} m/s at {ang06:.0f} deg (Vector: {u06:.1f} m/s, {v06:.1f} m/s)")
+print(f"-----")
+print(f"Bulk shear (0-6 km):  {shr06:.1f} m/s at {angSHR:.0f} deg (Vector: {ushr06:.1f} m/s, {vshr06:.1f} m/s)")
+print(f"Bulk shear (Eff.):    {ebs:.1f} m/s at {angEBS:.0f} deg (Vector: {uEBS:.1f} m/s, {vEBS:.1f} m/s)")
+print(f"SRH (0-500 m):        {srh500:.0f} m2/s2")
+print(f"SRH (0-1 km):         {srh1km:.0f} m2/s2")
+print(f"SRH (0-3 km):         {srh3km:.0f} m2/s2")
+print(f"SRH (Eff.):           {esrh:.0f} m2/s2")
+print(f"Supercell composite:  {scp:.1f}")
+print(f"Significant tornado:  {stp:.1f}")
+
+
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs0/100., (T0-273.15), '-r', linewidth=2)
+skew.plot(prs0/100., (Td0-273.15), '-g', linewidth=2)
+skew.plot(prs0/100., np.array(T_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+plt.title('Base state')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=60.)
+H.add_grid(increment=20)
+H.plot(u0, v0, color='k', linewidth=1.5)
+
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
