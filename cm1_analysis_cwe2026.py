@@ -980,7 +980,9 @@ ax.legend(handles=[l1,l2,l3,l4,s1], labels=['SS-FS','NS-FS','SS-NS','ANOVA','p<0
              loc='upper right', fontsize=13)
 ax.text(0.1, 65.5, "Hourly statistical significance", fontsize=25, fontweight='bold')
 
-plt.show()
+
+
+figsave = True
 
 if figsave:
     plt.savefig(fp2+"figs/stat_sig.png", dpi=300)
