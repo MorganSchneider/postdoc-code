@@ -11,9 +11,9 @@ from metpy.units import units
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
 
-fn = np.linspace(1,37,10)
+fn = np.linspace(1,17,5)
 ncols = 5
 
 
@@ -30,7 +30,7 @@ elif 'noslip' in fp:
     sim = 'NOSLIP'
     iz0 = 1
 
-titlestr = f"{bbc}, NSSL 3mom, dx=500m"
+titlestr = f"{bbc}, Morrison 2mom, dx=500m"
 
 
 figsave = False

@@ -6,7 +6,7 @@ Created on Fri Mar  6 12:06:45 2026
 """
 
 from CM1utils import *
-import matpy.calc as mc
+import metpy.calc as mc
 from metpy.units import units
 
 #%% Overview plot for all 3 simulations - dbz, thrpert, laplacian of thrpert
@@ -441,7 +441,7 @@ if plot_del2:
 
 
 
-#%% Time series plots
+#%% Time series and statistics
 
 from scipy import stats
 
@@ -982,7 +982,7 @@ ax.text(0.1, 65.5, "Hourly statistical significance", fontsize=25, fontweight='b
 
 
 
-figsave = True
+figsave = False
 
 if figsave:
     plt.savefig(fp2+"figs/stat_sig.png", dpi=300)
@@ -1415,19 +1415,21 @@ plt.show()
 
 
 
-#%% Comparison between P3 and NSSL
+#%% Comparison between P3 and NSSL (and Morrison if it ever runs)
 
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_500m/'
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
+# fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
 
 fn = np.linspace(5,37,5)
 
 
 figsave = False
 
+# fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-
 
 
 for f in fn:
@@ -1549,8 +1551,8 @@ for f in fn:
     ax1[1,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
     # ax1[1,n].set_title(f"t = {time:.0f} s")
     # fig1.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
-    if (n==len(fn)-1) & (figsave):
-        fig1.savefig(fp1+f"figs/dbz_compare.png", dpi=300)
+    # if (n==len(fn)-1) & (figsave):
+    #     fig1.savefig(fp1+f"figs/dbz_compare.png", dpi=300)
     
     
     
@@ -1560,10 +1562,232 @@ for f in fn:
     ax2[1,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     # ax2[1,n].set_title(f"t = {time:.0f} s")
     # fig2.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    # if (n==len(fn)-1) & (figsave):
+    #     fig2.savefig(fp1+f"figs/thrpert_compare.png", dpi=300)
+    
+    
+    
+    
+    ### Morrison scheme
+    ds = nc.Dataset(fp3+f"cm1out_{f:06.0f}.nc")
+    dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    zvort = ds.variables['zvort'][:].data[0,iz1:iz2,:,:]
+    thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    u_gr = uinterp + ds.variables['umove'][:].data[0]
+    v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    # ### P3 3-moment scheme
+    # if 'qi1' in list(ds.variables.keys()):
+    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
+    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
+    #                  ds.variables['qi1'][:].data[0,0,:,:] +
+    #                  ds.variables['qi2'][:].data[0,0,:,:] + 
+    #                  ds.variables['qi3'][:].data[0,0,:,:]))
+    #                  # ds.variables['qi4'][:].data[0,0,:,:]))
+    # ### NSSL 3-moment scheme
+    # if 'qg' in list(ds.variables.keys()):
+    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
+    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
+    #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
+    #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
+    
+    # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
+    # thpert = thr - thr0
+    # del thr,thr0
+    ds.close()
+    
+    
+    plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax1[2,n], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag, cbfs=10)
+    ax1[2,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # ax1[2,n].set_title(f"t = {time:.0f} s")
+    # fig1.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
     if (n==len(fn)-1) & (figsave):
-        fig2.savefig(fp1+f"figs/thrpert_compare.png", dpi=300)
+        fig1.savefig(fp1+f"figs/dbz_compare_v2.png", dpi=300)
     
     
+    
+    plot_contourf(xh, yh, thrpert, 'thpert', ax2[2,n], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag, cbfs=10)
+    ax2[2,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.015], colors='r', linestyles='-', linewidths=1)
+    ax2[2,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    # ax2[2,n].set_title(f"t = {time:.0f} s")
+    # fig2.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    if (n==len(fn)-1) & (figsave):
+        fig2.savefig(fp1+f"figs/thrpert_compare_v2.png", dpi=300)
+    
+
+#%% Get maxima
+
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+
+
+vortmax_50m = np.zeros(shape=(37,), dtype=float)
+vortmax_100m = np.zeros(shape=(37,), dtype=float)
+rainmax_sfc = np.zeros(shape=(37,), dtype=float)
+hailmax_sfc = np.zeros(shape=(37,), dtype=float)
+
+
+xy_zv_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_zv_50m = np.zeros(shape=(37,2), dtype=float)
+xy_zv_100m = np.zeros(shape=(37,2), dtype=float)
+xy_zv_1km = np.zeros(shape=(37,2), dtype=float)
+xy_zv_3km = np.zeros(shape=(37,2), dtype=float)
+xy_w_1km = np.zeros(shape=(37,2), dtype=float)
+xy_w_25km = np.zeros(shape=(37,2), dtype=float)
+xy_w_5km = np.zeros(shape=(37,2), dtype=float)
+xy_wspd_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_thp_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_rain_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_hail_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_prate_sfc = np.zeros(shape=(37,2), dtype=float)
+xy_srate_sfc = np.zeros(shape=(37,2), dtype=float)
+
+
+
+for fn in np.linspace(1,37,37):
+    print(f"cm1out_{fn:06.0f}.nc")
+    ds = nc.Dataset(fp+f"cm1out_{fn:06.0f}.nc")
+    xh = ds.variables['xh'][:].data
+    yh = ds.variables['yh'][:].data
+    zh = ds.variables['zh'][:].data
+    
+    
+    iz50 = np.argmin(abs(zh-0.05))
+    iz90 = np.argmin(abs(zh-0.09))
+    iz110 = np.argmin(abs(zh-0.11))
+    iz1000 = np.argmin(abs(zh-1.0))
+    iz2500 = np.argmin(abs(zh-2.5))
+    iz3000 = np.argmin(abs(zh-3.0))
+    iz5000 = np.argmin(abs(zh-5.0))
+    
+    zvort_sfc = ds.variables['zvort'][:].data[0,0,:,:]
+    zvort_50m = ds.variables['zvort'][:].data[0,iz50,:,:]
+    zvort_100m = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+    zvort_1000 = ds.variables['zvort'][:].data[0,iz1000,:,:]
+    zvort_3000 = ds.variables['zvort'][:].data[0,iz3000,:,:]
+    
+    w_1000 = ds.variables['winterp'][:].data[0,iz1000,:,:]
+    w_2500 = ds.variables['winterp'][:].data[0,iz2500,:,:]
+    w_5000 = ds.variables['winterp'][:].data[0,iz5000,:,:]
+    
+    wspd_sfc = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+    # wsgr_sfc = np.sqrt((ds.variables['uinterp'][:].data[0,0,:,:]+ds.variables['umove'][:].data)**2 + (ds.variables['vinterp'][:].data[0,0,:,:]+ds.variables['umove'][:].data)**2)
+    thp_sfc = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    rain_sfc = ds.variables['rain'][:].data[0,:,:]
+    hail_sfc = ds.variables['hail'][:].data[0,:,:]
+    prate_sfc = ds.variables['prate'][:].data[0,:,:]
+    srate_sfc = ds.variables['srate'][:].data[0,:,:]
+    
+    ds.close()
+    
+    f = int(fn-1)
+    
+    vortmax_50m[f] = np.max(zvort_50m)
+    vortmax_100m[f] = np.max(zvort_100m)
+    rainmax_sfc[f] = np.max(rain_sfc)
+    hailmax_sfc[f] = np.max(hail_sfc)
+    
+    
+    i = np.where(zvort_sfc == np.max(zvort_sfc))
+    xy_zv_sfc[f,0] = xh[i[1][0]]
+    xy_zv_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(zvort_50m == np.max(zvort_50m))
+    xy_zv_50m[f,0] = xh[i[1][0]]
+    xy_zv_50m[f,1] = yh[i[0][0]]
+    
+    i = np.where(zvort_100m == np.max(zvort_100m))
+    xy_zv_100m[f,0] = xh[i[1][0]]
+    xy_zv_100m[f,1] = yh[i[0][0]]
+    
+    i = np.where(zvort_1000 == np.max(zvort_1000))
+    xy_zv_1km[f,0] = xh[i[1][0]]
+    xy_zv_1km[f,1] = yh[i[0][0]]
+    
+    i = np.where(zvort_3000 == np.max(zvort_3000))
+    xy_zv_3km[f,0] = xh[i[1][0]]
+    xy_zv_3km[f,1] = yh[i[0][0]]
+    
+    i = np.where(w_1000 == np.max(w_1000))
+    xy_w_1km[f,0] = xh[i[1][0]]
+    xy_w_1km[f,1] = yh[i[0][0]]
+    
+    i = np.where(w_2500 == np.max(w_2500))
+    xy_w_25km[f,0] = xh[i[1][0]]
+    xy_w_25km[f,1] = yh[i[0][0]]
+    
+    i = np.where(w_5000 == np.max(w_5000))
+    xy_w_5km[f,0] = xh[i[1][0]]
+    xy_w_5km[f,1] = yh[i[0][0]]
+    
+    i = np.where(wspd_sfc == np.max(wspd_sfc))
+    xy_wspd_sfc[f,0] = xh[i[1][0]]
+    xy_wspd_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(thp_sfc == np.min(thp_sfc))
+    xy_thp_sfc[f,0] = xh[i[1][0]]
+    xy_thp_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(rain_sfc == np.max(rain_sfc))
+    xy_rain_sfc[f,0] = xh[i[1][0]]
+    xy_rain_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(hail_sfc == np.max(hail_sfc))
+    xy_hail_sfc[f,0] = xh[i[1][0]]
+    xy_hail_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(prate_sfc == np.max(prate_sfc))
+    xy_prate_sfc[f,0] = xh[i[1][0]]
+    xy_prate_sfc[f,1] = yh[i[0][0]]
+    
+    i = np.where(srate_sfc == np.max(srate_sfc))
+    xy_srate_sfc[f,0] = xh[i[1][0]]
+    xy_srate_sfc[f,1] = yh[i[0][0]]
+    
+    
+    
+stat_xy = {'wmax1000':xy_w_1km, 'wmax2500':xy_w_25km, 'wmax5000':xy_w_5km,
+           'vortsfc':xy_zv_sfc, 'vort1km':xy_zv_1km, 'vort3km':xy_zv_3km,
+           'swpsmax':xy_wspd_sfc, 'sthpmin':xy_thp_sfc, 'pratemax':xy_prate_sfc, 'sratemax':xy_srate_sfc,
+           'vort50m':xy_zv_50m, 'vort100m':xy_zv_100m, 'rainmax':xy_rain_sfc, 'hailmax':xy_hail_sfc}
+
+
+more_stats = {'vort50m':vortmax_50m, 'vort100m':vortmax_100m, 'rainmax':rainmax_sfc, 'hailmax':hailmax_sfc}
+
+
+
+#%%
+
+dbfile = open(fp+'extra_stats.pkl', 'wb')
+pickle.dump(more_stats, dbfile)
+dbfile.close()
+
+dbfile = open(fp+'stat_xy.pkl', 'wb')
+pickle.dump(stat_xy, dbfile)
+dbfile.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
