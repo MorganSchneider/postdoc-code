@@ -497,3 +497,19 @@ print(f"CAPE,CIN:             {cape3:.0f} J/kg, {cin3:.0f} J/kg")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

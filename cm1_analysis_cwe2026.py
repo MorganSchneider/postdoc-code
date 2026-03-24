@@ -1621,7 +1621,7 @@ for f in fn:
 
 #%% Get maxima
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 
 
 vortmax_50m = np.zeros(shape=(37,), dtype=float)
@@ -1759,8 +1759,6 @@ more_stats = {'vort50m':vortmax_50m, 'vort100m':vortmax_100m, 'rainmax':rainmax_
 
 
 
-#%%
-
 dbfile = open(fp+'extra_stats.pkl', 'wb')
 pickle.dump(more_stats, dbfile)
 dbfile.close()
@@ -1771,6 +1769,8 @@ dbfile.close()
 
 
 
+
+#%%
 
 
 
