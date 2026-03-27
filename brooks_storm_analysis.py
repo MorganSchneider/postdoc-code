@@ -12,7 +12,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5_125m_test1/'
 
-ds = nc.Dataset(fp+'cm1out_000013.nc')
+ds = nc.Dataset(fp+'cm1out_000017.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -170,45 +170,65 @@ plt.show()
 
 
 
-#%% Check swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5_125m_test1/'
-
-ds = nc.Dataset(fp+'cm1out_000017.nc')
-xh = ds.variables['xh'][:].data
-yh = ds.variables['yh'][:].data
-sws = ds.variables['sws'][:].data[0,:,:]
-svs = ds.variables['svs'][:].data[0,:,:]
-sus = ds.variables['sus'][:].data[0,:,:]
-shs = ds.variables['shs2'][:].data[0,:,:]
-ds.close()
-
-xl = [-100,100]
-yl = [-100,100]
-
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(box_aspect=1))
-# plot_contourf(xh, yh, sus, 'w', ax, levels=np.linspace(0,40,21), datalims=[0,40],
-#               xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,40,11), extend='max')
-# ax.set_title("5-km updraft swath", fontsize=16)
-# ax.set_xlabel('x (km)', fontsize=14)
-# ax.set_ylabel('y (km)', fontsize=14)
-
-
-fig,ax = plt.subplots(1, 1, figsize=(8,6), sharex=True, sharey=True, layout='constrained', subplot_kw=dict(box_aspect=1))
-plot_contourf(xh, yh, shs, 'uh', ax, levels=np.linspace(0,1000,21), datalims=[0,1000],
-              xlims=xl, ylims=yl, cmap='Reds', cbfs=14, cbticks=np.linspace(0,1000,11), extend='max')
-ax.set_title("Integrated updraft helicity swath (0-4 h)", fontsize=16)
-ax.set_xlabel('x (km)', fontsize=14)
-ax.set_ylabel('y (km)', fontsize=14)
-
-plt.show()
 
 #%% Translated swaths
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5_125m_test1/'
 
 fn = np.linspace(5,17,4)
+
+x_added = umove*3600/1000
+
+
+ds = nc.Dataset(fp+'cm1out_000005.nc')
+xh1 = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+shs1 = ds.variables['shs2'][:].data[0,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000009.nc')
+shs2 = ds.variables['shs2'][:].data[0,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000013.nc')
+shs3 = ds.variables['shs2'][:].data[0,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000017.nc')
+shs4 = ds.variables['shs2'][:].data[0,:,:]
+ds.close()
+
+xh1 = xh1 + 100
+xh2 = xh1 + x_added
+xh3 = xh1 + 2*x_added
+xh4 = xh1 + 3*x_added
+
+
+levs = [250,500]
+cols = ['dimgray','k']
+lws = [1,1]
+
+fig,ax = plt.subplots(1, 1, figsize=(8,4), subplot_kw=dict(aspect=1), layout='constrained')
+
+ax.contour(xh1, yh, shs1, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh2, yh, shs2, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh3, yh, shs3, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh4, yh, shs4, levels=levs, colors=cols, linewidths=lws)
+ax.set_xlim([0,300])
+ax.set_ylim([-50,75])
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('y (km)', fontsize=10)
+ax.set_title('Brooks test run #1: Translated updraft helicity swaths (0-4 h)', fontsize=12)
+l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l1,l2], labels=['250 m2/s2','500 m2/s2'], loc='upper right', fontsize=10)
+
+plt.savefig(fp+'uh_swath_translated.png', dpi=300)
+
+plt.show()
+
+
 
 
 # I think i have to interpolate dear god 
