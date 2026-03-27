@@ -1419,7 +1419,7 @@ plt.show()
 
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_500m/'
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
-# fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
 
 fn = np.linspace(5,37,5)
 
@@ -1428,8 +1428,8 @@ figsave = False
 
 # fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 # fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig1,ax1 = plt.subplots(3, 5, figsize=(11.75,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig2,ax2 = plt.subplots(3, 5, figsize=(12,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 
 
 for f in fn:
@@ -1460,13 +1460,6 @@ for f in fn:
     #                  ds.variables['qi2'][:].data[0,0,:,:] + 
     #                  ds.variables['qi3'][:].data[0,0,:,:]))
     #                  # ds.variables['qi4'][:].data[0,0,:,:]))
-    # ### NSSL 3-moment scheme
-    # elif 'qg' in list(ds.variables.keys()):
-    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
-    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
-    #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
-    #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
-    
     # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
     # thpert = thr - thr0
     # del thr,thr0
@@ -1525,14 +1518,6 @@ for f in fn:
     vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
     u_gr = uinterp + ds.variables['umove'][:].data[0]
     v_gr = vinterp + ds.variables['vmove'][:].data[0]
-    # ### P3 3-moment scheme
-    # if 'qi1' in list(ds.variables.keys()):
-    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
-    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
-    #                  ds.variables['qi1'][:].data[0,0,:,:] +
-    #                  ds.variables['qi2'][:].data[0,0,:,:] + 
-    #                  ds.variables['qi3'][:].data[0,0,:,:]))
-    #                  # ds.variables['qi4'][:].data[0,0,:,:]))
     # ### NSSL 3-moment scheme
     # if 'qg' in list(ds.variables.keys()):
     #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
@@ -1578,24 +1563,6 @@ for f in fn:
     vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
     u_gr = uinterp + ds.variables['umove'][:].data[0]
     v_gr = vinterp + ds.variables['vmove'][:].data[0]
-    # ### P3 3-moment scheme
-    # if 'qi1' in list(ds.variables.keys()):
-    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] - 
-    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] + 
-    #                  ds.variables['qi1'][:].data[0,0,:,:] +
-    #                  ds.variables['qi2'][:].data[0,0,:,:] + 
-    #                  ds.variables['qi3'][:].data[0,0,:,:]))
-    #                  # ds.variables['qi4'][:].data[0,0,:,:]))
-    # ### NSSL 3-moment scheme
-    # if 'qg' in list(ds.variables.keys()):
-    #     thr = ds.variables['th'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv'][:].data[0,0,:,:] -
-    #                 (ds.variables['qc'][:].data[0,0,:,:] + ds.variables['qr'][:].data[0,0,:,:] +
-    #                  ds.variables['qi'][:].data[0,0,:,:] + ds.variables['qs'][:].data[0,0,:,:] +
-    #                  ds.variables['qg'][:].data[0,0,:,:] + ds.variables['qhl'][:].data[0,0,:,:]))
-    
-    # thr0 = ds.variables['th0'][:].data[0,0,:,:] * (1 + 0.61*ds.variables['qv0'][:].data[0,0,:,:])
-    # thpert = thr - thr0
-    # del thr,thr0
     ds.close()
     
     
@@ -1770,7 +1737,7 @@ dbfile.close()
 
 
 
-#%%
+
 
 
 

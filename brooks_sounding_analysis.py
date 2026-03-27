@@ -144,6 +144,8 @@ import pandas as pd
 fp = 'C:/Users/mschne28/Documents/brooks_storm/'
 save_flag = False
 
+
+
 # Most favourable profile --- 1121 m?
 fn1 = 'ERA5_Profile_20250820_21Z_50.75_114.0_CM1.txt'
 
@@ -386,6 +388,11 @@ i1 = np.where(prs1 == np.nanmin(prs1))[0][0]
 i2 = np.where(prs2 == np.nanmin(prs2))[0][0]
 i3 = np.where(prs3 == np.nanmin(prs3))[0][0]
 
+i1 = np.nanargmin(abs(prs1-100))
+i2 = np.nanargmin(abs(prs2-100))
+i3 = np.nanargmin(abs(prs3-100))
+
+
 prs1 = prs1[:i1]
 z1 = z1[:i1]
 th1 = th1[:i1]
@@ -487,9 +494,116 @@ print(f"0-6 km mean wind:     {VH06_3:.1f} m/s at {ang06_3:.0f} deg (Vector: {u0
 print(f"CAPE,CIN:             {cape3:.0f} J/kg, {cin3:.0f} J/kg")
 
 
+i1_1 = np.argmin(abs(z1-1000))
+i3_1 = np.argmin(abs(z1-3000))
+i6_1 = np.argmin(abs(z1-6000))
+
+i1_2 = np.argmin(abs(z2-1000))
+i3_2 = np.argmin(abs(z2-3000))
+i6_2 = np.argmin(abs(z2-6000))
+
+i1_3 = np.argmin(abs(z3-1000))
+i3_3 = np.argmin(abs(z3-3000))
+i6_3 = np.argmin(abs(z3-6000))
+
+
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs1, (T1-273.15), '-r', linewidth=2)
+skew.plot(prs1, (Td1-273.15), '-g', linewidth=2)
+skew.plot(prs1, np.array(T1_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+plt.title('ERA5 20250820_21z 50.75,-114.0')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=40.)
+H.add_grid(increment=10)
+# H.plot(u1, v1, color='k', linewidth=1.5)
+# ax_hod.scatter(u1[i1_1], v1[i1_1], s=40, marker='o', edgecolor='k', facecolor='g')
+# ax_hod.scatter(u1[i3_1], v1[i3_1], s=40, marker='o', edgecolor='k', facecolor='b')
+# ax_hod.scatter(u1[i6_1], v1[i6_1], s=40, marker='o', edgecolor='k', facecolor='r')
+H.plot(u1[0:i1_1], v1[0:i1_1], color='r', linewidth=1.5)
+H.plot(u1[i1_1:i3_1], v1[i1_1:i3_1], color='g', linewidth=1.5)
+H.plot(u1[i3_1:i6_1], v1[i3_1:i6_1], color='b', linewidth=1.5)
+H.plot(u1[i6_1:], v1[i6_1:], color='dimgray', linewidth=1.5)
+str1 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape1, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_1,v06_1, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_1,vBR_1, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=12, bbox=props)
 
 
 
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs2, (T2-273.15), '-r', linewidth=2)
+skew.plot(prs2, (Td2-273.15), '-g', linewidth=2)
+skew.plot(prs2, np.array(T2_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+plt.title('ERA5 20250820_21z 51.0,-114.25')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=40.)
+H.add_grid(increment=10)
+# H.plot(u2, v2, color='k', linewidth=1.5)
+# ax_hod.scatter(u2[i1_2], v2[i1_2], s=40, marker='o', edgecolor='k', facecolor='g')
+# ax_hod.scatter(u2[i3_2], v2[i3_2], s=40, marker='o', edgecolor='k', facecolor='b')
+# ax_hod.scatter(u2[i6_2], v2[i6_2], s=40, marker='o', edgecolor='k', facecolor='r')
+H.plot(u2[0:i1_2], v2[0:i1_2], color='r', linewidth=1.5)
+H.plot(u2[i1_2:i3_2], v2[i1_2:i3_2], color='g', linewidth=1.5)
+H.plot(u2[i3_2:i6_2], v2[i3_2:i6_2], color='b', linewidth=1.5)
+H.plot(u2[i6_2:], v2[i6_2:], color='dimgray', linewidth=1.5)
+str2 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape2, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_2,v06_2, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_2,vBR_2, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str2, fontsize=12, bbox=props)
+
+
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs3, (T3-273.15), '-r', linewidth=2)
+skew.plot(prs3, (Td3-273.15), '-g', linewidth=2)
+skew.plot(prs3, np.array(T3_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+plt.title('ERA5 20250820_21z 51.25,-113.25')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=40.)
+H.add_grid(increment=10)
+# H.plot(u3, v3, color='k', linewidth=1.5)
+# ax_hod.scatter(u3[i1_3], v3[i1_3], s=40, marker='o', edgecolor='k', facecolor='g')
+# ax_hod.scatter(u3[i3_3], v3[i3_3], s=40, marker='o', edgecolor='k', facecolor='b')
+# ax_hod.scatter(u3[i6_3], v3[i6_3], s=40, marker='o', edgecolor='k', facecolor='r')
+H.plot(u3[0:i1_3], v3[0:i1_3], color='r', linewidth=1.5)
+H.plot(u3[i1_3:i3_3], v3[i1_3:i3_3], color='g', linewidth=1.5)
+H.plot(u3[i3_3:i6_3], v3[i3_3:i6_3], color='b', linewidth=1.5)
+H.plot(u3[i6_3:], v3[i6_3:], color='dimgray', linewidth=1.5)
+str3 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape3, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_3,v06_3, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_3,vBR_3, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str3, fontsize=12, bbox=props)
+
+plt.show()
 
 
 

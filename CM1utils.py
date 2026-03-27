@@ -93,58 +93,6 @@ cmaps = {
 }
 
 
-# # Read CM1 output into user-defined struct object
-# def read_cm1out(fname, dsvars=None):
-#     # fname : full path to data file
-#     # dsvars: list of the names of desired variables to load
-    
-#     # Open output file
-#     ds = nc.Dataset(fname)
-#     if dsvars is not None:
-#         dsvars = np.array(dsvars)
-#     else:
-#         dsvars = np.array(list(ds.variables.keys()))
-#     # Read data into a struct object (defined above)
-#     df = struct()
-#     #df = {}
-#     for i in range(len(dsvars)):
-#         df.SetAttr(dsvars[i], ds.variables[dsvars[i]][:].data)
-#         #df.update({dsvars[i]: ds.variables[dsvars[i]][:].data})
-#     ds.close()
-    
-#     return df
-
-
-# Get vertical cross-sections of 3D fields along any diagonal line, plus a 1D vector for the diagonal horizontal coordinate
-def vert_cross_section(field, x, y, start=[0,0], end=[-1,-1], gety=False):
-    # start: xy coordinates of cross-section start point (array or tuple)
-    # end: xy coordinates of cross-section end point (array or tuple)
-    ix1 = np.where(x >= start[0])[0][0]
-    iy1 = np.where(y >= start[1])[0][0]
-    ix2 = np.where(x >= end[0])[0][0]
-    iy2 = np.where(y >= end[1])[0][0]
-    
-    xy = wrf.xy(field, start_point=(ix1,iy1), end_point=(ix2,iy2))
-    if gety:
-        x_cross = wrf.interp2dxy(np.moveaxis(np.tile(y, (field.shape[0],field.shape[2],1)), 2, 1), xy)
-    else:
-        x_cross = wrf.interp2dxy(np.tile(x, (field.shape[0],field.shape[1],1)), xy)
-    field_cross = wrf.interp2dxy(field, xy)
-    
-    return field_cross.data, x_cross[0].data
-    
-
-# Get magnitude of wind vectors projected onto an angle alpha (meant for getting horizontal winds along diagonal cross sections)
-def proj_winds(u, v, proj_angle):
-    if proj_angle > 2*np.pi:
-        proj_angle = proj_angle*np.pi/180 # convert to rads
-    
-    U_proj = u*np.sin(proj_angle) + v*np.cos(proj_angle)
-    V_proj = u*np.cos(proj_angle) - v*np.sin(proj_angle)
-    nu = U_proj * np.sin(proj_angle)
-    nv = U_proj * np.cos(proj_angle)
-    
-    return U_proj,nu,nv
 
 
 # Automate saving data to new or existing pickle file
@@ -167,12 +115,58 @@ def save_to_pickle(data, pkl_fname, new_pkl=False):
         dbfile.close()
 
 
-# Envelope function for mkdir
-def mkdir(fp):
-    try:
-        os.mkdir(fp)
-    except FileExistsError:
-        pass
+# Calculate an n-point moving block average
+def movmean(data, npts):
+    # data: 1-D vector of data
+    # npts: number of points to average
+    data_mean = np.convolve(data, np.ones(npts), 'same')/npts
+    return data_mean
+
+
+# Wrapper function for contourf
+def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None, ylims=None,
+                  cmap=None, cbar=True, cbfs=None, cbticks=None, **kwargs):
+    if cmap is None:
+        cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
+    else:
+        cm, cb_label = cmap, cmaps[field]['label']
+    
+    if levels is None:
+        levs = None
+    else:
+        levs = levels
+    
+    if datalims is None:
+        datamin = None
+        datamax = None
+    else:
+        datamin = datalims[0]
+        datamax = datalims[1]
+    
+    c = ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contour(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
+    c.set_edgecolor('face')
+    
+    if cbar:
+        cb = plt.colorbar(c, ax=ax, extend='both')
+        cb.set_label(cb_label)
+        if np.max(np.abs(datalims)) < 0.1:
+            cb.formatter.set_powerlimits((0,0))
+        if cbfs is None:
+            cb.set_label(cb_label)
+        else:
+            cb.set_label(cb_label, fontsize=cbfs)
+        if cbticks is not None:
+            cb.set_ticks(cbticks)
+    
+    if xlims is not None:
+        ax.set_xlim(xlims[0], xlims[1])
+    if ylims is not None:
+        ax.set_ylim(ylims[0], ylims[1])
+    
+    return c
 
 
 # get index of value in a data array that's closest to a desired value
@@ -181,14 +175,6 @@ def find_closest(data, val):
     # val: desired value
     idx = np.abs(data - val).argmin()
     return idx
-
-
-# Calculate an n-point moving block average
-def movmean(data, npts):
-    # data: 1-D vector of data
-    # npts: number of points to average
-    data_mean = np.convolve(data, np.ones(npts), 'same')/npts
-    return data_mean
 
 
 # Calculates storm-relative parcel trajectories from ground(domain)-relative
@@ -224,7 +210,88 @@ def get_SR_positions(x, y, u_storm, v_storm, delta_t, center_index=None, forward
             y_sr[i,:] = y[i] + delta_y
     
     return x_sr,y_sr
+
+
+# Combine the translated swaths from CM1
+def translate_swaths(filepath, filenums, swath, dt, dx_km, maxval=True, stretched_grid=False):
+    # filepath: Path to files (string)
+    # filenums: Array of file numbers
+    # Swath: Which swath variable to translate (string)
+    # dt: Time between file numbers in seconds
+    # dx_km: Horizontal grid spacing in km (assumes x and y grid spacing are the same). If stretched grid, use the inner grid spacing
+    # maxval: True for swath of max values, false for swath of min values (Boolean) - default True
+    # stretched_grid: True if using stretched horizontal grid (Boolean) - default True
     
+    dy_km = dx_km
+    
+    ds = nc.Dataset(filepath + f"cm1out_{filenums[0]:06.0f}.nc")
+    x_km = ds.variables['xh'][:].data
+    y_km = ds.variables['yh'][:].data
+    umove = ds.variables['umove'][:].data
+    vmove = ds.variables['vmove'][:].data
+    ds.close()
+    
+    x_added = umove * dt/1000 # x distance added per dtime
+    nx_added = np.round(x_added / dx_km) # number of x grid points added per dtime
+    nxt_added = nx_added * (len(filenums)-1) # total number x grid points added over total length of time
+    xt_added = nxt_added * dx_km # total x distance added over total length of time (km)
+    xn = np.arange(x_km[0], x_km[-1]+xt_added+dx_km, dx_km) # new x grid
+    y_added = vmove * dt/1000
+    ny_added = np.round(y_added / dy_km)
+    nyt_added = ny_added * (len(filenums)-1) 
+    yt_added = nyt_added * dy_km
+    yn = np.arange(y_km[0], y_km[-1]+yt_added+dy_km, dy_km) # new y grid
+    
+    swath_new = np.zeros(shape=(len(yn), len(xn)), dtype=float)
+    
+    for fn in filenums:
+        n = (fn-filenums[0]) / (filenums[1]-filenums[0])
+        
+        ix = slice(int(nx_added*n), int(nx_added*n + len(x_km)))
+        iy = slice(int(ny_added*n), int(ny_added*n + len(y_km)))
+        
+        ds = nc.Dataset(filepath + f"cm1out_{fn:06.0f}.nc")
+        swath_old = ds.variables[f"{swath}2"][:].data[0,:,:]
+        ds.close()
+        
+        if maxval is False: # if you want minimum values (i.e. for pressure perturbation swath)
+            swath_new[iy,ix] = np.minimum(swath_new[iy,ix], swath_old)
+        else:
+            swath_new[iy,ix] = np.maximum(swath_new[iy,ix], swath_old)
+    
+    return swath_new,xn,yn
+
+
+# Get vertical cross-sections of 3D fields along any diagonal line, plus a 1D vector for the diagonal horizontal coordinate
+def vert_cross_section(field, x, y, start=[0,0], end=[-1,-1], gety=False):
+    # start: xy coordinates of cross-section start point (array or tuple)
+    # end: xy coordinates of cross-section end point (array or tuple)
+    ix1 = np.where(x >= start[0])[0][0]
+    iy1 = np.where(y >= start[1])[0][0]
+    ix2 = np.where(x >= end[0])[0][0]
+    iy2 = np.where(y >= end[1])[0][0]
+    
+    xy = wrf.xy(field, start_point=(ix1,iy1), end_point=(ix2,iy2))
+    if gety:
+        x_cross = wrf.interp2dxy(np.moveaxis(np.tile(y, (field.shape[0],field.shape[2],1)), 2, 1), xy)
+    else:
+        x_cross = wrf.interp2dxy(np.tile(x, (field.shape[0],field.shape[1],1)), xy)
+    field_cross = wrf.interp2dxy(field, xy)
+    
+    return field_cross.data, x_cross[0].data
+    
+
+# Get magnitude of wind vectors projected onto an angle alpha (meant for getting horizontal winds along diagonal cross sections)
+def proj_winds(u, v, proj_angle):
+    if proj_angle > 2*np.pi:
+        proj_angle = proj_angle*np.pi/180 # convert to rads
+    
+    U_proj = u*np.sin(proj_angle) + v*np.cos(proj_angle)
+    V_proj = u*np.cos(proj_angle) - v*np.sin(proj_angle)
+    nu = U_proj * np.sin(proj_angle)
+    nv = U_proj * np.cos(proj_angle)
+    
+    return U_proj,nu,nv
 
 
 # Wrapper function for pcolormesh
@@ -247,52 +314,6 @@ def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
 
     # Format the colorbar
     # c.cmap.set_bad('grey', 1.0)
-    if cbar:
-        cb = plt.colorbar(c, ax=ax, extend='both')
-        cb.set_label(cb_label)
-        if np.max(np.abs(datalims)) < 0.1:
-            cb.formatter.set_powerlimits((0,0))
-        if cbfs is None:
-            cb.set_label(cb_label)
-        else:
-            cb.set_label(cb_label, fontsize=cbfs)
-        if cbticks is not None:
-            cb.set_ticks(cbticks)
-    
-    if xlims is not None:
-        ax.set_xlim(xlims[0], xlims[1])
-    if ylims is not None:
-        ax.set_ylim(ylims[0], ylims[1])
-    
-    return c
-
-
-# Wrapper function for contourf
-def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None, ylims=None,
-                  cmap=None, cbar=True, cbfs=None, cbticks=None, **kwargs):
-    if cmap is None:
-        cm, cb_label = cmaps[field]['cm'], cmaps[field]['label']
-    else:
-        cm, cb_label = cmap, cmaps[field]['label']
-    
-    if levels is None:
-        levs = None
-    else:
-        levs = levels
-    
-    if datalims is None:
-        datamin = None
-        datamax = None
-    else:
-        datamin = datalims[0]
-        datamax = datalims[1]
-    
-    c = ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
-    # ax.contour(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
-    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
-    # ax.contourf(x, y, data, levels=levs, vmin=datamin, vmax=datamax, cmap=cm, antialiased=True, **kwargs)
-    c.set_edgecolor('face')
-    
     if cbar:
         cb = plt.colorbar(c, ax=ax, extend='both')
         cb.set_label(cb_label)
