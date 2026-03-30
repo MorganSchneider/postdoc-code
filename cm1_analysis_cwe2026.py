@@ -14,6 +14,7 @@ from metpy.units import units
 
 fn = np.linspace(5,37,5)
 
+
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
 fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
@@ -35,8 +36,8 @@ fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 figsave = False
 
 plot_dbz = False
-plot_thr = False
-plot_del2 = True
+plot_thr = True
+plot_del2 = False
 
 
 if plot_dbz:
@@ -187,6 +188,8 @@ if plot_thr:
         if n == 0:
             l3, = ax[0,0].plot([190,200], [190,200], '-r', linewidth=1)
             ax[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
+            ax[0,0].quiver(80, 80, 20, 0, color='k', scale=150, width=0.01, pivot='middle')
+            ax[0,0].text(40, 50, "20 m s$^{-1}$", fontsize=10)
         ax[0,n].set_title(f"t = {time:.0f} s")
         if n == 0:
             ax[0,n].set_ylabel('y (km)', fontsize=12)
