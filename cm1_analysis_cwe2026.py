@@ -6,8 +6,6 @@ Created on Fri Mar  6 12:06:45 2026
 """
 
 from CM1utils import *
-import metpy.calc as mc
-from metpy.units import units
 
 #%% Overview plot for all 3 simulations - dbz, thrpert, laplacian of thrpert
 
@@ -876,99 +874,26 @@ if figsave:
 times_hourly = np.linspace(0.5, 8.5, 9)
 s = 60
 
+varnames = ['wmax1000', 'wmax2500', 'wmax5000', 'vortsfc', 'vort1km', 'vort3km', 'swspmax', 'sthpmin', 'pratemax', 'sratemax']
+yy = [57, 51, 45, 39, 33, 27, 21, 15, 9, 3]
+
 fig,ax = plt.subplots(1, 1, figsize=(12,10.5), layout='constrained')
 
-# wmax1000
-ax.plot(np.linspace(0,9,10), 60*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 59*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 58*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 57*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 60*np.ma.masked_array(isf['wmax1000'], isf['wmax1000']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 59*np.ma.masked_array(inf['wmax1000'], inf['wmax1000']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 58*np.ma.masked_array(isn['wmax1000'], isn['wmax1000']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 57*np.ma.masked_array(ian['wmax1000'], ian['wmax1000']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# wmax2500
-ax.plot(np.linspace(0,9,10), 54*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 53*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 52*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 51*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 54*np.ma.masked_array(isf['wmax2500'], isf['wmax2500']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 53*np.ma.masked_array(inf['wmax2500'], inf['wmax2500']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 52*np.ma.masked_array(isn['wmax2500'], isn['wmax2500']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 51*np.ma.masked_array(ian['wmax2500'], ian['wmax2500']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# wmax5000
-ax.plot(np.linspace(0,9,10), 48*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 47*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 46*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 45*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 48*np.ma.masked_array(isf['wmax5000'], isf['wmax5000']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 47*np.ma.masked_array(inf['wmax5000'], inf['wmax5000']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 46*np.ma.masked_array(isn['wmax5000'], isn['wmax5000']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 45*np.ma.masked_array(ian['wmax5000'], ian['wmax5000']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# vortsfc
-ax.plot(np.linspace(0,9,10), 42*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 41*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 40*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 39*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 42*np.ma.masked_array(isf['vortsfc'], isf['vortsfc']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 41*np.ma.masked_array(inf['vortsfc'], inf['vortsfc']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 40*np.ma.masked_array(isn['vortsfc'], isn['vortsfc']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 39*np.ma.masked_array(ian['vortsfc'], ian['vortsfc']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# vort1km
-ax.plot(np.linspace(0,9,10), 36*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 35*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 34*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 33*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 36*np.ma.masked_array(isf['vort1km'], isf['vort1km']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 35*np.ma.masked_array(inf['vort1km'], inf['vort1km']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 34*np.ma.masked_array(isn['vort1km'], isn['vort1km']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 33*np.ma.masked_array(ian['vort1km'], ian['vort1km']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# vort3km
-ax.plot(np.linspace(0,9,10), 30*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 29*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 28*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 27*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 30*np.ma.masked_array(isf['vort3km'], isf['vort3km']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 29*np.ma.masked_array(inf['vort3km'], inf['vort3km']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 28*np.ma.masked_array(isn['vort3km'], isn['vort3km']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 27*np.ma.masked_array(ian['vort3km'], ian['vort3km']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# swspmax
-ax.plot(np.linspace(0,9,10), 24*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 23*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 22*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 21*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 24*np.ma.masked_array(isf['swspmax'], isf['swspmax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 23*np.ma.masked_array(inf['swspmax'], inf['swspmax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 22*np.ma.masked_array(isn['swspmax'], isn['swspmax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 21*np.ma.masked_array(ian['swspmax'], ian['swspmax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# sthpmin
-ax.plot(np.linspace(0,9,10), 18*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 17*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 16*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 15*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 18*np.ma.masked_array(isf['sthpmin'], isf['sthpmin']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 17*np.ma.masked_array(inf['sthpmin'], inf['sthpmin']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 16*np.ma.masked_array(isn['sthpmin'], isn['sthpmin']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 15*np.ma.masked_array(ian['sthpmin'], ian['sthpmin']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# pratemax
-ax.plot(np.linspace(0,9,10), 12*np.ones(shape=(10,)), 'red',
-        np.linspace(0,9,10), 11*np.ones(shape=(10,)), 'gold',
-        np.linspace(0,9,10), 10*np.ones(shape=(10,)), 'mediumblue',
-        np.linspace(0,9,10), 9*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 12*np.ma.masked_array(isf['pratemax'], isf['pratemax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 11*np.ma.masked_array(inf['pratemax'], inf['pratemax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 10*np.ma.masked_array(isn['pratemax'], isn['pratemax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 9*np.ma.masked_array(ian['pratemax'], ian['pratemax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-# sratemax
-l1,= ax.plot(np.linspace(0,9,10), 6*np.ones(shape=(10,)), 'red', linewidth=1.5)
-l2,= ax.plot(np.linspace(0,9,10), 5*np.ones(shape=(10,)), 'gold', linewidth=1.5)
-l3,= ax.plot(np.linspace(0,9,10), 4*np.ones(shape=(10,)), 'mediumblue', linewidth=1.5)
-l4,= ax.plot(np.linspace(0,9,10), 3*np.ones(shape=(10,)), 'k', linewidth=1.5)
-ax.scatter(times_hourly, 6*np.ma.masked_array(isf['sratemax'], isf['sratemax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 5*np.ma.masked_array(inf['sratemax'], inf['sratemax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 4*np.ma.masked_array(isn['sratemax'], isn['sratemax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
-ax.scatter(times_hourly, 3*np.ma.masked_array(ian['sratemax'], ian['sratemax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
-s1 = ax.scatter([-1], [-1], s=50, marker='o', c='w', edgecolors='k', linewidths=1)
+for i in range(len(varnames)):
+    ax.plot(np.linspace(0,9,10), (yy[i]+3)*np.ones(shape=(10,)), 'red',
+            np.linspace(0,9,10), (yy[i]+2)*np.ones(shape=(10,)), 'gold',
+            np.linspace(0,9,10), (yy[i]+1)*np.ones(shape=(10,)), 'mediumblue',
+            np.linspace(0,9,10), yy[i]*np.ones(shape=(10,)), 'k', linewidth=1.5)
+    ax.scatter(times_hourly, (yy[i]+3)*np.ma.masked_array(isf[varnames[i]], isf[varnames[i]]==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+    ax.scatter(times_hourly, (yy[i]+2)*np.ma.masked_array(inf[varnames[i]], inf[varnames[i]]==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+    ax.scatter(times_hourly, (yy[i]+1)*np.ma.masked_array(isn[varnames[i]], isn[varnames[i]]==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+    ax.scatter(times_hourly, yy[i]*np.ma.masked_array(ian[varnames[i]], ian[varnames[i]]==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+
+l1,= ax.plot(np.linspace(0,9,10), -1*np.ones(shape=(10,)), 'red', linewidth=1.5)
+l2,= ax.plot(np.linspace(0,9,10), -1*np.ones(shape=(10,)), 'gold', linewidth=1.5)
+l3,= ax.plot(np.linspace(0,9,10), -1*np.ones(shape=(10,)), 'mediumblue', linewidth=1.5)
+l4,= ax.plot(np.linspace(0,9,10), -1*np.ones(shape=(10,)), 'k', linewidth=1.5)
+s1 = ax.scatter([-1], [-1], s=s, marker='o', c='w', edgecolors='k', linewidths=1)
 
 ax.grid(visible=True, which='minor', axis='x', color='darkgray', linestyle='-')
 ax.xaxis.set_minor_locator(MultipleLocator(1))
@@ -989,6 +914,119 @@ figsave = False
 
 if figsave:
     plt.savefig(fp2+"figs/stat_sig.png", dpi=300)
+
+
+# # wmax1000
+# ax.plot(np.linspace(0,9,10), 60*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 59*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 58*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 57*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 60*np.ma.masked_array(isf['wmax1000'], isf['wmax1000']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 59*np.ma.masked_array(inf['wmax1000'], inf['wmax1000']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 58*np.ma.masked_array(isn['wmax1000'], isn['wmax1000']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 57*np.ma.masked_array(ian['wmax1000'], ian['wmax1000']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # wmax2500
+# ax.plot(np.linspace(0,9,10), 54*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 53*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 52*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 51*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 54*np.ma.masked_array(isf['wmax2500'], isf['wmax2500']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 53*np.ma.masked_array(inf['wmax2500'], inf['wmax2500']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 52*np.ma.masked_array(isn['wmax2500'], isn['wmax2500']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 51*np.ma.masked_array(ian['wmax2500'], ian['wmax2500']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # wmax5000
+# ax.plot(np.linspace(0,9,10), 48*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 47*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 46*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 45*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 48*np.ma.masked_array(isf['wmax5000'], isf['wmax5000']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 47*np.ma.masked_array(inf['wmax5000'], inf['wmax5000']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 46*np.ma.masked_array(isn['wmax5000'], isn['wmax5000']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 45*np.ma.masked_array(ian['wmax5000'], ian['wmax5000']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # vortsfc
+# ax.plot(np.linspace(0,9,10), 42*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 41*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 40*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 39*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 42*np.ma.masked_array(isf['vortsfc'], isf['vortsfc']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 41*np.ma.masked_array(inf['vortsfc'], inf['vortsfc']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 40*np.ma.masked_array(isn['vortsfc'], isn['vortsfc']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 39*np.ma.masked_array(ian['vortsfc'], ian['vortsfc']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # vort1km
+# ax.plot(np.linspace(0,9,10), 36*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 35*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 34*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 33*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 36*np.ma.masked_array(isf['vort1km'], isf['vort1km']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 35*np.ma.masked_array(inf['vort1km'], inf['vort1km']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 34*np.ma.masked_array(isn['vort1km'], isn['vort1km']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 33*np.ma.masked_array(ian['vort1km'], ian['vort1km']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # vort3km
+# ax.plot(np.linspace(0,9,10), 30*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 29*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 28*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 27*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 30*np.ma.masked_array(isf['vort3km'], isf['vort3km']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 29*np.ma.masked_array(inf['vort3km'], inf['vort3km']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 28*np.ma.masked_array(isn['vort3km'], isn['vort3km']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 27*np.ma.masked_array(ian['vort3km'], ian['vort3km']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # swspmax
+# ax.plot(np.linspace(0,9,10), 24*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 23*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 22*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 21*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 24*np.ma.masked_array(isf['swspmax'], isf['swspmax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 23*np.ma.masked_array(inf['swspmax'], inf['swspmax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 22*np.ma.masked_array(isn['swspmax'], isn['swspmax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 21*np.ma.masked_array(ian['swspmax'], ian['swspmax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # sthpmin
+# ax.plot(np.linspace(0,9,10), 18*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 17*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 16*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 15*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 18*np.ma.masked_array(isf['sthpmin'], isf['sthpmin']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 17*np.ma.masked_array(inf['sthpmin'], inf['sthpmin']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 16*np.ma.masked_array(isn['sthpmin'], isn['sthpmin']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 15*np.ma.masked_array(ian['sthpmin'], ian['sthpmin']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # pratemax
+# ax.plot(np.linspace(0,9,10), 12*np.ones(shape=(10,)), 'red',
+#         np.linspace(0,9,10), 11*np.ones(shape=(10,)), 'gold',
+#         np.linspace(0,9,10), 10*np.ones(shape=(10,)), 'mediumblue',
+#         np.linspace(0,9,10), 9*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 12*np.ma.masked_array(isf['pratemax'], isf['pratemax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 11*np.ma.masked_array(inf['pratemax'], inf['pratemax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 10*np.ma.masked_array(isn['pratemax'], isn['pratemax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 9*np.ma.masked_array(ian['pratemax'], ian['pratemax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# # sratemax
+# l1,= ax.plot(np.linspace(0,9,10), 6*np.ones(shape=(10,)), 'red', linewidth=1.5)
+# l2,= ax.plot(np.linspace(0,9,10), 5*np.ones(shape=(10,)), 'gold', linewidth=1.5)
+# l3,= ax.plot(np.linspace(0,9,10), 4*np.ones(shape=(10,)), 'mediumblue', linewidth=1.5)
+# l4,= ax.plot(np.linspace(0,9,10), 3*np.ones(shape=(10,)), 'k', linewidth=1.5)
+# ax.scatter(times_hourly, 6*np.ma.masked_array(isf['sratemax'], isf['sratemax']==0), s=s, marker='o', c='red', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 5*np.ma.masked_array(inf['sratemax'], inf['sratemax']==0), s=s, marker='o', c='gold', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 4*np.ma.masked_array(isn['sratemax'], isn['sratemax']==0), s=s, marker='o', c='mediumblue', edgecolors='k', linewidths=1)
+# ax.scatter(times_hourly, 3*np.ma.masked_array(ian['sratemax'], ian['sratemax']==0), s=s, marker='o', c='k', edgecolors='k', linewidths=1)
+# s1 = ax.scatter([-1], [-1], s=50, marker='o', c='w', edgecolors='k', linewidths=1)
+
+# ax.grid(visible=True, which='minor', axis='x', color='darkgray', linestyle='-')
+# ax.xaxis.set_minor_locator(MultipleLocator(1))
+# xlab = ['0-1 h', '1-2 h', '2-3 h', '3-4 h', '4-5 h', '5-6 h', '6-7 h', '7-8 h', '8-9 h']
+# ylab = ["Hail\n rate", "Rain\n rate", "10-m \u03B8'", "10-m WS", "3-km \u03B6", "1-km \u03B6", "10-m \u03B6", "5-km w", "2.5-km w", "1-km w"]
+# ax.set_xlim([0,9])
+# ax.set_ylim([0,68])
+# ax.set_xticks(ticks=times_hourly, labels=xlab, fontsize=14)
+# ax.set_yticks(ticks=np.linspace(4.5, 58.5, 10), labels=ylab, fontsize=14)
+# ax.set_xlabel('Time (h)', fontsize=16)
+# ax.legend(handles=[l1,l2,l3,l4,s1], labels=['SS-FS','NS-FS','SS-NS','ANOVA','p<0.05'], ncol=2,
+#              loc='upper right', fontsize=13)
+# ax.text(0.1, 65.5, "Hourly statistical significance", fontsize=25, fontweight='bold')
+
+
+
+# figsave = False
+
+# if figsave:
+#     plt.savefig(fp2+"figs/stat_sig.png", dpi=300)
 
 
 
@@ -1591,6 +1629,9 @@ for f in fn:
 
 #%% Get maxima
 
+# Done for semislip
+# Still need to do for freeslip and noslip
+
 fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 
 
@@ -1742,17 +1783,74 @@ dbfile.close()
 
 
 
+#%% Profiles of boundary condition winds? Recreate Dave's AI plot lmao
+
+
+# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/cm1out_000001.nc')
+# usfc_s = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
+# vsfc_s = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
+# wsfc_s = np.sqrt(usfc_s**2 + vsfc_s**2)
+# ug_s = ds.variables['u0'][:].data[0,-1,10,10] + ds.variables['umove'][:].data[0]
+# vg_s = ds.variables['v0'][:].data[0,-1,10,10] + ds.variables['vmove'][:].data[0]
+# wg_s = np.sqrt(ug_s**2 + vg_s**2)
+# ds.close()
+
+# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/cm1out_000001.nc')
+# usfc_f = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
+# vsfc_f = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
+# wsfc_f = np.sqrt(usfc_f**2 + vsfc_f**2)
+# ug_f = ds.variables['u0'][:].data[0,-1,10,10] + ds.variables['umove'][:].data[0]
+# vg_f = ds.variables['v0'][:].data[0,-1,10,10] + ds.variables['vmove'][:].data[0]
+# wg_f = np.sqrt(ug_f**2 + vg_f**2)
+# ds.close()
+
+# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/cm1out_000001.nc')
+# usfc_n = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
+# vsfc_n = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
+# wsfc_n = np.sqrt(usfc_n**2 + vsfc_n**2)
+# ug_n = ds.variables['u0'][:].data[0,-1,10,10] + ds.variables['umove'][:].data[0]
+# vg_n = ds.variables['v0'][:].data[0,-1,10,10] + ds.variables['vmove'][:].data[0]
+# wg_n = np.sqrt(ug_n**2 + vg_n**2)
+# ds.close()
 
 
 
 
+z = np.linspace(1,100,100)
 
+k = 0.4
+ust = 0.15
+z0 = 0.0002
 
+ubar_s1 = ust/k * np.log(z/z0)
+ubar_f1 = np.ones(len(z))
+ubar_n1 = ust/k * np.log(z)
 
+ubar_s = ubar_s1/ubar_s1[-1]
+ubar_f = ubar_f1/ubar_f1[-1]
+ubar_n = ubar_n1/ubar_n1[-1]
 
+z = z/z[-1]
 
+fig,ax = plt.subplots(1, 1, figsize=(6,4.5), layout='constrained')
+l1, = ax.plot(ubar_f, z, '-k', linewidth=2)
+l2, = ax.plot(ubar_s, z, '--k', linewidth=2)
+l3, = ax.plot(ubar_n, z, ':k', linewidth=2)
+ax.set_xlim([0,1.09])
+ax.set_ylim([0,1])
+ax.legend(handles=[l1,l2,l3], labels=['Free-slip', 'Semi-slip', 'No-slip'], loc='upper left', fontsize=10)
+ax.set_xlabel("Normalized wind speed (u/U$_{top}$)", fontsize=10)
+ax.set_ylabel("Normalized height (z/Z$_{top}$)", fontsize=10)
+ax.grid(visible=True, which='major', color='lightgray', linestyle='-')
+ax.xaxis.set_major_locator(MultipleLocator(0.2))
+ax.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax.yaxis.set_major_locator(MultipleLocator(0.2))
+ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+ax.set_title('Wind speed in the atmospheric surface layer', fontsize=12)
 
+# plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/ASL_profiles.png', dpi=300)
 
+plt.show()
 
 
 

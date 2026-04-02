@@ -6,10 +6,6 @@ Created on Wed Mar 18 09:52:03 2026
 """
 
 from CM1utils import *
-from metpy.plots import SkewT, Hodograph
-import metpy.calc as mc
-from metpy.units import units
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
 #%% Christoph's HRDPS sounding

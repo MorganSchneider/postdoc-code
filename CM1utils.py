@@ -18,16 +18,18 @@ import netCDF4 as nc
 import cmocean
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
-# import metpy.calc as mc
-# from metpy.plots import SkewT, Hodograph
-# from metpy.units import units
-# from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import metpy.calc as mc
+from metpy.plots import SkewT, Hodograph
+from metpy.units import units
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
 # from glob import glob
 from scipy.ndimage import gaussian_filter
 import os
 from os.path import exists
 from matplotlib.ticker import MultipleLocator
+
+
 
 #%%
 ######################
