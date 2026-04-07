@@ -10,9 +10,9 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test3/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test4/'
 
-ds = nc.Dataset(fp+'cm1out_000005.nc')
+ds = nc.Dataset(fp+'cm1out_000033.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -20,8 +20,8 @@ zh = ds.variables['zh'][:].data
 dbz = ds.variables['dbz'][:].data[0,0,:,:]
 thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
 winterp = ds.variables['winterp'][:].data[0,:,:,:]
-uinterp = ds.variables['uinterp'][:].data[0,0,:,:] + ds.variables['umove'][:].data
-vinterp = ds.variables['vinterp'][:].data[0,0,:,:] + ds.variables['vmove'][:].data
+uinterp = ds.variables['uinterp'][:].data[0,0,:,:] + ds.variables['umove'][:].data[0]
+vinterp = ds.variables['vinterp'][:].data[0,0,:,:] + ds.variables['vmove'][:].data[0]
 zvort = ds.variables['zvort'][:].data[0,:,:,:]
 umove = ds.variables['umove'][:].data[0]
 vmove = ds.variables['vmove'][:].data[0]
@@ -69,7 +69,7 @@ ax.legend(handles=[l1,l2,l4,l5,l7],
                   "\u03B8'=-2 K"],
           ncols=3, fontsize=10, loc='lower right')
 if figsave:
-    plt.savefig(fp+f"dbz_{time/60:.0f}min_ERA5-1_test3.png", dpi=300)
+    plt.savefig(fp+f"dbz_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
 
 
 plt.show()
@@ -96,7 +96,7 @@ l2,= ax.plot([-150,-149], [-150,-149], color='dodgerblue', linestyle='-', linewi
 ax.legend(handles=[l1,l2], labels=["\u03B6=0.025 s$^{-1}$", "\u03B6=0.05 s$^{-1}$"],
           fontsize=10, loc='lower right')
 if figsave:
-    plt.savefig(fp+f"wmax_{time/60:.0f}min_ERA5-1_test3.png", dpi=300)
+    plt.savefig(fp+f"wmax_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
 
 
 
@@ -111,30 +111,30 @@ ax.set_title(f"Surface \u03B8', surface winds (t = {time/60:.0f} min)", fontsize
 ax.set_xlabel('x (km)', fontsize=12)
 ax.set_ylabel('y (km)', fontsize=12)
 if figsave:
-    plt.savefig(fp+f"thpert_{time/60:.0f}min_ERA5-1_test3.png", dpi=300)
+    plt.savefig(fp+f"thpert_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
 
 
 
 plt.show()
 
 
-# i_wmax = np.where(wmax == np.max(wmax))
-# i_vmax = np.where(vortmax == np.max(vortmax))
+i_wmax = np.where(wmax == np.max(wmax))
+i_vmax = np.where(vortmax == np.max(vortmax))
 
-# x_mc = np.mean([xh[i_wmax[1][0]], xh[i_vmax[1][0]]])
-# y_mc = np.mean([yh[i_wmax[0][0]], yh[i_vmax[0][0]]])
+x_mc = np.mean([xh[i_wmax[1][0]], xh[i_vmax[1][0]]])
+y_mc = np.mean([yh[i_wmax[0][0]], yh[i_vmax[0][0]]])
 
-# u_trans = x_mc*1000/time
-# v_trans = y_mc*1000/time
+u_trans = x_mc*1000/time
+v_trans = y_mc*1000/time
 
-# umove_new = u_trans + umove
-# vmove_new = v_trans + vmove
+umove_new = u_trans + umove
+vmove_new = v_trans + vmove
 
 
 
 #%% Check stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test2/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test4/'
 
 ds = nc.Dataset(fp+'cm1out_stats.nc')
 time = ds.variables['time'][:].data + 120
@@ -168,7 +168,7 @@ ax.set_title("Domain-maximum \u03B6", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel("\u03B6 (1/s)", fontsize=12)
 if figsave:
-    plt.savefig(fp+'vortmax_timeseries_ERA5-1_test2.png', dpi=300)
+    plt.savefig(fp+'vortmax_timeseries_ERA5-1_test4.png', dpi=300)
 
 
 fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
@@ -188,7 +188,7 @@ ax.set_title('Domain-maximum w', fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel('w (m/s)', fontsize=12)
 if figsave:
-    plt.savefig(fp+'wmax_timeseries_ERA5-1_test2.png', dpi=300)
+    plt.savefig(fp+'wmax_timeseries_ERA5-1_test4.png', dpi=300)
 
 plt.show()
 
@@ -200,7 +200,7 @@ plt.show()
 
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test3/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test4/'
 
 
 
@@ -280,8 +280,8 @@ yh6 = yh1 + 5*y_added
 yh7 = yh1 + 6*y_added
 yh8 = yh1 + 7*y_added
 
-#% Plot translated swaths
-#%%
+#%% Plot translated swaths
+
 
 levs = [300,500]
 cols = ['dimgray','k']
@@ -291,16 +291,17 @@ dbz_levs = np.linspace(0,70,15)
 dbz_lws = [1.25,1.25,1,1]
 
 if 'era5-1_125m_test1' in fp:
-    xt = [77, 120, 165, 215, 265, 320, 380]
-    yt = [73, 78, 80, 83, 89, 101, 102]
-    xl = [0,450]
-    yl = [60,180]
+    xt = [77, 120, 165, 215, 265, 320, 380, 435]
+    yt = [73, 78, 80, 83, 89, 101, 102, 104]
 elif 'era5-1_125m_test2' in fp:
     xt = [77, 120, 165, 215, 265, 325, 378, 425]
     yt = [70, 76, 79, 82, 87, 96, 97, 98]
 elif 'era5-1_125m_test3' in fp:
     xt = [77, 120, 165, 215, 255, 310, 360, 410]
     yt = [70, 76, 79, 82, 84, 85, 85, 85]
+elif 'era5-1_125m_test4' in fp:
+    xt = [75, 115, 157, 201, 247, 298, 348, 397]
+    yt = [73, 83, 87, 87, 87, 87, 86, 86]
     
 xl = [50,500]
 yl = [50,200]
@@ -348,21 +349,11 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Updraft helicity swaths (0-7 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Updraft helicity swaths (0-8 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
 
-# # ERA5-1 test 1
-# ax.text(77, 73, '1 h', fontsize=9, fontweight='bold')
-# ax.text(120, 78, '2 h', fontsize=9, fontweight='bold')
-# ax.text(165, 80, '3 h', fontsize=9, fontweight='bold')
-# ax.text(215, 83, '4 h', fontsize=9, fontweight='bold')
-# ax.text(265, 89, '5 h', fontsize=9, fontweight='bold')
-# ax.text(320, 100, '6 h', fontsize=9, fontweight='bold')
-# ax.text(380, 102, '7 h', fontsize=9, fontweight='bold')
-
-# # ERA5-1 test 2
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
 ax.text(xt[2], yt[2], '3 h', fontsize=9, fontweight='bold')
@@ -373,7 +364,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_uh_swath_ERA5-1_test3.png', dpi=300)
+    plt.savefig(fp+'dbz_uh_swath_ERA5-1_test4.png', dpi=300)
 
 
 
@@ -411,21 +402,11 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Accumulated hail swaths (0-7 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Accumulated hail swaths (0-8 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 ax.legend(handles=[l1,l2], labels=['0.1 mm','1 mm'], loc='lower right', fontsize=9)
 
-# # ERA5-1 test 1
-# ax.text(77, 73, '1 h', fontsize=9, fontweight='bold')
-# ax.text(120, 78, '2 h', fontsize=9, fontweight='bold')
-# ax.text(165, 80, '3 h', fontsize=9, fontweight='bold')
-# ax.text(215, 83, '4 h', fontsize=9, fontweight='bold')
-# ax.text(265, 89, '5 h', fontsize=9, fontweight='bold')
-# ax.text(320, 100, '6 h', fontsize=9, fontweight='bold')
-# ax.text(380, 102, '7 h', fontsize=9, fontweight='bold')
-
-# # ERA5-1 test 2
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
 ax.text(xt[2], yt[2], '3 h', fontsize=9, fontweight='bold')
@@ -436,7 +417,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_hail_swath_ERA5-1_test3.png', dpi=300)
+    plt.savefig(fp+'dbz_hail_swath_ERA5-1_test4.png', dpi=300)
 
 
 

@@ -1627,12 +1627,10 @@ for f in fn:
         fig2.savefig(fp1+f"figs/thrpert_compare_v2.png", dpi=300)
     
 
-#%% Get maxima
+#%% Get maxima and locations - DONE
 
-# Done for semislip
-# Still need to do for freeslip and noslip
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
 
 vortmax_50m = np.zeros(shape=(37,), dtype=float)
@@ -1762,7 +1760,7 @@ for fn in np.linspace(1,37,37):
     
 stat_xy = {'wmax1000':xy_w_1km, 'wmax2500':xy_w_25km, 'wmax5000':xy_w_5km,
            'vortsfc':xy_zv_sfc, 'vort1km':xy_zv_1km, 'vort3km':xy_zv_3km,
-           'swpsmax':xy_wspd_sfc, 'sthpmin':xy_thp_sfc, 'pratemax':xy_prate_sfc, 'sratemax':xy_srate_sfc,
+           'swspmax':xy_wspd_sfc, 'sthpmin':xy_thp_sfc, 'pratemax':xy_prate_sfc, 'sratemax':xy_srate_sfc,
            'vort50m':xy_zv_50m, 'vort100m':xy_zv_100m, 'rainmax':xy_rain_sfc, 'hailmax':xy_hail_sfc}
 
 
@@ -1779,6 +1777,491 @@ pickle.dump(stat_xy, dbfile)
 dbfile.close()
 
 
+
+
+#%% Plot new time series and max locations
+
+fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+
+
+xf = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+yf = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+xs = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+ys = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+xn = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+yn = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
+      'vortsfc':[], 'vort1km':[], 'vort3km':[],
+      'swspmax':[], 'sthpmin':[], 'pratemax':[], 'sratemax':[],
+      'vort50m':[], 'vort100m':[], 'rainmax':[], 'hailmax':[]}
+
+
+ds = nc.Dataset(fp1+"cm1out_000001.nc")
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+umove = ds.variables['umove'][:].data[0]
+vmove = ds.variables['vmove'][:].data[0]
+
+iz50 = np.argmin(abs(zh-0.05))
+iz90 = np.argmin(abs(zh-0.09))
+iz110 = np.argmin(abs(zh-0.11))
+iz1000 = np.argmin(abs(zh-1.0))
+iz2500 = np.argmin(abs(zh-2.5))
+iz3000 = np.argmin(abs(zh-3.0))
+iz5000 = np.argmin(abs(zh-5.0))
+ds.close()
+
+
+xadd15 = umove*900/1000
+yadd15 = vmove*900/1000
+x_added = umove*3600/1000
+y_added = vmove*3600/1000
+
+
+dbfile = open(fp1+'stat_xy.pkl', 'rb')
+xy = pickle.load(dbfile)
+keys = list(xy.keys())
+for key in keys:
+    xf[key] = xy[key][:,0] + 150 + np.linspace(0,36,37)*xadd15 - x_added
+    yf[key] = xy[key][:,1] + 150 + np.linspace(0,36,37)*yadd15 - y_added
+dbfile.close()
+
+
+
+dbfile = open(fp2+'stat_xy.pkl', 'rb')
+xy = pickle.load(dbfile)
+keys = list(xy.keys())
+for key in keys:
+    xs[key] = xy[key][:,0] + 150 + np.linspace(0,36,37)*xadd15 - x_added
+    ys[key] = xy[key][:,1] + 150 + np.linspace(0,36,37)*yadd15 - y_added
+dbfile.close()
+
+dbfile = open(fp3+'stat_xy.pkl', 'rb')
+xy = pickle.load(dbfile)
+keys = list(xy.keys())
+for key in keys:
+    xn[key] = xy[key][:,0] + 150 + np.linspace(0,36,37)*xadd15
+    yn[key] = xy[key][:,1] + 150 + np.linspace(0,36,37)*yadd15
+dbfile.close()
+
+
+#%% this suck real ass
+
+fp = fp2
+key = 'swspmax'
+plotvar = 'dbz'
+zind = 0
+
+if fp == fp1:
+    sim = 'FREESLIP'
+    xm = xf; ym = yf
+elif fp == fp2:
+    sim = 'SEMISLIP'
+    xm = xs; ym = ys
+elif fp == fp3:
+    sim = 'NOSLIP'
+    xm = xn; ym = yn
+
+
+    
+
+
+
+ds = nc.Dataset(fp+"cm1out_000005.nc")
+# dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+# data1 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data1 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data1 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data1 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data1 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data1 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data1 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data1 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data1 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data1 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data1 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data1 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data1 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data1 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data1 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data1 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data1 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data1 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data1 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data1 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000009.nc")
+# dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+# data2 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data2 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data2 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data2 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data2 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data2 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data2 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data2 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data2 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data2 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data2 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data2 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data2 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data2 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data2 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data2 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data2 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data2 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data2 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data2 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000013.nc")
+# dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+# data3 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data3 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data3 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data3 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data3 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data3 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data3 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data3 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data3 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data3 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data3 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data3 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data3 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data3 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data3 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data3 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data3 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data3 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data3 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data3 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000017.nc")
+# dbz4 = ds.variables['dbz'][:].data[0,0,:,:]
+# data4 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data4 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data4 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data4 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data4 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data4 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data4 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data4 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data4 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data4 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data4 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data4 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data4 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data4 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data4 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data4 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data4 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data4 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data4 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data4 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000021.nc")
+# dbz5 = ds.variables['dbz'][:].data[0,0,:,:]
+# data5 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data5 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data5 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data5 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data5 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data5 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data5 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data5 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data5 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data5 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data5 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data5 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data5 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data5 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data5 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data5 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data5 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data5 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data5 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data5 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000025.nc")
+# dbz6 = ds.variables['dbz'][:].data[0,0,:,:]
+# data6 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data6 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data6 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data6 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data6 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data6 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data6 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data6 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data6 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data6 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data6 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data6 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data6 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data6 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data6 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data6 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data6 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data6 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data6 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data6 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000029.nc")
+# dbz7 = ds.variables['dbz'][:].data[0,0,:,:]
+# data7 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data7 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data7 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data7 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data7 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data7 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data7 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data7 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data7 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data7 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data7 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data7 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data7 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data7 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data7 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data7 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data7 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data7 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data7 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data7 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000033.nc")
+# dbz8 = ds.variables['dbz'][:].data[0,0,:,:]
+# data8 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data8 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data8 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data8 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data8 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data8 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data8 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data8 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data8 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data8 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data8 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data8 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data8 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data8 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data8 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data8 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data8 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data8 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data8 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data8 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+ds = nc.Dataset(fp+"cm1out_000037.nc")
+# dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
+# data9 = ds.variables['dbz'][:].data[0,0,:,:] #dbz
+# data9 = ds.variables['winterp'][:].data[0,iz1000,:,:] #w 1km
+# data9 = ds.variables['winterp'][:].data[0,iz2500,:,:] #w 2.5km
+# data9 = ds.variables['winterp'][:].data[0,iz5000,:,:] #w 5km
+# data9 = ds.variables['zvort'][:].data[0,0,:,:] #zvort sfc
+# data9 = ds.variables['zvort'][:].data[0,iz50,:,:] #zvort 50m
+# data9 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0) #zvort 100m
+# data9 = ds.variables['zvort'][:].data[0,iz1000,:,:] #zvort 1km
+# data9 = ds.variables['zvort'][:].data[0,iz3000,:,:] #zvort 3km
+# data9 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2) #wsp sfc
+# data9 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:] #thp sfc
+# data9 = ds.variables['prate'][:].data[0,0,:,:] #prate sfc
+# data9 = ds.variables['srate'][:].data[0,0,:,:] #srate sfc
+# data9 = ds.variables['rain'][:].data[0,:,:] #rain sfc
+# data9 = ds.variables['hail'][:].data[0,:,:] #hail sfc
+if (plotvar == 'zvort') & (key == 'vort100m'):
+    data9 = np.mean(ds.variables['zvort'][:].data[0,iz90:iz110+1,:,:], axis=0)
+elif plotvar == 'wsp':
+    data9 = np.sqrt(ds.variables['uinterp'][:].data[0,0,:,:]**2 + ds.variables['vinterp'][:].data[0,0,:,:]**2)
+elif plotvar == 'thp':
+    data9 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+elif (plotvar == 'rain') | (plotvar == 'hail'):
+    data9 = ds.variables[plotvar][:].data[0,:,:]
+else:
+    data9 = ds.variables[plotvar][:].data[0,zind,:,:]
+ds.close()
+
+
+
+
+xh1 = xh + 150
+xh2 = xh1 + x_added
+xh3 = xh1 + 2*x_added
+xh4 = xh1 + 3*x_added
+xh5 = xh1 + 4*x_added
+xh6 = xh1 + 5*x_added
+xh7 = xh1 + 6*x_added
+xh8 = xh1 + 7*x_added
+xh9 = xh1 + 8*x_added
+
+yh1 = yh + 150
+yh2 = yh1 + y_added
+yh3 = yh1 + 2*y_added
+yh4 = yh1 + 3*y_added
+yh5 = yh1 + 4*y_added
+yh6 = yh1 + 5*y_added
+yh7 = yh1 + 6*y_added
+yh8 = yh1 + 7*y_added
+yh9 = yh1 + 8*y_added
+
+
+
+if plotvar == 'dbz':
+    levs = np.linspace(0,70,15)
+    cm = 'HomeyerRainbow'
+    mask = 20
+elif plotvar == 'winterp':
+    levs = np.linspace(0,20,21)
+    cm = 'Reds'
+    mask = 2
+elif plotvar == 'zvort':
+    levs = np.linspace(0,0.05,26)
+    cm = 'Reds'
+    mask = 0.005
+elif plotvar == 'wsp':
+    levs = np.linspace(0,40,21)
+    cm = 'Reds'
+    mask = 25
+elif plotvar == 'thp':
+    levs = np.linspace(-12,0,13)
+    cm = 'Blues_r'
+    mask = -20
+elif plotvar == 'prate':
+    levs = np.linspace(0,0.01,11)
+    cm = 'Blues'
+    mask = 0.00001
+elif plotvar == 'srate':
+    levs = np.linspace(0,0.001,11)
+    cm = 'Blues'
+    mask = 0.00001
+elif plotvar == 'rain':
+    levs = np.linspace(0,1,11)
+    cm = 'Blues'
+    mask = 0.00001
+elif plotvar == 'hail':
+    levs = np.linspace(0,0.01,11)
+    cm = 'Blues'
+    mask = 0.00001
+
+# dbz_levs = np.linspace(0,70,15)
+
+# levs = np.linspace(0,70,15)
+# cm = 'HomeyerRainbow'
+
+
+fig,ax = plt.subplots(1, 1, figsize=(9.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+
+# c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh3, yh3, np.ma.masked_array(dbz3, dbz3<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh4, yh4, np.ma.masked_array(dbz4, dbz4<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+# ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+
+c = ax.contourf(xh1, yh1, np.ma.masked_array(data1, data1<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh2, yh2, np.ma.masked_array(data2, data2<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh3, yh3, np.ma.masked_array(data3, data3<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh4, yh4, np.ma.masked_array(data4, data4<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh5, yh5, np.ma.masked_array(data5, data5<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh6, yh6, np.ma.masked_array(data6, data6<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh7, yh7, np.ma.masked_array(data7, data7<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh8, yh8, np.ma.masked_array(data8, data8<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+ax.contourf(xh9, yh9, np.ma.masked_array(data9, data9<mask), levels=levs, vmin=levs[0], vmax=levs[-1], cmap=cm)
+
+cb = plt.colorbar(c, ax=ax, extend='max')
+# cb.set_ticks(np.linspace(0,70,8))
+# cb.set_label('Radar reflectivity (dBZ)', fontsize=10)
+
+ax.plot(xm[key][1:], ym[key][1:], '-k', linewidth=1)
+ax.scatter(xm[key][1:], ym[key][1:], marker="*", s=50, c='k')
+
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('y (km)', fontsize=10)
+ax.set_title(f"{sim} - {key} (0-9 h)", fontsize=10)
+
+ax.set_xlim([0,900])
+ax.set_ylim([0,400])
+
+# ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
+# ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
+# ax.text(xt[2], yt[2], '3 h', fontsize=9, fontweight='bold')
+# ax.text(xt[3], yt[3], '4 h', fontsize=9, fontweight='bold')
+# ax.text(xt[4], yt[4], '5 h', fontsize=9, fontweight='bold')
+# ax.text(xt[5], yt[5], '6 h', fontsize=9, fontweight='bold')
+# ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
+# ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
+
+plt.show()
+
+# if figsave:
+#     plt.savefig(fp+'dbz_uh_swath_ERA5-1_test3.png', dpi=300)
 
 
 
@@ -1812,6 +2295,7 @@ dbfile.close()
 # vg_n = ds.variables['v0'][:].data[0,-1,10,10] + ds.variables['vmove'][:].data[0]
 # wg_n = np.sqrt(ug_n**2 + vg_n**2)
 # ds.close()
+
 
 
 
