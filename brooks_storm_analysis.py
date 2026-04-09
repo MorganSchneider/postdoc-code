@@ -10,9 +10,9 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test4/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
 
-ds = nc.Dataset(fp+'cm1out_000033.nc')
+ds = nc.Dataset(fp+'cm1out_000021.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -33,6 +33,7 @@ wmax = np.max(winterp[0:iz,:,:], axis=0)
 iz = np.where(zh>=1)[0][0]
 vortmax = np.max(zvort[0:iz,:,:], axis=0)
 
+xh = xh + 2*time/1000
 
 
 figsave = False
@@ -45,6 +46,11 @@ plot_contourf(xh, yh, dbz, 'dbz', ax, levels=np.linspace(0,70,15), datalims=[0,7
 ax.contour(xh, yh, thpert, levels=[-2], colors='dodgerblue', linewidths=[1], linestyles='--')
 ax.contour(xh, yh, wmax, levels=[5,10], colors=['k','k'], linewidths=[0.5,1.25])
 ax.contour(xh, yh, vortmax, levels=[0.03,0.05], colors=['maroon','r'], linewidths=[1,1.5], linestyles='-')
+# ax.scatter([0,0,0], [-20,0,20],  marker='*', c='k', s=150)
+# ax.scatter([0,0,0], [-35,-5,25], marker='^', c='r', s=40)
+# ax.scatter([0,0,0], [-30,0,30], marker='^', c='b', s=40)
+# ax.scatter([0,0,0], [-25,0,25], marker='o', c='r', s=30)
+# ax.scatter([0,0,0], [-20,5,30], marker='o', c='b', s=30)
 ax.set_xlim([-100,100])
 ax.set_ylim([-100,100])
 ax.set_title(f"Surface dBZ (t = {time/60:.0f} min)", fontsize=12)
@@ -73,49 +79,49 @@ if figsave:
 
 
 plt.show()
-#%%
-
-
-figsave = False
 
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, wmax, 'w', ax, levels=np.linspace(-15,15,31), datalims=[-15,15],
-              cmap='balance', cbticks=np.linspace(-15,15,11), cbfs=12)
-ax.contour(xh, yh, vortmax, levels=[0.025,0.05], colors=['b','dodgerblue'], linewidths=[1,1.5])
-ax.set_xlim([-100,100])
-ax.set_ylim([-100,100])
-ax.set_title(f"Max 0-3 km w, max 0-1 km \u03B6 (t = {time/60:.0f} min)", fontsize=12)
-ax.set_xlabel('x (km)', fontsize=12)
-ax.set_ylabel('y (km)', fontsize=12)
-
-l1,= ax.plot([-150,-149], [-150,-149], color='b', linestyle='-', linewidth=1)
-l2,= ax.plot([-150,-149], [-150,-149], color='dodgerblue', linestyle='-', linewidth=1.5)
-# l3,= ax.plot([-150,-149], [-150,-149], color='k', linestyle='-', linewidth=1)
-ax.legend(handles=[l1,l2], labels=["\u03B6=0.025 s$^{-1}$", "\u03B6=0.05 s$^{-1}$"],
-          fontsize=10, loc='lower right')
-if figsave:
-    plt.savefig(fp+f"wmax_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
+# figsave = False
 
 
 
-qix = 40
-fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
-plot_contourf(xh, yh, thpert, 'thpert', ax, levels=np.linspace(-10,10,21), datalims=[-10,10],
-              cmap='balance', cbticks=np.linspace(-10,10,11), cbfs=12)
-ax.quiver(xh[::qix], yh[::qix], uinterp[::qix,::qix], vinterp[::qix,::qix], color='k', scale=200, width=0.003, pivot='middle')
-ax.set_xlim([-100,100])
-ax.set_ylim([-100,100])
-ax.set_title(f"Surface \u03B8', surface winds (t = {time/60:.0f} min)", fontsize=12)
-ax.set_xlabel('x (km)', fontsize=12)
-ax.set_ylabel('y (km)', fontsize=12)
-if figsave:
-    plt.savefig(fp+f"thpert_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, wmax, 'w', ax, levels=np.linspace(-15,15,31), datalims=[-15,15],
+#               cmap='balance', cbticks=np.linspace(-15,15,11), cbfs=12)
+# ax.contour(xh, yh, vortmax, levels=[0.025,0.05], colors=['b','dodgerblue'], linewidths=[1,1.5])
+# ax.set_xlim([-100,100])
+# ax.set_ylim([-100,100])
+# ax.set_title(f"Max 0-3 km w, max 0-1 km \u03B6 (t = {time/60:.0f} min)", fontsize=12)
+# ax.set_xlabel('x (km)', fontsize=12)
+# ax.set_ylabel('y (km)', fontsize=12)
+
+# l1,= ax.plot([-150,-149], [-150,-149], color='b', linestyle='-', linewidth=1)
+# l2,= ax.plot([-150,-149], [-150,-149], color='dodgerblue', linestyle='-', linewidth=1.5)
+# # l3,= ax.plot([-150,-149], [-150,-149], color='k', linestyle='-', linewidth=1)
+# ax.legend(handles=[l1,l2], labels=["\u03B6=0.025 s$^{-1}$", "\u03B6=0.05 s$^{-1}$"],
+#           fontsize=10, loc='lower right')
+# if figsave:
+#     plt.savefig(fp+f"wmax_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
 
 
 
-plt.show()
+# qix = 40
+# fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1), layout='constrained')
+# plot_contourf(xh, yh, thpert, 'thpert', ax, levels=np.linspace(-10,10,21), datalims=[-10,10],
+#               cmap='balance', cbticks=np.linspace(-10,10,11), cbfs=12)
+# ax.quiver(xh[::qix], yh[::qix], uinterp[::qix,::qix], vinterp[::qix,::qix], color='k', scale=200, width=0.003, pivot='middle')
+# ax.set_xlim([-100,100])
+# ax.set_ylim([-100,100])
+# ax.set_title(f"Surface \u03B8', surface winds (t = {time/60:.0f} min)", fontsize=12)
+# ax.set_xlabel('x (km)', fontsize=12)
+# ax.set_ylabel('y (km)', fontsize=12)
+# if figsave:
+#     plt.savefig(fp+f"thpert_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
+
+
+
+# plt.show()
 
 
 i_wmax = np.where(wmax == np.max(wmax))
@@ -134,10 +140,11 @@ vmove_new = v_trans + vmove
 
 #%% Check stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test4/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test2/'
 
 ds = nc.Dataset(fp+'cm1out_stats.nc')
 time = ds.variables['time'][:].data + 120
+vortsfc = ds.variables['vortsfc'][:].data
 vort1km = ds.variables['vort1km'][:].data
 vort3km = ds.variables['vort3km'][:].data
 vort5km = ds.variables['vort5km'][:].data
@@ -151,10 +158,12 @@ figsave = False
 
 
 
+
 fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
-l1, = ax.plot(time/60, movmean(vort1km,5), '-r', linewidth=2)
-l2, = ax.plot(time/60, movmean(vort3km,5), '-b', linewidth=2)
-l3, = ax.plot(time/60, movmean(vort5km,5), '-k', linewidth=2)
+l1, = ax.plot(time/60, movmean(vort5km,5), 'k', linewidth=2)
+l2, = ax.plot(time/60, movmean(vort3km,5), 'b', linewidth=2)
+l3, = ax.plot(time/60, movmean(vort1km,5), 'deepskyblue', linewidth=2)
+l4, = ax.plot(time/60, movmean(vortsfc,5), 'r', linewidth=2)
 ax.grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax.grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax.xaxis.set_major_locator(MultipleLocator(30))
@@ -163,8 +172,8 @@ ax.yaxis.set_major_locator(MultipleLocator(0.04))
 ax.yaxis.set_minor_locator(MultipleLocator(0.01))
 ax.set_xlim([0,480])
 ax.set_ylim([0,0.2])
-ax.legend(handles=[l1,l2,l3], labels=["\u03B6(1 km)", "\u03B6(3 km)", "\u03B6(5 km)"], loc='lower right', fontsize=12)
-ax.set_title("Domain-maximum \u03B6", fontsize=14)
+ax.legend(handles=[l4,l3,l2,l1], labels=["\u03B6(sfc)", "\u03B6(1 km)", "\u03B6(3 km)", "\u03B6(5 km)"], loc='lower right', fontsize=12, ncols=2)
+ax.set_title("Domain-maximum \u03B6 -- Max \u03B8'=9 K", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel("\u03B6 (1/s)", fontsize=12)
 if figsave:
@@ -172,9 +181,9 @@ if figsave:
 
 
 fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
-l1, = ax.plot(time/60, movmean(wmax1000,5), '-r', linewidth=2)
-l2, = ax.plot(time/60, movmean(wmax2500,5), '-b', linewidth=2)
-l3, = ax.plot(time/60, movmean(wmax5000,5), '-k', linewidth=2)
+l1, = ax.plot(time/60, movmean(wmax1000,5), 'deepskyblue', linewidth=2)
+l2, = ax.plot(time/60, movmean(wmax2500,5), 'b', linewidth=2)
+l3, = ax.plot(time/60, movmean(wmax5000,5), 'k', linewidth=2)
 ax.grid(visible=True, which='major', color='dimgray', linestyle='-')
 ax.grid(visible=True, which='minor', color='lightgray', linestyle='-')
 ax.xaxis.set_major_locator(MultipleLocator(30))
@@ -184,7 +193,7 @@ ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.set_xlim([0,480])
 ax.set_ylim([0,30])
 ax.legend(handles=[l1,l2,l3], labels=['w(1 km)', 'w(2.5 km)', 'w(5 km)'], loc='lower right', fontsize=12)
-ax.set_title('Domain-maximum w', fontsize=14)
+ax.set_title("Domain-maximum w -- Max \u03B8'=9 K", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel('w (m/s)', fontsize=12)
 if figsave:
@@ -194,6 +203,230 @@ plt.show()
 
 
 
+#%% Compare test simulations
+
+fp = "C:/Users/mschne28/Documents/cm1out/brooks/"
+
+ds = nc.Dataset(fp+"era5-1_125m_test2/cm1out_stats.nc")
+time = ds.variables['time'][:].data + 120
+vortsfc_t2 = ds.variables['vortsfc'][:].data
+vort1km_t2 = ds.variables['vort1km'][:].data
+vort3km_t2 = ds.variables['vort3km'][:].data
+vort5km_t2 = ds.variables['vort5km'][:].data
+wmax1000_t2 = ds.variables['wmax1000'][:].data
+wmax2500_t2 = ds.variables['wmax2500'][:].data
+wmax5000_t2 = ds.variables['wmax5000'][:].data
+ds.close()
+
+
+ds = nc.Dataset(fp+"era5-1_125m_test3/cm1out_stats.nc")
+vortsfc_t3 = ds.variables['vortsfc'][:].data
+vort1km_t3 = ds.variables['vort1km'][:].data
+vort3km_t3 = ds.variables['vort3km'][:].data
+vort5km_t3 = ds.variables['vort5km'][:].data
+wmax1000_t3 = ds.variables['wmax1000'][:].data
+wmax2500_t3 = ds.variables['wmax2500'][:].data
+wmax5000_t3 = ds.variables['wmax5000'][:].data
+ds.close()
+
+
+ds = nc.Dataset(fp+"era5-1_125m_test4/cm1out_stats.nc")
+vortsfc_t4 = ds.variables['vortsfc'][:].data
+vort1km_t4 = ds.variables['vort1km'][:].data
+vort3km_t4 = ds.variables['vort3km'][:].data
+vort5km_t4 = ds.variables['vort5km'][:].data
+wmax1000_t4 = ds.variables['wmax1000'][:].data
+wmax2500_t4 = ds.variables['wmax2500'][:].data
+wmax5000_t4 = ds.variables['wmax5000'][:].data
+ds.close()
+
+
+ds = nc.Dataset(fp+"era5-1_125m_test5/cm1out_stats.nc")
+vortsfc_t5 = ds.variables['vortsfc'][:].data
+vort1km_t5 = ds.variables['vort1km'][:].data
+vort3km_t5 = ds.variables['vort3km'][:].data
+vort5km_t5 = ds.variables['vort5km'][:].data
+wmax1000_t5 = ds.variables['wmax1000'][:].data
+wmax2500_t5 = ds.variables['wmax2500'][:].data
+wmax5000_t5 = ds.variables['wmax5000'][:].data
+ds.close()
+
+
+
+figsave = False
+
+
+### Compare each variable across simulations
+
+fig,ax = plt.subplots(4, 1, figsize=(9,10), sharex=True, layout='constrained')
+
+l1, = ax[0].plot(time/60, movmean(vortsfc_t2,5), 'k', linewidth=2)
+l2, = ax[0].plot(time/60, movmean(vortsfc_t3,5), 'b', linewidth=2)
+l3, = ax[0].plot(time/60, movmean(vortsfc_t4,5), 'deepskyblue', linewidth=2)
+ax[0].legend(handles=[l1,l2,l3], labels=["\u03B8'=9 K", "\u03B8'=4.5 K", "\u03B8'=3 K"], loc='upper right', fontsize=12, ncols=2)
+ax[0].set_title("Domain-maximum \u03B6(sfc)", fontsize=14)
+ax[0].set_ylabel("\u03B6 (1/s)", fontsize=12)
+ax[0].set_ylim([0,0.28])
+
+ax[1].plot(time/60, movmean(vort1km_t2,5), 'k', linewidth=2)
+ax[1].plot(time/60, movmean(vort1km_t3,5), 'b', linewidth=2)
+ax[1].plot(time/60, movmean(vort1km_t4,5), 'deepskyblue', linewidth=2)
+ax[1].set_title("Domain-maximum \u03B6 (1 km)", fontsize=14)
+ax[1].set_ylabel("\u03B6 (1/s)", fontsize=12)
+ax[1].set_ylim([0,0.2])
+
+ax[2].plot(time/60, movmean(vort3km_t2,5), 'k', linewidth=2)
+ax[2].plot(time/60, movmean(vort3km_t3,5), 'b', linewidth=2)
+ax[2].plot(time/60, movmean(vort3km_t4,5), 'deepskyblue', linewidth=2)
+ax[2].set_title("Domain-maximum \u03B6(3 km)", fontsize=14)
+ax[2].set_ylabel("\u03B6 (1/s)", fontsize=12)
+ax[2].set_ylim([0,0.2])
+
+ax[3].plot(time/60, movmean(vort5km_t2,5), 'k', linewidth=2)
+ax[3].plot(time/60, movmean(vort5km_t3,5), 'b', linewidth=2)
+ax[3].plot(time/60, movmean(vort5km_t4,5), 'deepskyblue', linewidth=2)
+ax[3].set_title("Domain-maximum \u03B6(5 km)", fontsize=14)
+ax[3].set_xlabel('Time (min)', fontsize=12)
+ax[3].set_ylabel("\u03B6 (1/s)", fontsize=12)
+ax[3].set_xlim([0,480])
+ax[3].set_ylim([0,0.2])
+
+for n in range(len(ax)):
+    ax[n].grid(visible=True, which='major', color='gray', linestyle='-')
+    ax[n].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+    ax[n].xaxis.set_major_locator(MultipleLocator(30))
+    ax[n].xaxis.set_minor_locator(MultipleLocator(10))
+    ax[n].yaxis.set_major_locator(MultipleLocator(0.04))
+    ax[n].yaxis.set_minor_locator(MultipleLocator(0.01))
+ax[0].yaxis.set_major_locator(MultipleLocator(0.04))
+ax[0].yaxis.set_minor_locator(MultipleLocator(0.02))
+    
+if figsave:
+    plt.savefig(fp+'vortmax_timeseries_ERA5-1_compare_1.png', dpi=300)
+
+
+
+
+
+
+fig,ax = plt.subplots(3, 1, figsize=(9,9), sharex=True, layout='constrained')
+
+l1, = ax[0].plot(time/60, movmean(wmax1000_t2,5), 'k', linewidth=2)
+l2, = ax[0].plot(time/60, movmean(wmax1000_t3,5), 'b', linewidth=2)
+l3, = ax[0].plot(time/60, movmean(wmax1000_t4,5), 'deepskyblue', linewidth=2)
+ax[0].legend(handles=[l1,l2,l3], labels=["\u03B8'=9 K", "\u03B8'=4.5 K", "\u03B8'=3 K"], loc='upper right', fontsize=12)
+ax[0].set_title("Domain-maximum w(1 km)", fontsize=14)
+ax[0].set_ylabel("w (m/s)", fontsize=12)
+ax[0].set_ylim([0,25])
+
+ax[1].plot(time/60, movmean(wmax2500_t2,5), 'k', linewidth=2)
+ax[1].plot(time/60, movmean(wmax2500_t3,5), 'b', linewidth=2)
+ax[1].plot(time/60, movmean(wmax2500_t4,5), 'deepskyblue', linewidth=2)
+ax[1].set_title("Domain-maximum w(2.5 km)", fontsize=14)
+ax[1].set_ylabel("w (m/s)", fontsize=12)
+ax[1].set_ylim([0,25])
+
+ax[2].plot(time/60, movmean(wmax5000_t2,5), 'k', linewidth=2)
+ax[2].plot(time/60, movmean(wmax5000_t3,5), 'b', linewidth=2)
+ax[2].plot(time/60, movmean(wmax5000_t4,5), 'deepskyblue', linewidth=2)
+ax[2].set_title("Domain-maximum w(5 km)", fontsize=14)
+ax[2].set_xlabel('Time (min)', fontsize=12)
+ax[2].set_ylabel("w (m/s)", fontsize=12)
+ax[2].set_xlim([0,480])
+ax[2].set_ylim([0,25])
+
+for n in range(len(ax)):
+    ax[n].grid(visible=True, which='major', color='gray', linestyle='-')
+    ax[n].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+    ax[n].xaxis.set_major_locator(MultipleLocator(30))
+    ax[n].xaxis.set_minor_locator(MultipleLocator(10))
+    ax[n].yaxis.set_major_locator(MultipleLocator(5))
+    ax[n].yaxis.set_minor_locator(MultipleLocator(1))
+    
+if figsave:
+    plt.savefig(fp+'wmax_timeseries_ERA5-1_compare_1.png', dpi=300)
+
+
+
+
+
+### Compare variables within each simulation
+
+fig,ax = plt.subplots(3, 1, figsize=(9,9), sharex=True, sharey=True, layout='constrained')
+
+l1, = ax[0].plot(time/60, movmean(vort5km_t2,5), 'k', linewidth=2)
+l2, = ax[0].plot(time/60, movmean(vort3km_t2,5), 'b', linewidth=2)
+l3, = ax[0].plot(time/60, movmean(vort1km_t2,5), 'deepskyblue', linewidth=2)
+l4, = ax[0].plot(time/60, movmean(vortsfc_t2,5), 'magenta', linewidth=1.5)
+ax[0].set_title("Domain-maximum \u03B6 (\u03B8'=9 K)", fontsize=14)
+ax[0].set_ylabel("\u03B6 (1/s)", fontsize=12)
+ax[0].set_xlim([0,480])
+ax[0].set_ylim([0,0.28])
+ax[0].legend(handles=[l4,l3,l2,l1], labels=["\u03B6(sfc)", "\u03B6(1 km)", "\u03B6(3 km)", "\u03B6(5 km)"], loc='upper right', fontsize=12, ncols=2)
+
+ax[1].plot(time/60, movmean(vort5km_t3,5), 'k', linewidth=2)
+ax[1].plot(time/60, movmean(vort3km_t3,5), 'b', linewidth=2)
+ax[1].plot(time/60, movmean(vort1km_t3,5), 'deepskyblue', linewidth=2)
+ax[1].plot(time/60, movmean(vortsfc_t3,5), 'magenta', linewidth=1.5)
+ax[1].set_title("Domain-maximum \u03B6 (\u03B8'=4.5 K)", fontsize=14)
+ax[1].set_ylabel("\u03B6 (1/s)", fontsize=12)
+
+ax[2].plot(time/60, movmean(vort5km_t4,5), 'k', linewidth=2)
+ax[2].plot(time/60, movmean(vort3km_t4,5), 'b', linewidth=2)
+ax[2].plot(time/60, movmean(vort1km_t4,5), 'deepskyblue', linewidth=2)
+ax[2].plot(time/60, movmean(vortsfc_t4,5), 'magenta', linewidth=1.5)
+ax[2].set_title("Domain-maximum \u03B6 (\u03B8'=3 K)", fontsize=14)
+ax[2].set_xlabel('Time (min)', fontsize=12)
+ax[2].set_ylabel("\u03B6 (1/s)", fontsize=12)
+
+for n in range(len(ax)):
+    ax[n].grid(visible=True, which='major', color='gray', linestyle='-')
+    ax[n].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+    ax[n].xaxis.set_major_locator(MultipleLocator(30))
+    ax[n].xaxis.set_minor_locator(MultipleLocator(10))
+    ax[n].yaxis.set_major_locator(MultipleLocator(0.04))
+    ax[n].yaxis.set_minor_locator(MultipleLocator(0.02))
+    
+if figsave:
+    plt.savefig(fp+'vortmax_timeseries_ERA5-1_compare_2.png', dpi=300)
+
+
+
+
+fig,ax = plt.subplots(3, 1, figsize=(9,9), sharex=True, sharey=True, layout='constrained')
+
+l1, = ax[0].plot(time/60, movmean(wmax5000_t2,5), 'k', linewidth=2)
+l2, = ax[0].plot(time/60, movmean(wmax2500_t2,5), 'b', linewidth=2)
+l3, = ax[0].plot(time/60, movmean(wmax1000_t2,5), 'deepskyblue', linewidth=2)
+ax[0].set_title("Domain-maximum w (\u03B8'=9 K)", fontsize=14)
+ax[0].set_ylabel("w (m/s)", fontsize=12)
+ax[0].set_xlim([0,480])
+ax[0].set_ylim([0,25])
+ax[0].legend(handles=[l3,l2,l1], labels=["w(1 km)", "w(2.5 km)", "w(3 km)"], loc='lower right', fontsize=12)
+
+ax[1].plot(time/60, movmean(wmax5000_t3,5), 'k', linewidth=2)
+ax[1].plot(time/60, movmean(wmax2500_t3,5), 'b', linewidth=2)
+ax[1].plot(time/60, movmean(wmax1000_t3,5), 'deepskyblue', linewidth=2)
+ax[1].set_title("Domain-maximum w (\u03B8'=4.5 K)", fontsize=14)
+ax[1].set_ylabel("w (m/s)", fontsize=12)
+
+ax[2].plot(time/60, movmean(wmax5000_t4,5), 'k', linewidth=2)
+ax[2].plot(time/60, movmean(wmax2500_t4,5), 'b', linewidth=2)
+ax[2].plot(time/60, movmean(wmax1000_t4,5), 'deepskyblue', linewidth=2)
+ax[2].set_title("Domain-maximum w (\u03B8'=3 K)", fontsize=14)
+ax[2].set_xlabel('Time (min)', fontsize=12)
+ax[2].set_ylabel("w (m/s)", fontsize=12)
+
+for n in range(len(ax)):
+    ax[n].grid(visible=True, which='major', color='gray', linestyle='-')
+    ax[n].grid(visible=True, which='minor', color='lightgray', linestyle='-')
+    ax[n].xaxis.set_major_locator(MultipleLocator(30))
+    ax[n].xaxis.set_minor_locator(MultipleLocator(10))
+    ax[n].yaxis.set_major_locator(MultipleLocator(5))
+    ax[n].yaxis.set_minor_locator(MultipleLocator(1))
+    
+if figsave:
+    plt.savefig(fp+'wmax_timeseries_ERA5-1_compare_2.png', dpi=300)
 
 
 #%% Load translated swaths
