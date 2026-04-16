@@ -143,7 +143,7 @@ save_flag = False
 
 
 # Most favourable profile --- 1121 m?
-fn1 = 'ERA5_Profile_20250820_21Z_50.75_114.0_CM1.txt'
+fn1 = 'soundings/ERA5_Profile_20250820_21Z_50.75_114.0_CM1.txt'
 
 with open(fp+fn1, 'r') as f:
     lines = f.readlines()
@@ -192,7 +192,7 @@ del lines
 
 
 # Good thermo but probably won't be the right storm mode --- 1104 m ?
-fn2 = 'ERA5_Profile_20250820_21Z_51.0_114.25_CM1.txt'
+fn2 = 'soundings/ERA5_Profile_20250820_21Z_51.0_114.25_CM1.txt'
 
 with open(fp+fn2, 'r') as f:
     lines = f.readlines()
@@ -244,7 +244,7 @@ del lines
 
 
 # Closest to Christoph's HRDPS profile --- 1034 m ?
-fn3 = 'ERA5_Profile_20250820_21Z_51.25_113.25_CM1.txt'
+fn3 = 'soundings/ERA5_Profile_20250820_21Z_51.25_113.25_CM1.txt'
 
 with open(fp+fn3, 'r') as f:
     lines = f.readlines()
@@ -473,6 +473,8 @@ cape3 = CC[0].magnitude
 cin3 = CC[1].magnitude
 
 
+
+
 print("---ERA5 profiles---")
 print(f"   50.75, -114.0")
 print(f"Bunkers RM:           {smBR_1:.1f} m/s at {angBR_1:.0f} deg (Vector: {uBR_1:.1f} m/s, {vBR_1:.1f} m/s)")
@@ -493,14 +495,17 @@ print(f"CAPE,CIN:             {cape3:.0f} J/kg, {cin3:.0f} J/kg")
 i1_1 = np.argmin(abs(z1-1000))
 i3_1 = np.argmin(abs(z1-3000))
 i6_1 = np.argmin(abs(z1-6000))
+i10_1 = np.argmin(abs(z1-10000))
 
 i1_2 = np.argmin(abs(z2-1000))
 i3_2 = np.argmin(abs(z2-3000))
 i6_2 = np.argmin(abs(z2-6000))
+i10_2 = np.argmin(abs(z2-10000))
 
 i1_3 = np.argmin(abs(z3-1000))
 i3_3 = np.argmin(abs(z3-3000))
 i6_3 = np.argmin(abs(z3-6000))
+i10_3 = np.argmin(abs(z3-10000))
 
 
 fig = plt.figure(figsize=(8,8))
@@ -514,7 +519,7 @@ skew.plot_moist_adiabats()
 skew.plot_mixing_lines()
 skew.ax.set_ylim(1000, 100)
 skew.ax.set_xlim(-40, 30)
-plt.title('ERA5 20250820_21z 50.75,-114.0')
+plt.title('ERA5 20250820_21z (50.75, -114.0)')
 ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
 H = Hodograph(ax_hod, component_range=40.)
 H.add_grid(increment=10)
@@ -522,17 +527,20 @@ H.add_grid(increment=10)
 # ax_hod.scatter(u1[i1_1], v1[i1_1], s=40, marker='o', edgecolor='k', facecolor='g')
 # ax_hod.scatter(u1[i3_1], v1[i3_1], s=40, marker='o', edgecolor='k', facecolor='b')
 # ax_hod.scatter(u1[i6_1], v1[i6_1], s=40, marker='o', edgecolor='k', facecolor='r')
-H.plot(u1[0:i1_1], v1[0:i1_1], color='r', linewidth=1.5)
-H.plot(u1[i1_1:i3_1], v1[i1_1:i3_1], color='g', linewidth=1.5)
-H.plot(u1[i3_1:i6_1], v1[i3_1:i6_1], color='b', linewidth=1.5)
-H.plot(u1[i6_1:], v1[i6_1:], color='dimgray', linewidth=1.5)
+h1, = H.plot(u1[0:i1_1], v1[0:i1_1], color='r', linewidth=1.5)
+h2, = H.plot(u1[i1_1:i3_1], v1[i1_1:i3_1], color='g', linewidth=1.5)
+h3, = H.plot(u1[i3_1:i6_1], v1[i3_1:i6_1], color='b', linewidth=1.5)
+h4, = H.plot(u1[i6_1:i10_1], v1[i6_1:i10_1], color='dimgray', linewidth=1.5)
 str1 = '\n'.join((
     "CAPE:            %.0f J/kg" % (cape1, ),
+    "CIN:              %.0f J/kg" % (cin1, ),
     "0-6km MW:    u=%.1f, v=%.1f" % (u06_1,v06_1, ),
     "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_1,vBR_1, )
     ))
 props = dict(boxstyle='square', facecolor='w', edgecolor='k')
 skew.ax.text(-39, 950, str1, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km'], fontsize=8, ncols=2, loc='lower left')
+# plt.savefig(fp+"ERA5-1_20250820_21Z_50.75_114.0.png", dpi=300)
 
 
 
@@ -547,7 +555,7 @@ skew.plot_moist_adiabats()
 skew.plot_mixing_lines()
 skew.ax.set_ylim(1000, 100)
 skew.ax.set_xlim(-40, 30)
-plt.title('ERA5 20250820_21z 51.0,-114.25')
+plt.title('ERA5 20250820_21z (51.0, -114.25)')
 ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
 H = Hodograph(ax_hod, component_range=40.)
 H.add_grid(increment=10)
@@ -555,17 +563,20 @@ H.add_grid(increment=10)
 # ax_hod.scatter(u2[i1_2], v2[i1_2], s=40, marker='o', edgecolor='k', facecolor='g')
 # ax_hod.scatter(u2[i3_2], v2[i3_2], s=40, marker='o', edgecolor='k', facecolor='b')
 # ax_hod.scatter(u2[i6_2], v2[i6_2], s=40, marker='o', edgecolor='k', facecolor='r')
-H.plot(u2[0:i1_2], v2[0:i1_2], color='r', linewidth=1.5)
-H.plot(u2[i1_2:i3_2], v2[i1_2:i3_2], color='g', linewidth=1.5)
-H.plot(u2[i3_2:i6_2], v2[i3_2:i6_2], color='b', linewidth=1.5)
-H.plot(u2[i6_2:], v2[i6_2:], color='dimgray', linewidth=1.5)
+h1, = H.plot(u2[0:i1_2], v2[0:i1_2], color='r', linewidth=1.5)
+h2, = H.plot(u2[i1_2:i3_2], v2[i1_2:i3_2], color='g', linewidth=1.5)
+h3, = H.plot(u2[i3_2:i6_2], v2[i3_2:i6_2], color='b', linewidth=1.5)
+h4, = H.plot(u2[i6_2:i10_2], v2[i6_2:i10_2], color='dimgray', linewidth=1.5)
 str2 = '\n'.join((
     "CAPE:            %.0f J/kg" % (cape2, ),
+    "CIN:              %.0f J/kg" % (cin2, ),
     "0-6km MW:    u=%.1f, v=%.1f" % (u06_2,v06_2, ),
     "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_2,vBR_2, )
     ))
 props = dict(boxstyle='square', facecolor='w', edgecolor='k')
 skew.ax.text(-39, 950, str2, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km'], fontsize=8, ncols=2, loc='lower left')
+# plt.savefig(fp+"ERA5-2_20250820_21Z_51.0_114.25.png", dpi=300)
 
 
 fig = plt.figure(figsize=(8,8))
@@ -579,7 +590,7 @@ skew.plot_moist_adiabats()
 skew.plot_mixing_lines()
 skew.ax.set_ylim(1000, 100)
 skew.ax.set_xlim(-40, 30)
-plt.title('ERA5 20250820_21z 51.25,-113.25')
+plt.title('ERA5 20250820_21z (51.25, -113.25)')
 ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
 H = Hodograph(ax_hod, component_range=40.)
 H.add_grid(increment=10)
@@ -587,39 +598,299 @@ H.add_grid(increment=10)
 # ax_hod.scatter(u3[i1_3], v3[i1_3], s=40, marker='o', edgecolor='k', facecolor='g')
 # ax_hod.scatter(u3[i3_3], v3[i3_3], s=40, marker='o', edgecolor='k', facecolor='b')
 # ax_hod.scatter(u3[i6_3], v3[i6_3], s=40, marker='o', edgecolor='k', facecolor='r')
-H.plot(u3[0:i1_3], v3[0:i1_3], color='r', linewidth=1.5)
-H.plot(u3[i1_3:i3_3], v3[i1_3:i3_3], color='g', linewidth=1.5)
-H.plot(u3[i3_3:i6_3], v3[i3_3:i6_3], color='b', linewidth=1.5)
-H.plot(u3[i6_3:], v3[i6_3:], color='dimgray', linewidth=1.5)
+h1, = H.plot(u3[0:i1_3], v3[0:i1_3], color='r', linewidth=1.5)
+h2, = H.plot(u3[i1_3:i3_3], v3[i1_3:i3_3], color='g', linewidth=1.5)
+h3, = H.plot(u3[i3_3:i6_3], v3[i3_3:i6_3], color='b', linewidth=1.5)
+h4, = H.plot(u3[i6_3:i10_3], v3[i6_3:i10_3], color='dimgray', linewidth=1.5)
 str3 = '\n'.join((
     "CAPE:            %.0f J/kg" % (cape3, ),
+    "CIN:              %.0f J/kg" % (cin3, ),
     "0-6km MW:    u=%.1f, v=%.1f" % (u06_3,v06_3, ),
     "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_3,vBR_3, )
     ))
 props = dict(boxstyle='square', facecolor='w', edgecolor='k')
 skew.ax.text(-39, 950, str3, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km'], fontsize=8, ncols=2, loc='lower left')
+# plt.savefig(fp+"ERA5-3_20250820_21Z_51.25_113.25.png", dpi=300)
 
 plt.show()
 
 
 
 
+#%% Format observed soundings from radiosondes
+
+import pandas as pd
+import metpy.calc as mc
+from metpy.units import units
+
+
+
+fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+
+# Edmonton, Ab, 20250820-18Z
+fn1 = fp+'soundings/2025082018-71119-EdmontonAB.csv'
+df = pd.read_csv(fn1)
+
+pres = list(df['pressure_hPa'])
+Z = list(df['geopotential height_m'])
+T_c = list(df['temperature_C'])
+wd = list(df['wind direction_degree'])
+ws = list(df['wind speed_m/s'])
+qv = list(df['mixing ratio_g/kg'])
+
+deltaz = Z[0]
+z = [Z[i] - deltaz for i in range(len(Z))] #correct heights to start at 10 m
+T = [T_c[i] + 273.15 for i in range(len(T_c))] #correct temperature to K
+k = 0.286
+theta = [T[i] * (1000/pres[i])**k for i in range(len(T))] #calculate theta
+wind = mc.wind_components(ws*units('m/s'), wd*units.deg) #get wind components from wspd and wdir
+u = wind[0].magnitude[:]
+v = wind[1].magnitude[:]
+
+# header -   sfc pres(mb)   sfc theta(K)   sfc qv(g/kg)
+# body   -   z(m)   theta(K)   qv(g/kg)   u(m/s)   v(m/s)
+if False:
+    fsave = fp+"EdmontonAB_20250820_18Z.txt"
+    hd = np.zeros((1,3))
+    hd[0][0] = pres[0]
+    hd[0][1] = theta[0]
+    hd[0][2] = qv[0]
+    np.savetxt(fsave, hd, fmt='%f')
+    
+    dat = {'z':z[1:], 'theta':theta[1:], 'qv':qv[1:], 'u':u[1:], 'v':v[1:]}
+    dfs = pd.DataFrame(data=dat, dtype=float)
+    with open(fsave, 'a') as ff:
+        ff.write(dfs.to_string(header=False, index=False))
+
+
+
+
+
+# Great Falls, MT, 20250820-18Z
+fn2 = fp+'soundings/2025082018-72776-GreatFallsMT.csv'
+df = pd.read_csv(fn2)
+
+pres = list(df['pressure_hPa'])
+Z = list(df['geopotential height_m'])
+T_c = list(df['temperature_C'])
+wd = list(df['wind direction_degree'])
+ws = list(df['wind speed_m/s'])
+qv = list(df['mixing ratio_g/kg'])
+
+deltaz = Z[0]
+z = [Z[i] - deltaz for i in range(len(Z))] #correct heights to start at 10 m
+T = [T_c[i] + 273.15 for i in range(len(T_c))] #correct temperature to K
+k = 0.286
+theta = [T[i] * (1000/pres[i])**k for i in range(len(T))] #calculate theta
+wind = mc.wind_components(ws*units('m/s'), wd*units.deg) #get wind components from wspd and wdir
+u = wind[0].magnitude[:]
+v = wind[1].magnitude[:]
+
+# header -   sfc pres(mb)   sfc theta(K)   sfc qv(g/kg)
+# body   -   z(m)   theta(K)   qv(g/kg)   u(m/s)   v(m/s)
+if False:
+    fsave = fp+"GreatFallsMT_20250820_18Z.txt"
+    hd = np.zeros((1,3))
+    hd[0][0] = pres[0]
+    hd[0][1] = theta[0]
+    hd[0][2] = qv[0]
+    np.savetxt(fsave, hd, fmt='%f')
+    
+    dat = {'z':z[1:], 'theta':theta[1:], 'qv':qv[1:], 'u':u[1:], 'v':v[1:]}
+    dfs = pd.DataFrame(data=dat, dtype=float)
+    with open(fsave, 'a') as ff:
+        ff.write(dfs.to_string(header=False, index=False))
+
+
+
+#%% Plot Edmonton and Great Falls soundings
+
+fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+
+
+# Edmonton, Ab, 20250820-18Z
+fn = fp+'soundings/2025082018-71119-EdmontonAB.csv'
+df = pd.read_csv(fn)
+
+pres1 = np.array(list(df['pressure_hPa']))
+Z1 = np.array(list(df['geopotential height_m']))
+T1 = np.array(list(df['temperature_C'])) + 273.15
+Td1 = np.array(list(df['dew point temperature_C'])) + 273.15
+wd1 = np.array(list(df['wind direction_degree']))
+ws1 = np.array(list(df['wind speed_m/s']))
+qv1 = np.array(list(df['mixing ratio_g/kg']))
+
+z1 = Z1 - Z1[0] #correct heights to start at 10 m
+
+k = 0.286
+th1 = T1*(1000/pres1)**0.286 #calculate theta
+wind = mc.wind_components(ws1*units('m/s'), wd1*units.deg) #get wind components from wspd and wdir
+u1 = wind[0].magnitude[:]
+v1 = wind[1].magnitude[:]
+
+
+
+# Great Falls, MT, 20250820-18Z
+fn = fp+'soundings/2025082018-72776-GreatFallsMT.csv'
+df = pd.read_csv(fn)
+
+pres2 = np.array(list(df['pressure_hPa']))
+Z2 = np.array(list(df['geopotential height_m']))
+T2 = np.array(list(df['temperature_C'])) + 273.15
+Td2 = np.array(list(df['dew point temperature_C'])) + 273.15
+wd2 = np.array(list(df['wind direction_degree']))
+ws2 = np.array(list(df['wind speed_m/s']))
+qv2 = np.array(list(df['mixing ratio_g/kg']))
+
+z2 = Z2 - Z2[0] #correct heights to start at 10 m
+
+k = 0.286
+th2 = T2*(1000/pres2)**0.286 #calculate theta
+wind = mc.wind_components(ws2*units('m/s'), wd2*units.deg) #get wind components from wspd and wdir
+u2 = wind[0].magnitude[:]
+v2 = wind[1].magnitude[:]
+
+
+i1_1 = np.argmin(abs(z1-1000))
+i3_1 = np.argmin(abs(z1-3000))
+i6_1 = np.argmin(abs(z1-6000))
+i10_1 = np.argmin(abs(z1-10000))
+
+i1_2 = np.argmin(abs(z2-1000))
+i3_2 = np.argmin(abs(z2-3000))
+i6_2 = np.argmin(abs(z2-6000))
+i10_2 = np.argmin(abs(z2-10000))
+
+
+
+
+T1_parcel = mc.parcel_profile(pres1*units.hPa, T1[0]*units.K, Td1[0]*units.K)
+T2_parcel = mc.parcel_profile(pres2*units.hPa, T2[0]*units.K, Td2[0]*units.K)
+
+T1_3parcel = mc.parcel_profile(pres1[:i3_1]*units.hPa, T1[0]*units.K, Td1[0]*units.K)
+T2_3parcel = mc.parcel_profile(pres2[:i3_2]*units.hPa, T2[0]*units.K, Td2[0]*units.K)
+
+
+bwnd = mc.bunkers_storm_motion(pres1*units.hPa, u1*units('m/s'), v1*units('m/s'), z1*units.m)
+uBR_1 = bwnd[0].magnitude[0]
+vBR_1 = bwnd[0].magnitude[1]
+u06_1 = bwnd[2].magnitude[0]
+v06_1 = bwnd[2].magnitude[1]
+smBR_1 = np.sqrt(uBR_1**2 + vBR_1**2)
+angBR_1 = 180 + np.arctan2(uBR_1, vBR_1)*180/np.pi
+VH06_1 = np.sqrt(u06_1**2 + v06_1**2)
+ang06_1 = 180 + np.arctan2(u06_1, v06_1)*180/np.pi
+CC = mc.cape_cin(pres1*units.hPa, T1*units.K, Td1*units.K, T1_parcel)
+cape1 = CC[0].magnitude
+cin1 = CC[1].magnitude
+CC3 = mc.cape_cin(pres1[:i3_1]*units.hPa, T1[:i3_1]*units.K, Td1[:i3_1]*units.K, T1_3parcel)
+cape3_1 = CC3[0].magnitude
+
+
+bwnd = mc.bunkers_storm_motion(pres2*units.hPa, u2*units('m/s'), v2*units('m/s'), z2*units.m)
+uBR_2 = bwnd[0].magnitude[0]
+vBR_2 = bwnd[0].magnitude[1]
+u06_2 = bwnd[2].magnitude[0]
+v06_2 = bwnd[2].magnitude[1]
+smBR_2 = np.sqrt(uBR_2**2 + vBR_2**2)
+angBR_2 = 180 + np.arctan2(uBR_2, vBR_2)*180/np.pi
+VH06_2 = np.sqrt(u06_2**2 + v06_2**2)
+ang06_2 = 180 + np.arctan2(u06_2, v06_2)*180/np.pi
+CC = mc.cape_cin(pres2*units.hPa, T2*units.K, Td2*units.K, T2_parcel)
+cape2 = CC[0].magnitude
+cin2 = CC[1].magnitude
+CC3 = mc.cape_cin(pres2[:i3_2]*units.hPa, T2[:i3_2]*units.K, Td2[:i3_2]*units.K, T2_3parcel)
+cape3_2 = CC3[0].magnitude
+
+
+print("---2025-08-20 18Z soundings---")
+print(f"   Edmonton, AB")
+print(f"Bunkers RM:           {smBR_1:.1f} m/s at {angBR_1:.0f} deg (Vector: {uBR_1:.1f} m/s, {vBR_1:.1f} m/s)")
+print(f"0-6 km mean wind:     {VH06_1:.1f} m/s at {ang06_1:.0f} deg (Vector: {u06_1:.1f} m/s, {v06_1:.1f} m/s)")
+print(f"CAPE,CIN:             {cape1:.0f} J/kg, {cin1:.0f} J/kg")
+print(f"3CAPE:                {cape3_1:.0f} J/kg")
+print(" ")
+print(f"   Great Falls, MT")
+print(f"Bunkers RM:           {smBR_2:.1f} m/s at {angBR_2:.0f} deg (Vector: {uBR_2:.1f} m/s, {vBR_2:.1f} m/s)")
+print(f"0-6 km mean wind:     {VH06_2:.1f} m/s at {ang06_2:.0f} deg (Vector: {u06_2:.1f} m/s, {v06_2:.1f} m/s)")
+print(f"CAPE,CIN:             {cape2:.0f} J/kg, {cin2:.0f} J/kg")
+print(f"3CAPE:                {cape3_2:.0f} J/kg")
 
 
 
 
 
 
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(pres1, (T1-273.15), '-r', linewidth=2)
+skew.plot(pres1, (Td1-273.15), '-g', linewidth=2)
+skew.plot(pres1, np.array(T1_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 40)
+plt.title('Edmonton AB sounding 20250820_18Z')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=40.)
+H.add_grid(increment=10)
+# H.plot(u1, v1, color='k', linewidth=1.5)
+# ax_hod.scatter(u1[i1_1], v1[i1_1], s=40, marker='o', edgecolor='k', facecolor='g')
+# ax_hod.scatter(u1[i3_1], v1[i3_1], s=40, marker='o', edgecolor='k', facecolor='b')
+# ax_hod.scatter(u1[i6_1], v1[i6_1], s=40, marker='o', edgecolor='k', facecolor='r')
+h1, = H.plot(u1[0:i1_1], v1[0:i1_1], color='r', linewidth=1.5)
+h2, = H.plot(u1[i1_1:i3_1], v1[i1_1:i3_1], color='g', linewidth=1.5)
+h3, = H.plot(u1[i3_1:i6_1], v1[i3_1:i6_1], color='b', linewidth=1.5)
+h4, = H.plot(u1[i6_1:i10_1], v1[i6_1:i10_1], color='dimgray', linewidth=1.5)
+str1 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape1, ),
+    "CIN:              %.0f J/kg" % (cin1, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_1,v06_1, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_1,vBR_1, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km'], fontsize=8, ncols=2, loc='lower left')
+# plt.savefig(fp+"EdmontonAB_20250820_18Z.png", dpi=300)
 
 
 
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(pres2, (T2-273.15), '-r', linewidth=2)
+skew.plot(pres2, (Td2-273.15), '-g', linewidth=2)
+skew.plot(pres2, np.array(T2_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 40)
+plt.title('Great Falls MT sounding 20250820_18Z')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=40.)
+H.add_grid(increment=10)
+# H.plot(u2, v2, color='k', linewidth=1.5)
+# ax_hod.scatter(u2[i1_2], v2[i1_2], s=40, marker='o', edgecolor='k', facecolor='g')
+# ax_hod.scatter(u2[i3_2], v2[i3_2], s=40, marker='o', edgecolor='k', facecolor='b')
+# ax_hod.scatter(u2[i6_2], v2[i6_2], s=40, marker='o', edgecolor='k', facecolor='r')
+h1, = H.plot(u2[0:i1_2], v2[0:i1_2], color='r', linewidth=1.5)
+h2, = H.plot(u2[i1_2:i3_2], v2[i1_2:i3_2], color='g', linewidth=1.5)
+h3, = H.plot(u2[i3_2:i6_2], v2[i3_2:i6_2], color='b', linewidth=1.5)
+h4, = H.plot(u2[i6_2:i10_2], v2[i6_2:i10_2], color='dimgray', linewidth=1.5)
+str2 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape2, ),
+    "CIN:              %.0f J/kg" % (cin2, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_2,v06_2, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_2,vBR_2, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str2, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km'], fontsize=8, ncols=2, loc='lower left')
+# plt.savefig(fp+"GreatFallsMT_20250820_18Z.png", dpi=300)
 
 
-
-
-
-
-
-
-
-
+plt.show()
