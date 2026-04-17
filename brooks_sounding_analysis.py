@@ -428,6 +428,8 @@ Td3 = 243.5 / ((17.67/(np.log(e/6.112)))-1) + 273.15
 T3_parcel = mc.parcel_profile(prs3*units.hPa, T3[0]*units.K, Td3[0]*units.K)
 
 
+T_Td_max = np.max(Td3-T3)
+
 
 
 
@@ -722,8 +724,6 @@ ws1 = np.array(list(df['wind speed_m/s']))
 qv1 = np.array(list(df['mixing ratio_g/kg']))
 
 z1 = Z1 - Z1[0] #correct heights to start at 10 m
-
-k = 0.286
 th1 = T1*(1000/pres1)**0.286 #calculate theta
 wind = mc.wind_components(ws1*units('m/s'), wd1*units.deg) #get wind components from wspd and wdir
 u1 = wind[0].magnitude[:]
@@ -744,8 +744,6 @@ ws2 = np.array(list(df['wind speed_m/s']))
 qv2 = np.array(list(df['mixing ratio_g/kg']))
 
 z2 = Z2 - Z2[0] #correct heights to start at 10 m
-
-k = 0.286
 th2 = T2*(1000/pres2)**0.286 #calculate theta
 wind = mc.wind_components(ws2*units('m/s'), wd2*units.deg) #get wind components from wspd and wdir
 u2 = wind[0].magnitude[:]
