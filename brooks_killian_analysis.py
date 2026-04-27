@@ -410,8 +410,6 @@ dbz_levs = np.linspace(0,70,15)
 dbz_lws = [1.25,1.25,1,1]
 
 
-xt = [78, 120, 160, 202, 250, 295, 335, 380]
-yt = [65, 73, 77, 78, 78, 78, 78, 78]
 
 
 if 'era5-1_125m_test1' in fp:
@@ -556,6 +554,170 @@ ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
+
+
+
+#%% More swath + wind mechanism plots
+
+
+dbz_levs = np.linspace(0,70,15)
+# dbz_cols = ['limegreen','gold','darkorange','r']
+dbz_lws = [1.25,1.25,1,1]
+
+
+
+
+if 'era5-1_125m_test1' in fp:
+    xt = [77, 120, 165, 215, 265, 320, 380, 435]
+    yt = [73, 78, 80, 83, 89, 96, 102, 104]
+elif 'era5-1_125m_test2' in fp:
+    xt = [77, 120, 165, 215, 265, 325, 378, 425]
+    yt = [70, 74, 77, 82, 87, 93, 94, 96]
+elif 'era5-1_125m_test3' in fp:
+    xt = [77, 116, 160, 210, 255, 306, 355, 405]
+    yt = [71, 75, 79, 79, 80, 81, 82, 86]
+elif 'era5-1_125m_test4' in fp:
+    xt = [75, 115, 157, 201, 247, 298, 348, 397]
+    yt = [74, 83, 85, 85, 85, 85, 85, 85]
+elif 'era5-1_125m_test5' in fp:
+    xt = [78, 120, 160, 202, 250, 295, 335, 380]
+    yt = [65, 73, 73, 75, 75, 78, 79, 79]
+elif 'era5-1_125m_test6' in fp:
+    xt = [80, 122, 163, 205, 250, 292, 338, 380]
+    yt = [60, 67, 68, 70, 71, 73, 73, 73]
+elif 'era5-1_125m_test7' in fp:
+    xt = [78, 120, 165, 208, 255, 300, 342, 383]
+    yt = [65, 68, 72, 73, 75, 75, 73, 72]
+    
+    
+xl = [50,500]
+yl = [50,200]
+
+
+if 'era5-1' in fp:
+    sounding_str = 'ERA5 profile (50.75,-114.0)'
+elif 'era5-2' in fp:
+    sounding_str = 'ERA5 profile (51.0,-114.25)'
+elif 'era5-3' in fp:
+    sounding_str = 'ERA5 profile (51.25,-113.25)'
+elif 'hrdps' in fp:
+    sounding_str = 'HRDPS profile (51.166,-113.135)'
+
+
+
+figsave = False
+
+
+
+levs = np.linspace(0,70,15)
+cm = 'HomeyerRainbow'
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+
+c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh3, yh3, np.ma.masked_array(dbz3, dbz3<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh4, yh4, np.ma.masked_array(dbz4, dbz4<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=levs, vmin=0, vmax=70, cmap=cm)
+
+cb = plt.colorbar(c, ax=ax, extend='max')
+cb.set_ticks(np.linspace(0,70,8))
+cb.set_label('dBZ', fontsize=10)
+
+
+levs = [300,500]
+cols = ['dimgray','k']
+lws = [0.6,0.6]
+ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh4, yh4, shs4, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+
+
+for i in range(8):
+    is_rij = crit[f"{i+1}"]['is_rij']
+    is_mv = crit[f"{i+1}"]['is_mv']
+    is_db = crit[f"{i+1}"]['is_db']
+    is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
+    is_mv_db = crit[f"{i+1}"]['is_mv_db']
+    
+    rij_mask = (is_rij==0)
+    mv_mask = (is_mv==0)
+    db_mask = (is_db==0)
+    mv_rij_mask = (is_mv_rij==0)
+    mv_db_mask = (is_mv_db==0)
+    
+    x = xh + 100 + i*x_added
+    y = yh + 100 + i*y_added
+    
+    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='PiYG', cbar=False, alpha=0.8)
+    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='bwr', cbar=False, alpha=0.8)
+    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='Bu10', cbar=False, alpha=0.8)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.9)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.9)
+    
+
+
+ax.contour(xh1, yh1, wsp1, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh2, yh2, wsp2, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh3, yh3, wsp3, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh4, yh4, wsp4, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh5, yh5, wsp5, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh6, yh6, wsp6, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh7, yh7, wsp7, levels=[25], colors='k', linewidths=[1])
+ax.contour(xh8, yh8, wsp8, levels=[25], colors='k', linewidths=[1])
+
+
+
+
+
+ax.set_xlim(xl)
+ax.set_ylim(yl)
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('y (km)', fontsize=10)
+ax.set_title(f"{sounding_str} - Surface reflectivity + wind mechanisms (0-8 h)", fontsize=10)
+# l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
+# l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+# # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
+# ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
+
+l1, = ax.plot([-2,-1], [-2,-1], 'green', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
+l3, = ax.plot([-2,-1], [-2,-1], 'dodgerblue', linewidth=1)
+l4, = ax.plot([-2,-1], [-2,-1], 'violet', linewidth=1)
+l5, = ax.plot([-2,-1], [-2,-1], 'gold', linewidth=1)
+l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+# l7, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=0.6)
+# l8, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=0.6)
+ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['RIJ','MV','DB','MV+RIJ','MV+DB','SVR'], loc='lower right', fontsize=7)
+
+ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
+ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
+ax.text(xt[2], yt[2], '3 h', fontsize=9, fontweight='bold')
+ax.text(xt[3], yt[3], '4 h', fontsize=9, fontweight='bold')
+ax.text(xt[4], yt[4], '5 h', fontsize=9, fontweight='bold')
+ax.text(xt[5], yt[5], '6 h', fontsize=9, fontweight='bold')
+ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
+ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
+
+if figsave:
+    plt.savefig(fp+'UH_wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
+
+
+
+
+
+
+
+
 
 
 
