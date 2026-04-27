@@ -402,9 +402,6 @@ yh8 = yh1 + 7*y_added
 #%% Plot translated swaths with wind mechanisms
 
 
-levs = [300,500]
-cols = ['dimgray','k']
-lws = [0.6,1]
 dbz_levs = np.linspace(0,70,15)
 # dbz_cols = ['limegreen','gold','darkorange','r']
 dbz_lws = [1.25,1.25,1,1]
@@ -473,6 +470,9 @@ cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,30,7))
 cb.set_label('Wind speed (m/s)', fontsize=10)
 
+# levs = [300,500]
+# cols = ['dimgray','k']
+# lws = [0.6,1]
 # ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
 # ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
 # ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
@@ -482,6 +482,18 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 # ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
 # ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
 
+# levs = [0.01,0.1]
+# cols = ['gray','dimgray']
+# lws = [0.5,0.75]
+# ax.contour(xh1, yh1, hail1, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh2, yh2, hail2, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh3, yh3, hail3, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh4, yh4, hail4, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh5, yh5, hail5, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh6, yh6, hail6, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh7, yh7, hail7, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh8, yh8, hail8, levels=levs, colors=cols, linewidths=lws)
+
 
 for i in range(8):
     is_rij = crit[f"{i+1}"]['is_rij']
@@ -490,11 +502,6 @@ for i in range(8):
     is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
     is_mv_db = crit[f"{i+1}"]['is_mv_db']
     
-    # rij_mask = (is_rij==0) | (is_mv_rij==1)
-    # mv_mask = (is_mv==0) | (is_mv_rij==1) | (is_mv_db==1)
-    # db_mask = (is_db==0) | (is_mv_db==1) | (is_rij==1)
-    # mv_rij_mask = (is_mv_rij==0)
-    # mv_db_mask = (is_mv_db==0) | (is_rij==1) | (is_mv_rij==1)
     rij_mask = (is_rij==0)
     mv_mask = (is_mv==0)
     db_mask = (is_db==0)
@@ -629,17 +636,29 @@ cb.set_ticks(np.linspace(0,70,8))
 cb.set_label('dBZ', fontsize=10)
 
 
-levs = [300,500]
-cols = ['dimgray','k']
-lws = [0.6,0.6]
-ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh4, yh4, shs4, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+# levs = [300,500]
+# cols = ['dimgray','k']
+# lws = [0.6,0.6]
+# ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh4, yh4, shs4, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+
+levs = [0.01,0.1]
+cols = ['gray','dimgray']
+lws = [0.5,0.75]
+ax.contour(xh1, yh1, hail1, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh2, yh2, hail2, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh3, yh3, hail3, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh4, yh4, hail4, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh5, yh5, hail5, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh6, yh6, hail6, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh7, yh7, hail7, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh8, yh8, hail8, levels=levs, colors=cols, linewidths=lws)
 
 
 for i in range(8):
@@ -658,11 +677,11 @@ for i in range(8):
     x = xh + 100 + i*x_added
     y = yh + 100 + i*y_added
     
-    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='PiYG', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='bwr', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='Bu10', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.9)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.9)
+    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='PiYG', cbar=False, alpha=0.6)
+    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='bwr', cbar=False, alpha=0.6)
+    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='Bu10', cbar=False, alpha=0.6)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
     
 
 
@@ -689,15 +708,23 @@ ax.set_title(f"{sounding_str} - Surface reflectivity + wind mechanisms (0-8 h)",
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
 # ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
 
-l1, = ax.plot([-2,-1], [-2,-1], 'green', linewidth=1)
-l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
-l3, = ax.plot([-2,-1], [-2,-1], 'dodgerblue', linewidth=1)
-l4, = ax.plot([-2,-1], [-2,-1], 'violet', linewidth=1)
-l5, = ax.plot([-2,-1], [-2,-1], 'gold', linewidth=1)
+# l1, = ax.plot([-2,-1], [-2,-1], 'green', linewidth=1)
+# l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
+# l3, = ax.plot([-2,-1], [-2,-1], 'dodgerblue', linewidth=1)
+# l4, = ax.plot([-2,-1], [-2,-1], 'violet', linewidth=1)
+# l5, = ax.plot([-2,-1], [-2,-1], 'gold', linewidth=1)
+# l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+# # l7, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=0.6)
+# # l8, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=0.6)
+l1 = ax.scatter(-1, -1, marker='s', s=20, c='green')
+l2 = ax.scatter(-1, -1, marker='s', s=20, c='r')
+l3 = ax.scatter(-1, -1, marker='s', s=20, c='dodgerblue')
+l4 = ax.scatter(-1, -1, marker='s', s=20, c='violet')
+l5 = ax.scatter(-1, -1, marker='s', s=20, c='gold')
 l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-# l7, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=0.6)
+l7, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
 # l8, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=0.6)
-ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['RIJ','MV','DB','MV+RIJ','MV+DB','SVR'], loc='lower right', fontsize=7)
+ax.legend(handles=[l1,l2,l3,l4,l5,l6,l7], labels=['RIJ','MV','DB','MV+RIJ','MV+DB','SVR','HAIL'], loc='lower right', fontsize=7)
 
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
@@ -709,7 +736,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'UH_wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
+    plt.savefig(fp+'hail_wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
 
 
 
