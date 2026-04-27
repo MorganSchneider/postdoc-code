@@ -7,11 +7,11 @@ Created on Thu Apr 16 17:00:12 2026
 
 from CM1utils import *
 
-#%% Load data?
+#%% Load and save data
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
 
-ds = nc.Dataset(fp+f"cm1out_000005.nc")
+ds = nc.Dataset(fp+f"cm1out_000033.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -34,16 +34,8 @@ iz80 = np.argmin(abs(zh-0.07))
 iz05 = np.argmin(abs(zh-0.5))
 iz1 = np.argmin(abs(zh-1))
 
-# winterp = ds.variables['winterp'][:].data[0,:iz2+2,:,:]
-# uinterp = ds.variables['uinterp'][:].data[0,:iz2+2,:,:] + ds.variables['umove'][:].data[0]
-# vinterp = ds.variables['vinterp'][:].data[0,:iz2+2,:,:] + ds.variables['vmove'][:].data[0]
-# u80 = np.mean(uinterp[iz80:iz80+2,:,:], axis=0)
-# v80 = np.mean(vinterp[iz80:iz80+2,:,:], axis=0)
-# V_80m = np.sqrt(u80**2 + v80**2)
-# V_2km = np.sqrt(uinterp[iz2,:,:]**2 + vinterp[iz2,:,:]**2)
-# w_2km = np.mean(winterp[iz05:iz2+1,:,:], axis=0)
 
-dbz = np.mean(ds.variables['dbz'][:].data[0,iz80:iz80+2,:,:], axis=0)
+# dbz = np.mean(ds.variables['dbz'][:].data[0,iz80:iz80+2,:,:], axis=0)
 
 # 80-m wind criteria
 u80m = np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['umove'][:].data[0], axis=0)
@@ -138,16 +130,36 @@ for j in range(len(yf)):
         # MV+RIJ criteria
         if (is_mv[iyc,ixc]) & (is_rij[iyc,ixc]):
             is_mv_rij[iyc,ixc] = 1
+            is_mv[iyc,ixc] = 0
+            is_rij[iyc,ixc] = 0
         
         # MV+DB criteria
         if (is_mv[iyc,ixc]) & (is_db[iyc,ixc]):
             is_mv_db[iyc,ixc] = 1
+            is_mv[iyc,ixc] = 0
+            is_db[iyc,ixc] = 0
+        
+        
+        # If all three, either RIJ or MV+RIJ
+        if (is_mv_rij[iyc,ixc]) & (is_mv_db[iyc,ixc]):
+            ownorm = OW80m[iyc,ixc] / ow_thres_mv
+            wnorm = w1km[iyc,ixc] / w_thres_db
+            if ownorm < wnorm: #RIJ only
+                is_rij[iyc,ixc] = 1
+                is_mv_rij[iyc,ixc] = 0
+                is_mv[iyc,ixc] = 0
+                is_db[iyc,ixc] = 0
+                is_mv_db[iyc,ixc] = 0
+            else: #MV+RIJ
+                is_mv_rij[iyc,ixc] = 1
+                is_rij[iyc,ixc] = 0
+                is_mv[iyc,ixc] = 0
+                is_db[iyc,ixc] = 0
+                is_mv_db[iyc,ixc] = 0
 
 
-# is_rij[(svr_flag) & (V2_flag) & (w2_flag)] = 1
 
-
-if True:
+if False:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db}
     pickle.dump(data, dbfile)
@@ -167,14 +179,14 @@ if False:
     
     
     fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1))
-    plot_cfill(xh, yh, np.ma.masked_array(w_flag, w_flag<1), 'w', ax, datalims=[0,1], cmap='Bu10')
-    plot_cfill(xh, yh, np.ma.masked_array(V_flag, V_flag<1), 'wspd', ax, datalims=[0,1], cmap='BuOrR14', cbar=False)
+    plot_cfill(xh, yh, np.ma.masked_array(w2_flag, w2_flag<1), 'w', ax, datalims=[0,1], cmap='Bu10')
+    plot_cfill(xh, yh, np.ma.masked_array(V2_flag, V2_flag<1), 'wspd', ax, datalims=[0,1], cmap='BuOrR14', cbar=False)
     ax.set_xlim([-50,50])
     ax.set_ylim([-50,50])
-    ax.set_title(f"RIJ criteria - w < -2 m/s, V > 20 m/s (t = {time/60:.0f} min)", fontsize=12)
+    ax.set_title(f"RIJ criteria - w < -2 m/s, V > 26 m/s (t = {time/60:.0f} min)", fontsize=12)
     plt.show()
     
-#%%
+#%% Plot wind mechanisms
     
 # fig,ax = plt.subplots(1, 1, figsize=(8,6), subplot_kw=dict(box_aspect=1))
 # plot_cfill(xh, yh, np.ma.masked_array(is_rij, is_rij<1), 'w', ax, datalims=[0,1], cmap='Greys')
@@ -192,11 +204,11 @@ if False:
 
 
 
-rij_mask = (is_rij<1) | (is_mv_rij)
-mv_mask = (is_mv<1) | (is_mv_rij) | (is_mv_db)
-db_mask = (is_db<1) | (is_mv_db)
-mv_rij_mask = (is_mv_rij<1)
-mv_db_mask = (is_mv_db<1)
+rij_mask = (is_rij==0)
+mv_mask = (is_mv==0)
+db_mask = (is_db==0)
+mv_rij_mask = (is_mv_rij==0)
+mv_db_mask = (is_mv_db==0)
 
 fig,ax = plt.subplots(1, 1, figsize=(9,6), subplot_kw=dict(box_aspect=1))
 
@@ -247,7 +259,7 @@ plt.show()
 
 
 
-#%% Add wind mechanisms to translated swaths
+#%% Load translated swaths and wind mechanisms
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
 
@@ -387,7 +399,7 @@ yh6 = yh1 + 5*y_added
 yh7 = yh1 + 6*y_added
 yh8 = yh1 + 7*y_added
 
-#%% Plot translated swaths
+#%% Plot translated swaths with wind mechanisms
 
 
 levs = [300,500]
@@ -442,6 +454,8 @@ elif 'hrdps' in fp:
 
 figsave = False
 
+
+
 levs = np.linspace(0,30,31)
 cm = 'Blues'
 
@@ -461,6 +475,16 @@ cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,30,7))
 cb.set_label('Wind speed (m/s)', fontsize=10)
 
+# ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh4, yh4, shs4, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+
+
 for i in range(8):
     is_rij = crit[f"{i+1}"]['is_rij']
     is_mv = crit[f"{i+1}"]['is_mv']
@@ -468,22 +492,27 @@ for i in range(8):
     is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
     is_mv_db = crit[f"{i+1}"]['is_mv_db']
     
-    rij_mask = (is_rij<1) | (is_mv_rij)
-    mv_mask = (is_mv<1) | (is_mv_rij) | (is_mv_db)
-    db_mask = (is_db<1) | (is_mv_db)
-    mv_rij_mask = (is_mv_rij<1)
-    mv_db_mask = (is_mv_db<1)
+    # rij_mask = (is_rij==0) | (is_mv_rij==1)
+    # mv_mask = (is_mv==0) | (is_mv_rij==1) | (is_mv_db==1)
+    # db_mask = (is_db==0) | (is_mv_db==1) | (is_rij==1)
+    # mv_rij_mask = (is_mv_rij==0)
+    # mv_db_mask = (is_mv_db==0) | (is_rij==1) | (is_mv_rij==1)
+    rij_mask = (is_rij==0)
+    mv_mask = (is_mv==0)
+    db_mask = (is_db==0)
+    mv_rij_mask = (is_mv_rij==0)
+    mv_db_mask = (is_mv_db==0)
     
     x = xh + 100 + i*x_added
     y = yh + 100 + i*y_added
     
     plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='PiYG', cbar=False, alpha=0.6)
-    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='bwr', cbar=False, alpha=0.6)
+    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='bwr', cbar=False, alpha=0.5)
     plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='Bu10', cbar=False, alpha=0.6)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.7)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.7)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
+    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
     
-    ax.contour(x, y, is_rij, levels=[0.1], colors='green', linewidths=1)
+    ax.contour(x, y, is_rij+is_mv_rij, levels=[0.1], colors='green', linewidths=0.5)
 
 ax.contour(xh1, yh1, wsp1, levels=[25], colors='k', linewidths=[1])
 ax.contour(xh2, yh2, wsp2, levels=[25], colors='k', linewidths=[1])
@@ -497,19 +526,12 @@ ax.contour(xh8, yh8, wsp8, levels=[25], colors='k', linewidths=[1])
 
 
 
-# ax.contour(xh1, yh1, shs1, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh2, yh2, shs2, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh3, yh3, shs3, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh4, yh4, shs4, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - 80-m wind swaths + wind mechanisms (0-8 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - 80-m wind speed + wind mechanisms (0-8 h)", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
@@ -533,7 +555,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
 
 
 
