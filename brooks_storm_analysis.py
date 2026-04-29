@@ -10,10 +10,10 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test7/'
-figstr = 'ERA5-1_test7'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
+figstr = 'ERA5-1_test5'
 
-ds = nc.Dataset(fp+'cm1out_000033.nc')
+ds = nc.Dataset(fp+'cm1out_000037.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
