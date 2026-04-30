@@ -13,7 +13,7 @@ from CM1utils import *
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 figstr = 'ERA5-1_test8'
 
-ds = nc.Dataset(fp+'cm1out_000037.nc')
+ds = nc.Dataset(fp+'cm1out_000049.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -37,7 +37,7 @@ vortmax = np.max(zvort[0:iz,:,:], axis=0)
 # xh = xh + 2*time/1000
 
 
-figsave = True
+figsave = False
 
 
 

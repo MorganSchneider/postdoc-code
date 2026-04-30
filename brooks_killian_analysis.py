@@ -11,7 +11,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 
-ds = nc.Dataset(fp+f"cm1out_000037.nc")
+ds = nc.Dataset(fp+f"cm1out_000049.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -50,11 +50,17 @@ V2km = np.sqrt(u2km**2 + v2km**2)
 w2km = np.mean(ds.variables['winterp'][:].data[0,0:iz2+1,:,:], axis=0)
 
 # MV criteria - Lasher-Trapp et al. 2023
-zvort = np.mean(ds.variables['zvort'][:].data[0,iz80:iz80+2,:,:], axis=0)
+zvort80m = np.mean(ds.variables['zvort'][:].data[0,iz80:iz80+2,:,:], axis=0)
 D1 = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
 D2 = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
-OW80m = zvort**2 - D1**2 - D2**2
-LS80m = zvort**2 / np.maximum(D1**2 + D2**2, 1e-10) # Lisa's nondimensional rotation parameter?
+OW80m = zvort80m**2 - D1**2 - D2**2
+LS80m = zvort80m**2 / np.maximum(D1**2 + D2**2, 1e-10) # Lisa's nondimensional rotation parameter?
+# u1km = ds.variables['uinterp'][:].data[0,:iz1+1,:,:] + ds.variables['umove'][:].data[0]
+# v1km = ds.variables['vinterp'][:].data[0,:iz1+1,:,:] + ds.variables['vmove'][:].data[0]
+# zvort1km = ds.variables['zvort'][:].data[0,iz1+1,:,:]
+# D1 = np.gradient(u1km, xh*1000, axis=2) - np.gradient(v1km, yh*1000, axis=1)
+# D2 = np.gradient(v1km, xh*1000, axis=2) + np.gradient(u1km, yh*1000, axis=1)
+# OW1km = np.min(zvort1km**2-D1**2-D2**2, axis=0)
 
 # DB criteria
 w1km = ds.variables['winterp'][:].data[0,iz1,:,:]
@@ -63,7 +69,7 @@ w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0) # changed
 ds.close()
 
 
-#%
+#%% Set criteria
 
 
 # Conditions from Killian thesis - adapted from Lasher-Trapp et al. 2023
@@ -83,6 +89,7 @@ svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag svr 80-m wind
 sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sig svr 80-m wind
 is_mv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 ow_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+# ow1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 ls_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #Lisa's nondimensional rotation parameter?
 is_db = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 w1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
@@ -102,6 +109,7 @@ w2_flag[(w2km <= w_thres_rij)] = 1
 # MV ID
 ow_flag[(OW80m >= ow_thres_mv)] = 1
 ls_flag[(LS80m >= ls_thres_mv)] = 1
+# ow1_flag[(OW1km > 0)] = 1 #min 0-1 OW greater than 0 - rotation > deformation throughout lowest 1 km
 
 # DB ID
 w1_flag[(w1km <= w_thres_db)] = 1
@@ -127,7 +135,7 @@ for j in range(len(yf)):
         # MV criteria
         if (np.max(svr_flag[idy,idx]) > 0) & (np.max(ow_flag[idy,idx]) > 0):
             is_mv[iyc,ixc] = 1
-        # if (np.max(svr_flag[idy,idx]) > 0) & (np.max(ls_flag[idy,idx]) > 0):
+        # if (np.max(svr_flag[idy,idx]) > 0) & (np.max(ow_flag[idy,idx]) > 0) & (np.max(ow1_flag[idy,idx]) > 0):
         #     is_mv[iyc,ixc] = 1
         
         # DB criteria
@@ -170,7 +178,7 @@ for j in range(len(yf)):
 
 
 
-if True:
+if False:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db}
     pickle.dump(data, dbfile)
@@ -198,39 +206,17 @@ if False:
     plt.show()
     
 #%% Plot wind mechanisms
-    
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
-fn = 33
 
-ds = nc.Dataset(fp+f"cm1out_{fn:06.0f}.nc")
-time = ds.variables['time'][:].data[0]
-xh = ds.variables['xh'][:].data
-yh = ds.variables['yh'][:].data
-zh = ds.variables['zh'][:].data
-iz80 = np.argmin(abs(zh-0.07))
-u80m = np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['umove'][:].data[0], axis=0)
-v80m = np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['vmove'][:].data[0], axis=0)
-V80m = np.sqrt(u80m**2 + v80m**2)
-dbz = ds.variables['dbz'][:].data[0,0,:,:]
-ds.close()
 
-dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'rb')
-data = pickle.load(dbfile)
-is_rij = data['is_rij']
-is_mv = data['is_mv']
-is_db = data['is_db']
-is_mv_rij = data['is_mv_rij']
-is_mv_db = data['is_mv_db']
-dbfile.close()
+# dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'rb')
+# data = pickle.load(dbfile)
+# is_rij = data['is_rij']
+# is_mv = data['is_mv']
+# is_db = data['is_db']
+# is_mv_rij = data['is_mv_rij']
+# is_mv_db = data['is_mv_db']
+# dbfile.close()
 
-# Conditions from Killian thesis - adapted from Lasher-Trapp et al. 2023
-Vsub_thres = 20 # sub svr wind threshold
-V_thres = 25.7 #wind speed threshold
-Vsig_thres = 33.4 # sig svr wind threshold
-w_thres_rij = -2 #RIJ downdraft threshold
-w_thres_db = -5 #DB downdraft threshold -- test other thresholds or different depths
-ow_thres_mv = 1e-4
-ls_thres_mv = 1.5 #Lisa's nondimensional rotation parameter? -- if vorticity magnitude is at least double deformation magnitude? test this threshold
 
 
 
@@ -287,7 +273,7 @@ plt.show()
 
 # fig,ax = plt.subplots(1, 1, figsize=(9,6), subplot_kw=dict(box_aspect=1))
 # plot_contourf(xh, yh, np.ma.masked_array(V2km, dbz<10), 'wspd', ax, levels=np.linspace(0,30,31), datalims=[0,30], cmap='Blues')
-# ax.contour(xh, yh, np.ma.masked_array(V2km, dbz<10), levels=[Vsub_thres], colors='r', linewidths=1, linestyles='-')
+# ax.contour(xh, yh, np.ma.masked_array(V2km, dbz<10), levels=[25], colors='r', linewidths=1, linestyles='-')
 # ax.contour(xh, yh, V80m, levels=[V_thres], colors='k', linewidths=[1.5])
 # ax.set_xlim([-50,50])
 # ax.set_ylim([-50,50])
