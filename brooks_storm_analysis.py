@@ -876,7 +876,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = False
+figsave = True
 
 
 
@@ -916,7 +916,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Updraft helicity swaths (0-8 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Updraft helicity swaths (0-12 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=8)
@@ -982,7 +982,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Accumulated hail swaths (0-8 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Accumulated hail swaths (0-12 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 ax.legend(handles=[l1,l2], labels=['0.1 mm','1 mm'], loc='lower right', fontsize=8)
@@ -1002,6 +1002,7 @@ ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'dbz_hail_swath_ERA5-1_test8.png', dpi=300)
+
 
 
 
@@ -1047,7 +1048,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Surface wind swaths (0-8 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Surface wind swaths (0-12 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 ax.legend(handles=[l1,l2], labels=['20 m/s','26 m/s'], loc='lower right', fontsize=8)
