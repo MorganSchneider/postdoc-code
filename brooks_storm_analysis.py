@@ -37,7 +37,7 @@ vortmax = np.max(zvort[0:iz,:,:], axis=0)
 # xh = xh + 2*time/1000
 
 
-figsave = False
+figsave = True
 
 
 

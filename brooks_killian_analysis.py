@@ -87,6 +87,9 @@ w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # 0.5-2 km or 0-2 km? unc
 sub_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sub svr 80-m wind
 svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag svr 80-m wind
 sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sig svr 80-m wind
+# ******* PROBABLY need to adjust OW threshold to account for higher horizontal resolution :(((( *******
+#***** Killion used 1-km grid and OW >= 0.0001 ---- Lasher-Trapp used 1-km grid and OW >= 0.0001
+# maybe use like 0.005 or 0.001 or something on that order of magnitude 1e-3
 is_mv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 ow_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 # ow1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
