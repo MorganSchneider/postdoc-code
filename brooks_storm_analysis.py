@@ -750,41 +750,41 @@ hail8 = ds.variables['hail2'][:].data[0,:,:]
 dbz8 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000037.nc')
-# sws9 = ds.variables['sws2'][:].data[0,:,:]
-# shs9 = ds.variables['shs2'][:].data[0,:,:]
-# hail9 = ds.variables['hail2'][:].data[0,:,:]
-# dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000037.nc')
+sws9 = ds.variables['sws2'][:].data[0,:,:]
+shs9 = ds.variables['shs2'][:].data[0,:,:]
+hail9 = ds.variables['hail2'][:].data[0,:,:]
+dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000041.nc')
-# sws10 = ds.variables['sws2'][:].data[0,:,:]
-# shs10 = ds.variables['shs2'][:].data[0,:,:]
-# hai10 = ds.variables['hail2'][:].data[0,:,:]
-# dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000041.nc')
+sws10 = ds.variables['sws2'][:].data[0,:,:]
+shs10 = ds.variables['shs2'][:].data[0,:,:]
+hail10 = ds.variables['hail2'][:].data[0,:,:]
+dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000045.nc')
-# sws11 = ds.variables['sws2'][:].data[0,:,:]
-# shs11 = ds.variables['shs2'][:].data[0,:,:]
-# hail11 = ds.variables['hail2'][:].data[0,:,:]
-# dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000045.nc')
+sws11 = ds.variables['sws2'][:].data[0,:,:]
+shs11 = ds.variables['shs2'][:].data[0,:,:]
+hail11 = ds.variables['hail2'][:].data[0,:,:]
+dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000049.nc')
-# sws12 = ds.variables['sws2'][:].data[0,:,:]
-# shs12 = ds.variables['shs2'][:].data[0,:,:]
-# hail12 = ds.variables['hail2'][:].data[0,:,:]
-# dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000049.nc')
+sws12 = ds.variables['sws2'][:].data[0,:,:]
+shs12 = ds.variables['shs2'][:].data[0,:,:]
+hail12 = ds.variables['hail2'][:].data[0,:,:]
+dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+ds.close()
 
 
 x_added = umove*3600/1000
@@ -853,13 +853,17 @@ elif 'era5-1_125m_test7' in fp:
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
 elif 'era5-1_125m_test8' in fp:
-    xt = [78, 120, 160, 202, 250, 295, 335, 380]
-    yt = [67, 72, 75, 78, 78, 78, 79, 79]
+    xt = [78, 120, 160, 202, 
+          245, 290, 335, 375, 
+          420, 460, 510, 565]
+    yt = [67, 72, 75, 78, 
+          78, 79, 79, 80, 
+          80, 81, 82, 83]
     
     
-xl = [50,500]
+# xl = [50,500]
 yl = [50,200]
-
+xl = [50,675]
 
 if 'era5-1' in fp:
     sounding_str = 'ERA5 profile (50.75,-114.0)'
@@ -872,11 +876,12 @@ elif 'hrdps' in fp:
 
 
 
-figsave = True
+figsave = False
 
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+# fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
@@ -886,6 +891,10 @@ ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0
 ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -899,6 +908,10 @@ ax.contour(xh5, yh5, shs5, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh6, yh6, shs6, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh9, yh9, shs9, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh10, yh10, shs10, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh11, yh11, shs11, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh12, yh12, shs12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -906,7 +919,7 @@ ax.set_ylabel('y (km)', fontsize=10)
 ax.set_title(f"{sounding_str} - Updraft helicity swaths (0-8 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
+ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=8)
 
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
@@ -916,6 +929,10 @@ ax.text(xt[4], yt[4], '5 h', fontsize=9, fontweight='bold')
 ax.text(xt[5], yt[5], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'dbz_uh_swath_ERA5-1_test8.png', dpi=300)
@@ -929,7 +946,8 @@ levs = [0.01,0.1]
 cols = ['gray','k']
 lws = [0.75,1]
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+# fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
@@ -939,6 +957,10 @@ ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0
 ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -952,6 +974,10 @@ ax.contour(xh5, yh5, hail5, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh6, yh6, hail6, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh7, yh7, hail7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, hail8, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh9, yh9, hail9, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh10, yh10, hail10, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh11, yh11, hail11, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -959,7 +985,7 @@ ax.set_ylabel('y (km)', fontsize=10)
 ax.set_title(f"{sounding_str} - Accumulated hail swaths (0-8 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l1,l2], labels=['0.1 mm','1 mm'], loc='lower right', fontsize=9)
+ax.legend(handles=[l1,l2], labels=['0.1 mm','1 mm'], loc='lower right', fontsize=8)
 
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
@@ -969,6 +995,10 @@ ax.text(xt[4], yt[4], '5 h', fontsize=9, fontweight='bold')
 ax.text(xt[5], yt[5], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'dbz_hail_swath_ERA5-1_test8.png', dpi=300)
@@ -981,7 +1011,8 @@ levs = [20,26]
 cols = ['gray','k']
 lws = [0.75,1]
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+# fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
@@ -991,6 +1022,10 @@ ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0
 ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -1004,6 +1039,10 @@ ax.contour(xh5, yh5, sws5, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh6, yh6, sws6, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh7, yh7, sws7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, sws8, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh9, yh9, sws9, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh10, yh10, sws10, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh11, yh11, sws11, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh12, yh12, sws12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -1011,7 +1050,7 @@ ax.set_ylabel('y (km)', fontsize=10)
 ax.set_title(f"{sounding_str} - Surface wind swaths (0-8 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l1,l2], labels=['20 m/s (Sub)','26 m/s (Svr)'], loc='lower right', fontsize=9)
+ax.legend(handles=[l1,l2], labels=['20 m/s','26 m/s'], loc='lower right', fontsize=8)
 
 ax.text(xt[0], yt[0], '1 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '2 h', fontsize=9, fontweight='bold')
@@ -1021,6 +1060,10 @@ ax.text(xt[4], yt[4], '5 h', fontsize=9, fontweight='bold')
 ax.text(xt[5], yt[5], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'dbz_wind_swath_ERA5-1_test8.png', dpi=300)
