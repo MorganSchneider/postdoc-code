@@ -10,8 +10,8 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
-figstr = 'ERA5-1_test5'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
+figstr = 'ERA5-1_test8'
 
 ds = nc.Dataset(fp+'cm1out_000037.nc')
 time = ds.variables['time'][:].data[0]
@@ -37,7 +37,7 @@ vortmax = np.max(zvort[0:iz,:,:], axis=0)
 # xh = xh + 2*time/1000
 
 
-figsave = False
+figsave = True
 
 
 
@@ -141,43 +141,6 @@ plt.show()
 
 
 
-#%% Plot hail sizes
-
-
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
-figstr = 'ERA5-1_test5'
-
-ds = nc.Dataset(fp+'cm1out_000033.nc')
-time = ds.variables['time'][:].data[0]
-xh = ds.variables['xh'][:].data
-yh = ds.variables['yh'][:].data
-zh = ds.variables['zh'][:].data
-
-dmi1 = ds.variables['p3_dmi1'][:].data[0,:,:,:]
-dmi2 = ds.variables['p3_dmi2'][:].data[0,:,:,:]
-dmi3 = ds.variables['p3_dmi3'][:].data[0,:,:,:]
-dmi4 = ds.variables['p3_dmi4'][:].data[0,:,:,:]
-dhmax1 = ds.variables['p3_dhmax1'][:].data[0,:,:,:]
-dhmax2 = ds.variables['p3_dhmax2'][:].data[0,:,:,:]
-dhmax3 = ds.variables['p3_dhmax3'][:].data[0,:,:,:]
-dhmax4 = ds.variables['p3_dhmax4'][:].data[0,:,:,:]
-
-# dmi1 = np.max(ds.variables['p3_dmi1'][:].data[0,:,:,:], axis=0)
-# dmi2 = np.max(ds.variables['p3_dmi2'][:].data[0,:,:,:], axis=0)
-# dmi3 = np.max(ds.variables['p3_dmi3'][:].data[0,:,:,:], axis=0)
-# dmi4 = np.max(ds.variables['p3_dmi4'][:].data[0,:,:,:], axis=0)
-# dhmax1 = np.max(ds.variables['p3_dhmax1'][:].data[0,:,:,:], axis=0)
-# dhmax2 = np.max(ds.variables['p3_dhmax2'][:].data[0,:,:,:], axis=0)
-# dhmax3 = np.max(ds.variables['p3_dhmax3'][:].data[0,:,:,:], axis=0)
-# dhmax4 = np.max(ds.variables['p3_dhmax4'][:].data[0,:,:,:], axis=0)
-ds.close()
-
-
-
-# fig,ax = plt.subplots(2, 2, figsize=(12,10), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-
-
-
 
 
 
@@ -185,7 +148,7 @@ ds.close()
 
 #%% Check stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test7/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 
 ds = nc.Dataset(fp+'cm1out_stats.nc')
 time = ds.variables['time'][:].data + 120
@@ -222,7 +185,7 @@ ax.set_title("Domain-maximum \u03B6 -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel("\u03B6 (1/s)", fontsize=12)
 if figsave:
-    plt.savefig(fp+'vortmax_timeseries_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'vortmax_timeseries_ERA5-1_test8.png', dpi=300)
 
 
 fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
@@ -242,7 +205,7 @@ ax.set_title("Domain-maximum w -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel('w (m/s)', fontsize=12)
 if figsave:
-    plt.savefig(fp+'wmax_timeseries_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'wmax_timeseries_ERA5-1_test8.png', dpi=300)
 
 plt.show()
 
@@ -721,7 +684,7 @@ plt.show()
 
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test7/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 
 
 
@@ -787,6 +750,42 @@ hail8 = ds.variables['hail2'][:].data[0,:,:]
 dbz8 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
+# ds = nc.Dataset(fp+'cm1out_000037.nc')
+# sws9 = ds.variables['sws2'][:].data[0,:,:]
+# shs9 = ds.variables['shs2'][:].data[0,:,:]
+# hail9 = ds.variables['hail2'][:].data[0,:,:]
+# dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# ds.close()
+
+# ds = nc.Dataset(fp+'cm1out_000041.nc')
+# sws10 = ds.variables['sws2'][:].data[0,:,:]
+# shs10 = ds.variables['shs2'][:].data[0,:,:]
+# hai10 = ds.variables['hail2'][:].data[0,:,:]
+# dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# ds.close()
+
+# ds = nc.Dataset(fp+'cm1out_000045.nc')
+# sws11 = ds.variables['sws2'][:].data[0,:,:]
+# shs11 = ds.variables['shs2'][:].data[0,:,:]
+# hail11 = ds.variables['hail2'][:].data[0,:,:]
+# dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# ds.close()
+
+# ds = nc.Dataset(fp+'cm1out_000049.nc')
+# sws12 = ds.variables['sws2'][:].data[0,:,:]
+# shs12 = ds.variables['shs2'][:].data[0,:,:]
+# hail12 = ds.variables['hail2'][:].data[0,:,:]
+# dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# ds.close()
+
 
 x_added = umove*3600/1000
 y_added = vmove*3600/1000
@@ -799,6 +798,10 @@ xh5 = xh1 + 4*x_added
 xh6 = xh1 + 5*x_added
 xh7 = xh1 + 6*x_added
 xh8 = xh1 + 7*x_added
+xh9 = xh1 + 8*x_added
+xh10 = xh1 + 9*x_added
+xh11 = xh1 + 10*x_added
+xh12 = xh1 + 11*x_added
 
 yh1 = yh + 100
 yh2 = yh1 + y_added
@@ -808,6 +811,10 @@ yh5 = yh1 + 4*y_added
 yh6 = yh1 + 5*y_added
 yh7 = yh1 + 6*y_added
 yh8 = yh1 + 7*y_added
+yh9 = yh1 + 8*y_added
+yh10 = yh1 + 9*y_added
+yh11 = yh1 + 10*y_added
+yh12 = yh1 + 11*y_added
 
 #%% Plot translated swaths
 
@@ -845,6 +852,9 @@ elif 'era5-1_125m_test6' in fp:
 elif 'era5-1_125m_test7' in fp:
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
+elif 'era5-1_125m_test8' in fp:
+    xt = [78, 120, 160, 202, 250, 295, 335, 380]
+    yt = [67, 72, 75, 78, 78, 78, 79, 79]
     
     
 xl = [50,500]
@@ -908,7 +918,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_uh_swath_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'dbz_uh_swath_ERA5-1_test8.png', dpi=300)
 
 
 
@@ -961,7 +971,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_hail_swath_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'dbz_hail_swath_ERA5-1_test8.png', dpi=300)
 
 
 
@@ -1013,7 +1023,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_wind_swath_ERA5-1_test7.png', dpi=300)
+    plt.savefig(fp+'dbz_wind_swath_ERA5-1_test8.png', dpi=300)
 
 
 

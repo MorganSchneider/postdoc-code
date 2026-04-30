@@ -9,7 +9,7 @@ from CM1utils import *
 
 #%% Load and save data
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 
 ds = nc.Dataset(fp+f"cm1out_000037.nc")
 
@@ -58,7 +58,7 @@ LS80m = zvort**2 / np.maximum(D1**2 + D2**2, 1e-10) # Lisa's nondimensional rota
 
 # DB criteria
 w1km = ds.variables['winterp'][:].data[0,iz1,:,:]
-w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0)
+w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0) # changed this from full column to lowest 5 km
 
 ds.close()
 
@@ -73,7 +73,7 @@ Vsig_thres = 33.4 # sig svr wind threshold
 w_thres_rij = -2 #RIJ downdraft threshold
 w_thres_db = -5 #DB downdraft threshold -- test other thresholds or different depths
 ow_thres_mv = 1e-4
-ls_thres_mv = 2 #Lisa's nondimensional rotation parameter? -- if vorticity magnitude is at least double deformation magnitude? test this threshold
+ls_thres_mv = 1.5 #Lisa's nondimensional rotation parameter? -- if vorticity magnitude is at least double deformation magnitude? test this threshold
 
 is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # Killian thesis - use 2 km wspd for RIJ ID
@@ -194,11 +194,45 @@ if False:
     plot_cfill(xh, yh, np.ma.masked_array(V2_flag, V2_flag<1), 'wspd', ax, datalims=[0,1], cmap='BuOrR14', cbar=False)
     ax.set_xlim([-50,50])
     ax.set_ylim([-50,50])
-    ax.set_title(f"RIJ criteria - w < -2 m/s, V > 25.7 m/s (t = {time/60:.0f} min)", fontsize=12)
+    ax.set_title(f"RIJ criteria - w < {w_thres_rij:.1f} m/s, V > {V_thres:.1f} m/s (t = {time/60:.0f} min)", fontsize=12)
     plt.show()
     
 #%% Plot wind mechanisms
     
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
+fn = 33
+
+ds = nc.Dataset(fp+f"cm1out_{fn:06.0f}.nc")
+time = ds.variables['time'][:].data[0]
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz80 = np.argmin(abs(zh-0.07))
+u80m = np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['umove'][:].data[0], axis=0)
+v80m = np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['vmove'][:].data[0], axis=0)
+V80m = np.sqrt(u80m**2 + v80m**2)
+dbz = ds.variables['dbz'][:].data[0,0,:,:]
+ds.close()
+
+dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'rb')
+data = pickle.load(dbfile)
+is_rij = data['is_rij']
+is_mv = data['is_mv']
+is_db = data['is_db']
+is_mv_rij = data['is_mv_rij']
+is_mv_db = data['is_mv_db']
+dbfile.close()
+
+# Conditions from Killian thesis - adapted from Lasher-Trapp et al. 2023
+Vsub_thres = 20 # sub svr wind threshold
+V_thres = 25.7 #wind speed threshold
+Vsig_thres = 33.4 # sig svr wind threshold
+w_thres_rij = -2 #RIJ downdraft threshold
+w_thres_db = -5 #DB downdraft threshold -- test other thresholds or different depths
+ow_thres_mv = 1e-4
+ls_thres_mv = 1.5 #Lisa's nondimensional rotation parameter? -- if vorticity magnitude is at least double deformation magnitude? test this threshold
+
+
 
 
 rij_mask = (is_rij==0)
@@ -230,6 +264,7 @@ plot_cfill(xh, yh, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], 
 plot_cfill(xh, yh, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False)
 plot_cfill(xh, yh, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False)
 
+# plot_cfill(xh, yh, np.ma.masked_array(V80m, V80m<V_thres), 'wspd', ax, datalims=[0,Vsig_thres], cmap='Greys', cbar=False)
 ax.contour(xh, yh, V80m, levels=[V_thres], colors='k', linewidths=[1.5])
 
 ax.set_xlim([-50,50])
@@ -297,13 +332,18 @@ plt.show()
 
 #%% Load translated swaths and wind mechanisms
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 
 
 
 ds = nc.Dataset(fp+'cm1out_000005.nc')
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz80 = np.argmin(abs(zh-0.07))
+
 umove = ds.variables['umove'][:].data[0]
 vmove = ds.variables['vmove'][:].data[0]
 # sws1 = ds.variables['sws2'][:].data[0,:,:]
@@ -517,6 +557,9 @@ elif 'era5-1_125m_test6' in fp:
 elif 'era5-1_125m_test7' in fp:
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
+elif 'era5-1_125m_test8' in fp:
+    xt = [78, 120, 160, 202, 250, 295, 335, 380]
+    yt = [67, 72, 75, 78, 78, 78, 79, 79]
     
     
 xl = [50,500]
@@ -534,7 +577,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = False
+figsave = True
 
 
 
@@ -647,7 +690,7 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test5.png', dpi=300)
+    plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test8.png', dpi=300)
 
 
 
