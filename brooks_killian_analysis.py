@@ -9,9 +9,9 @@ from CM1utils import *
 
 #%% Load and save data
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
-ds = nc.Dataset(fp+f"cm1out_000049.nc")
+ds = nc.Dataset(fp+f"cm1out_000033.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -87,7 +87,7 @@ w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # 0.5-2 km or 0-2 km? unc
 sub_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sub svr 80-m wind
 svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag svr 80-m wind
 sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sig svr 80-m wind
-# ******* PROBABLY need to adjust OW threshold to account for higher horizontal resolution :(((( *******
+# ******* need to adjust OW threshold to account for higher horizontal resolution :(((( *******
 #***** Killion and Lasher-Trapp used 1-km grid and OW >= 0.0001
 #********* maybe use like 0.005 or 0.001 or 0.003 or something on that order of magnitude 1e-3??? or maybe 0.01 or 0.02 or 0.03? idk figure it out
 is_mv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
@@ -181,7 +181,7 @@ for j in range(len(yf)):
 
 
 
-if False:
+if True:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db}
     pickle.dump(data, dbfile)
