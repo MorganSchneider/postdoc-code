@@ -42,7 +42,7 @@ lont=-113.25     # longitude of sounding #if you do not need this, uncomment the
 #latt=lattstart 
 #lont=lontstart
 
-figurefolder='./figures/'
+figfolder='./figures/'
 data_preslevs=f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
 data_singlevs=f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
@@ -83,13 +83,13 @@ datas.head(5)
 
 #%% Make plots
 
-pngfolder=None
+figfolder=None
 
-PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
+PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,figfolder)
 
-PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
+PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,figfolder)
 
-PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
+PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,figfolder)
 
 data00 = data.sel(valid_time=timt)
 z00=data00['z'].values/9.81
