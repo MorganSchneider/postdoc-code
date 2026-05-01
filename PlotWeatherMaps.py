@@ -83,11 +83,13 @@ datas.head(5)
 
 #%% Make plots
 
-PlotCAPEMap(data,datas,lonW,lonE,latS,latN,case,n)
+pngfolder=None
 
-PlotPressureMaps(data,lonW,lonE,latS,latN,case,n)
+PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
 
-PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,case,n)
+PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
+
+PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder)
 
 data00 = data.sel(valid_time=timt)
 z00=data00['z'].values/9.81

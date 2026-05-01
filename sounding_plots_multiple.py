@@ -90,7 +90,9 @@ for i in range(0,21):
     for j in range(0,21):
         latt=latitude[lati]-2.5+j*0.25
         p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,data,datas)
-        plot_with_hodograph(pngfolder,timt,lont,latt,z,orog,T,Td,p,u,v,u10,v10,leftm,meanm,rightm,lcl_pressure, lcl_temperature,parcel_prof)
+        
+        pngfolder=None
+        plot_with_hodograph(pngfolder,timt,lont,latt,z,orog,T,Td,p,u,v,u10,v10,leftm,meanm,rightm,lcl_pressure, lcl_temperature,parcel_prof,pngfolder)
 
 
 #%% Interpolate and plot
