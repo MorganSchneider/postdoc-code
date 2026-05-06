@@ -11,7 +11,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
-ds = nc.Dataset(fp+f"cm1out_000033.nc")
+ds = nc.Dataset(fp+f"cm1out_000037.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -33,7 +33,7 @@ iz2 = np.argmin(abs(zh-2))
 iz80 = np.argmin(abs(zh-0.07))
 iz05 = np.argmin(abs(zh-0.5))
 iz1 = np.argmin(abs(zh-1))
-iz5 = np.argmin(abs(zh-5))
+iz5 = np.argmin(abs(zh-10))
 
 
 dbz = np.mean(ds.variables['dbz'][:].data[0,iz80:iz80+2,:,:], axis=0)
@@ -47,14 +47,15 @@ V80m = np.sqrt(u80m**2 + v80m**2)
 u2km = ds.variables['uinterp'][:].data[0,iz2,:,:] + ds.variables['umove'][:].data[0]
 v2km = ds.variables['vinterp'][:].data[0,iz2,:,:] + ds.variables['vmove'][:].data[0]
 V2km = np.sqrt(u2km**2 + v2km**2)
-w2km = np.mean(ds.variables['winterp'][:].data[0,0:iz2+1,:,:], axis=0)
+w2km = np.mean(ds.variables['winterp'][:].data[0,iz05:iz2+1,:,:], axis=0)
 
 # MV criteria - Lasher-Trapp et al. 2023
 zvort80m = np.mean(ds.variables['zvort'][:].data[0,iz80:iz80+2,:,:], axis=0)
 D1 = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
 D2 = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
+D3 = np.gradient(u80m, xh*1000, axis=1) + np.gradient(v80m, yh*1000, axis=0)
 OW80m = zvort80m**2 - D1**2 - D2**2
-LS80m = zvort80m**2 / np.maximum(D1**2 + D2**2, 1e-10) # Lisa's nondimensional rotation parameter?
+WK80m = zvort80m / np.sqrt(D1**2 + D2**2 + D3**2) #Kinematic vorticity number - Lisa
 # u1km = ds.variables['uinterp'][:].data[0,:iz1+1,:,:] + ds.variables['umove'][:].data[0]
 # v1km = ds.variables['vinterp'][:].data[0,:iz1+1,:,:] + ds.variables['vmove'][:].data[0]
 # zvort1km = ds.variables['zvort'][:].data[0,iz1+1,:,:]
@@ -73,30 +74,29 @@ ds.close()
 
 
 # Conditions from Killian thesis - adapted from Lasher-Trapp et al. 2023
-Vsub_thres = 20 # sub svr wind threshold
-V_thres = 25.7 #wind speed threshold
-Vsig_thres = 33.4 # sig svr wind threshold
-w_thres_rij = -2 #RIJ downdraft threshold
-w_thres_db = -5 #DB downdraft threshold -- test other thresholds or different depths
-ow_thres_mv = 1e-4
-ls_thres_mv = 1.5 #Lisa's nondimensional rotation parameter? -- if vorticity magnitude is at least double deformation magnitude? test this threshold
-
-is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # Killian thesis - use 2 km wspd for RIJ ID
-w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # 0.5-2 km or 0-2 km? unclear from Killian thesis
-sub_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sub svr 80-m wind
-svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag svr 80-m wind
-sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) # flag sig svr 80-m wind
+Vsub_thres = 20 #sub svr
+V_thres = 25.7 #svr
+Vsig_thres = 33.4 # sig svr
+w_thres_rij = -1 #RIJ downdraft --> Killion uses -2, Garrett Statum uses -1
+w_thres_db = -5 #DB downdraft
 # ******* need to adjust OW threshold to account for higher horizontal resolution :(((( *******
 #***** Killion and Lasher-Trapp used 1-km grid and OW >= 0.0001
-#********* maybe use like 0.005 or 0.001 or 0.003 or something on that order of magnitude 1e-3??? or maybe 0.01 or 0.02 or 0.03? idk figure it out
+ow_thres_mv = 0.002 #MV OW
+wk_thres_mv = 1 #Kinematic vorticity number? -- threshold?
+
+is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #2-km wind speed
+w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #0-2 km mean w
+sub_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #sub svr 80-m wind
+svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #svr 80-m wind
+sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #sig svr 80-m wind
 is_mv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-ow_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+ow_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #80-m OW
 # ow1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-ls_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #Lisa's nondimensional rotation parameter?
+wk_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #Kinematic vorticity number
 is_db = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-w1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-wmax_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+w1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #1-km w
+wmax_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #max 0-5 km w
 is_mv_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 is_mv_db = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 
@@ -111,7 +111,7 @@ w2_flag[(w2km <= w_thres_rij)] = 1
 
 # MV ID
 ow_flag[(OW80m >= ow_thres_mv)] = 1
-ls_flag[(LS80m >= ls_thres_mv)] = 1
+wk_flag[(WK80m > wk_thres_mv)] = 1
 # ow1_flag[(OW1km > 0)] = 1 #min 0-1 OW greater than 0 - rotation > deformation throughout lowest 1 km
 
 # DB ID
@@ -119,7 +119,7 @@ w1_flag[(w1km <= w_thres_db)] = 1
 wmax_flag[(w_dn_max < 0)] = 1
 
 
-# Find criteria in a 5 km x 5 km box around each point in the 125-m subdomain
+# Find criteria in a 5 km x 5 km box around each point in the 125-m subgrid
 for j in range(len(yf)):
     for i in range(len(xf)):
         idx1 = np.argmin(abs(xh-(xf[i]-5)))
@@ -181,7 +181,7 @@ for j in range(len(yf)):
 
 
 
-if True:
+if False:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db}
     pickle.dump(data, dbfile)
@@ -226,7 +226,7 @@ if False:
 
 rij_mask = (is_rij==0)
 mv_mask = (is_mv==0)
-db_mask = (is_db==0)
+db_mask = (is_db==0) | (is_rij>0)
 mv_rij_mask = (is_mv_rij==0)
 mv_db_mask = (is_mv_db==0)
 
@@ -266,6 +266,9 @@ l4 = ax.scatter(150, 150, marker='s', s=20, c='violet')
 l5 = ax.scatter(150, 150, marker='s', s=20, c='gold')
 l6, = ax.plot([149,150], [149,150], 'k', linewidth=1.5)
 ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['RIJ','MV','DB','MV+RIJ','MV+DB','SVR'], loc='lower left', fontsize=10)
+
+ax.text(-48, -20, f"OW > {ow_thres_mv}", fontsize=10)
+
 plt.show()
 
 

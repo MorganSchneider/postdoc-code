@@ -39,8 +39,8 @@ lontstart=-114.198 #Longitude of tornado/beginning of hail swath (from NTP/NHP d
 
 latt=52.25       # latitude of sounding
 lont=-113.25     # longitude of sounding #if you do not need this, uncomment the next two lines
-#latt=lattstart 
-#lont=lontstart
+# latt=lattstart 
+# lont=lontstart
 
 figfolder='./figures/'
 data_preslevs=f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
