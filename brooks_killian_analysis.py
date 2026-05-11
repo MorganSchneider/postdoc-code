@@ -11,7 +11,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
-ds = nc.Dataset(fp+f"cm1out_000041.nc")
+ds = nc.Dataset(fp+f"cm1out_000045.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -67,7 +67,7 @@ WK80m = zvort80m / np.sqrt(D1**2 + D2**2 + D3**2) #Kinematic vorticity number - 
 
 # DB criteria
 w1km = ds.variables['winterp'][:].data[0,iz1,:,:]
-w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0) # changed this from full column to lowest 5 km
+w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0) # changed this from full column to lowest 10 km
 
 ds.close()
 
@@ -183,9 +183,9 @@ for j in range(len(yf)):
 
 
 
-if True:
+if False:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
-    data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db}
+    data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db, 'V80m':V80m}
     pickle.dump(data, dbfile)
     dbfile.close()
 
@@ -226,11 +226,11 @@ if False:
 
 
 
-rij_mask = (is_rij==0)
-mv_mask = (is_mv==0)
-db_mask = (is_db==0) | (is_rij>0)
-mv_rij_mask = (is_mv_rij==0)
-mv_db_mask = (is_mv_db==0)
+rij_mask = (is_rij==0) | (V80m<V_thres)
+mv_mask = (is_mv==0) | (V80m<V_thres)
+db_mask = (is_db==0) | (is_rij>0) | (V80m<V_thres)
+mv_rij_mask = (is_mv_rij==0) | (V80m<V_thres)
+mv_db_mask = (is_mv_db==0) | (V80m<V_thres)
 
 fig,ax = plt.subplots(1, 1, figsize=(9,6), subplot_kw=dict(box_aspect=1))
 
@@ -256,7 +256,7 @@ plot_cfill(xh, yh, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims
 plot_cfill(xh, yh, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False)
 
 # plot_cfill(xh, yh, np.ma.masked_array(V80m, V80m<V_thres), 'wspd', ax, datalims=[0,Vsig_thres], cmap='Greys', cbar=False)
-ax.contour(xh, yh, V80m, levels=[V_thres], colors='k', linewidths=[1.5])
+# ax.contour(xh, yh, V80m, levels=[V_thres], colors='k', linewidths=[1.5])
 
 ax.set_xlim([-50,50])
 ax.set_ylim([-50,50])
@@ -269,7 +269,7 @@ l5 = ax.scatter(150, 150, marker='s', s=20, c='gold')
 l6, = ax.plot([149,150], [149,150], 'k', linewidth=1.5)
 ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['RIJ','MV','DB','MV+RIJ','MV+DB','SVR'], loc='lower left', fontsize=10)
 
-ax.text(-48, -20, f"OW > {ow_thres_mv}", fontsize=10)
+# ax.text(-48, -20, f"OW > {ow_thres_mv}", fontsize=10)
 
 plt.show()
 
@@ -643,7 +643,8 @@ levs = np.linspace(0,35,36)
 cm = 'Blues'
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+# fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(wsp1, dbz1<20), levels=levs, vmin=0, vmax=30, cmap=cm)
 ax.contourf(xh2, yh2, np.ma.masked_array(wsp2, dbz2<20), levels=levs, vmin=0, vmax=30, cmap=cm)
@@ -704,7 +705,7 @@ for i in range(8):
     
     rij_mask = (is_rij==0)
     mv_mask = (is_mv==0)
-    db_mask = (is_db==0)
+    db_mask = (is_db==0) | (is_rij>0)
     mv_rij_mask = (is_mv_rij==0)
     mv_db_mask = (is_mv_db==0)
     
@@ -717,7 +718,7 @@ for i in range(8):
     plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
     plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
     
-    ax.contour(x, y, is_rij+is_mv_rij, levels=[0.1], colors='dimgray', linewidths=0.5)
+    # ax.contour(x, y, is_rij+is_mv_rij, levels=[0.1], colors='dimgray', linewidths=0.5)
 
 ax.contour(xh1, yh1, wsp1, levels=[V_thres], colors='k', linewidths=[1])
 ax.contour(xh2, yh2, wsp2, levels=[V_thres], colors='k', linewidths=[1])
@@ -838,7 +839,8 @@ figsave = False
 
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+# fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70)
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70)
@@ -900,7 +902,7 @@ for i in range(8):
     
     rij_mask = (is_rij==0)
     mv_mask = (is_mv==0)
-    db_mask = (is_db==0)
+    db_mask = (is_db==0) | (is_rij>0)
     mv_rij_mask = (is_mv_rij==0)
     mv_db_mask = (is_mv_db==0)
     
