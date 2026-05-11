@@ -13,7 +13,7 @@ from CM1utils import *
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 figstr = 'ERA5-1_test5_v2'
 
-ds = nc.Dataset(fp+'cm1out_000037.nc')
+ds = nc.Dataset(fp+'cm1out_000041.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -684,7 +684,7 @@ plt.show()
 
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
 
 
@@ -693,8 +693,8 @@ fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
 ds = nc.Dataset(fp+'cm1out_000005.nc')
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
-umove = ds.variables['umove'][:].data[0]
-vmove = ds.variables['vmove'][:].data[0]
+umove1 = ds.variables['umove'][:].data[0]
+vmove1 = ds.variables['vmove'][:].data[0]
 sws1 = ds.variables['sws2'][:].data[0,:,:]
 shs1 = ds.variables['shs2'][:].data[0,:,:]
 hail1 = ds.variables['hail2'][:].data[0,:,:]
@@ -702,6 +702,8 @@ dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000009.nc')
+umove2 = ds.variables['umove'][:].data[0]
+vmove2 = ds.variables['vmove'][:].data[0]
 sws2 = ds.variables['sws2'][:].data[0,:,:]
 shs2 = ds.variables['shs2'][:].data[0,:,:]
 hail2 = ds.variables['hail2'][:].data[0,:,:]
@@ -709,6 +711,8 @@ dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000013.nc')
+umove3 = ds.variables['umove'][:].data[0]
+vmove3 = ds.variables['vmove'][:].data[0]
 sws3 = ds.variables['sws2'][:].data[0,:,:]
 shs3 = ds.variables['shs2'][:].data[0,:,:]
 hail3 = ds.variables['hail2'][:].data[0,:,:]
@@ -716,6 +720,8 @@ dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000017.nc')
+umove4 = ds.variables['umove'][:].data[0]
+vmove4 = ds.variables['vmove'][:].data[0]
 sws4 = ds.variables['sws2'][:].data[0,:,:]
 shs4 = ds.variables['shs2'][:].data[0,:,:]
 hail4 = ds.variables['hail2'][:].data[0,:,:]
@@ -723,6 +729,8 @@ dbz4 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000021.nc')
+umove5 = ds.variables['umove'][:].data[0]
+vmove5 = ds.variables['vmove'][:].data[0]
 sws5 = ds.variables['sws2'][:].data[0,:,:]
 shs5 = ds.variables['shs2'][:].data[0,:,:]
 hail5 = ds.variables['hail2'][:].data[0,:,:]
@@ -730,6 +738,8 @@ dbz5 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000025.nc')
+umove6 = ds.variables['umove'][:].data[0]
+vmove6 = ds.variables['vmove'][:].data[0]
 sws6 = ds.variables['sws2'][:].data[0,:,:]
 shs6 = ds.variables['shs2'][:].data[0,:,:]
 hail6 = ds.variables['hail2'][:].data[0,:,:]
@@ -737,6 +747,8 @@ dbz6 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000029.nc')
+umove7 = ds.variables['umove'][:].data[0]
+vmove7 = ds.variables['vmove'][:].data[0]
 sws7 = ds.variables['sws2'][:].data[0,:,:]
 shs7 = ds.variables['shs2'][:].data[0,:,:]
 hail7 = ds.variables['hail2'][:].data[0,:,:]
@@ -744,6 +756,8 @@ dbz7 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000033.nc')
+umove8 = ds.variables['umove'][:].data[0]
+vmove8 = ds.variables['vmove'][:].data[0]
 sws8 = ds.variables['sws2'][:].data[0,:,:]
 shs8 = ds.variables['shs2'][:].data[0,:,:]
 hail8 = ds.variables['hail2'][:].data[0,:,:]
@@ -751,70 +765,106 @@ dbz8 = ds.variables['dbz'][:].data[0,0,:,:]
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000037.nc')
+umove9 = ds.variables['umove'][:].data[0]
+vmove9 = ds.variables['vmove'][:].data[0]
 sws9 = ds.variables['sws2'][:].data[0,:,:]
 shs9 = ds.variables['shs2'][:].data[0,:,:]
 hail9 = ds.variables['hail2'][:].data[0,:,:]
 dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
-wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove9, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove9, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000041.nc')
+umove10 = ds.variables['umove'][:].data[0]
+vmove10 = ds.variables['vmove'][:].data[0]
 sws10 = ds.variables['sws2'][:].data[0,:,:]
 shs10 = ds.variables['shs2'][:].data[0,:,:]
 hail10 = ds.variables['hail2'][:].data[0,:,:]
 dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
-wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
+# wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove10, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove10, axis=0))**2)
 ds.close()
 
-ds = nc.Dataset(fp+'cm1out_000045.nc')
-sws11 = ds.variables['sws2'][:].data[0,:,:]
-shs11 = ds.variables['shs2'][:].data[0,:,:]
-hail11 = ds.variables['hail2'][:].data[0,:,:]
-dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
-wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-ds.close()
+# ds = nc.Dataset(fp+'cm1out_000045.nc')
+# umove11 = ds.variables['umove'][:].data[0]
+# vmove11 = ds.variables['vmove'][:].data[0]
+# sws11 = ds.variables['sws2'][:].data[0,:,:]
+# shs11 = ds.variables['shs2'][:].data[0,:,:]
+# hail11 = ds.variables['hail2'][:].data[0,:,:]
+# dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
+# # wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove11, axis=0))**2 + 
+# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove11, axis=0))**2)
+# ds.close()
 
-ds = nc.Dataset(fp+'cm1out_000049.nc')
-sws12 = ds.variables['sws2'][:].data[0,:,:]
-shs12 = ds.variables['shs2'][:].data[0,:,:]
-hail12 = ds.variables['hail2'][:].data[0,:,:]
-dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
-wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove, axis=0))**2 + 
-               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove, axis=0))**2)
-ds.close()
+# ds = nc.Dataset(fp+'cm1out_000049.nc')
+# umove12 = ds.variables['umove'][:].data[0]
+# vmove12 = ds.variables['vmove'][:].data[0]
+# sws12 = ds.variables['sws2'][:].data[0,:,:]
+# shs12 = ds.variables['shs2'][:].data[0,:,:]
+# hail12 = ds.variables['hail2'][:].data[0,:,:]
+# dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
+# # wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove12, axis=0))**2 + 
+# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove12, axis=0))**2)
+# ds.close()
 
 
-x_added = umove*3600/1000
-y_added = vmove*3600/1000
+# x_added = umove1*3600/1000
+# y_added = vmove1*3600/1000
+
+# xh1 = xh + 100
+# xh2 = xh1 + x_added
+# xh3 = xh1 + 2*x_added
+# xh4 = xh1 + 3*x_added
+# xh5 = xh1 + 4*x_added
+# xh6 = xh1 + 5*x_added
+# xh7 = xh1 + 6*x_added
+# xh8 = xh1 + 7*x_added
+# xh9 = xh1 + 8*x_added
+# xh10 = xh1 + 9*x_added
+# # xh11 = xh1 + 10*x_added
+# # xh12 = xh1 + 11*x_added
+
+# yh1 = yh + 100
+# yh2 = yh1 + y_added
+# yh3 = yh1 + 2*y_added
+# yh4 = yh1 + 3*y_added
+# yh5 = yh1 + 4*y_added
+# yh6 = yh1 + 5*y_added
+# yh7 = yh1 + 6*y_added
+# yh8 = yh1 + 7*y_added
+# yh9 = yh1 + 8*y_added
+# yh10 = yh1 + 9*y_added
+# # yh11 = yh1 + 10*y_added
+# # yh12 = yh1 + 11*y_added
+
+
 
 xh1 = xh + 100
-xh2 = xh1 + x_added
-xh3 = xh1 + 2*x_added
-xh4 = xh1 + 3*x_added
-xh5 = xh1 + 4*x_added
-xh6 = xh1 + 5*x_added
-xh7 = xh1 + 6*x_added
-xh8 = xh1 + 7*x_added
-xh9 = xh1 + 8*x_added
-xh10 = xh1 + 9*x_added
-xh11 = xh1 + 10*x_added
-xh12 = xh1 + 11*x_added
+xh2 = xh1 + umove2*3600/1000
+xh3 = xh2 + umove3*3600/1000
+xh4 = xh3 + umove4*3600/1000
+xh5 = xh4 + umove5*3600/1000
+xh6 = xh5 + umove6*3600/1000
+xh7 = xh6 + umove7*3600/1000
+xh8 = xh7 + umove8*3600/1000
+xh9 = xh8 + umove9*3600/1000
+xh10 = xh9 + umove10*3600/1000
+# xh11 = xh10 + umove11*3600/1000
+# xh12 = xh11 + umove12*3600/1000
 
 yh1 = yh + 100
-yh2 = yh1 + y_added
-yh3 = yh1 + 2*y_added
-yh4 = yh1 + 3*y_added
-yh5 = yh1 + 4*y_added
-yh6 = yh1 + 5*y_added
-yh7 = yh1 + 6*y_added
-yh8 = yh1 + 7*y_added
-yh9 = yh1 + 8*y_added
-yh10 = yh1 + 9*y_added
-yh11 = yh1 + 10*y_added
-yh12 = yh1 + 11*y_added
+yh2 = yh1 + vmove2*3600/1000
+yh3 = yh2 + vmove3*3600/1000
+yh4 = yh3 + vmove4*3600/1000
+yh5 = yh4 + vmove5*3600/1000
+yh6 = yh5 + vmove6*3600/1000
+yh7 = yh6 + vmove7*3600/1000
+yh8 = yh7 + vmove8*3600/1000
+yh9 = yh8 + vmove9*3600/1000
+yh10 = yh9 + vmove10*3600/1000
+# yh11 = yh10 + vmove11*3600/1000
+# yh12 = yh11 + vmove12*3600/1000
 
 #%% Plot translated swaths
 
@@ -831,34 +881,50 @@ xt = [78, 120, 160, 202, 250, 295, 335, 380]
 yt = [65, 73, 77, 78, 78, 78, 78, 78]
 
 
-if 'era5-1_125m_test1' in fp:
+if fp[42:-1] == 'era5-1_125m_test1':
+    tstr = 'ERA5-1_test1'
     xt = [77, 120, 165, 215, 265, 320, 380, 435]
     yt = [73, 78, 80, 83, 89, 96, 102, 104]
-elif 'era5-1_125m_test2' in fp:
+elif fp[42:-1] == 'era5-1_125m_test2':
+    tstr = 'ERA5-1_test2'
     xt = [77, 120, 165, 215, 265, 325, 378, 425]
     yt = [70, 74, 77, 82, 87, 93, 94, 96]
-elif 'era5-1_125m_test3' in fp:
+elif fp[42:-1] == 'era5-1_125m_test3':
+    tstr = 'ERA5-1_test3'
     xt = [77, 116, 160, 210, 255, 306, 355, 405]
     yt = [71, 75, 79, 79, 80, 81, 82, 86]
-elif 'era5-1_125m_test4' in fp:
+elif fp[42:-1] == 'era5-1_125m_test4':
+    tstr = 'ERA5-1_test4'
     xt = [75, 115, 157, 201, 247, 298, 348, 397]
     yt = [74, 83, 85, 85, 85, 85, 85, 85]
-elif 'era5-1_125m_test5' in fp:
+elif fp[42:-1] == 'era5-1_125m_test5':
+    tstr = 'ERA5-1_test5'
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [65, 73, 73, 75, 75, 78, 79, 79]
-elif 'era5-1_125m_test6' in fp:
+elif fp[42:-1] == 'era5-1_125m_test6':
+    tstr = 'ERA5-1_test6'
     xt = [80, 122, 163, 205, 250, 292, 338, 380]
     yt = [60, 67, 68, 70, 71, 73, 73, 73]
-elif 'era5-1_125m_test7' in fp:
+elif fp[42:-1] == 'era5-1_125m_test7':
+    tstr = 'ERA5-1_test7'
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
-elif 'era5-1_125m_test8' in fp:
+elif fp[42:-1] == 'era5-1_125m_test8':
+    tstr = 'ERA5-1_test8'
     xt = [78, 120, 160, 202, 
           245, 290, 335, 375, 
           420, 460, 510, 565]
     yt = [67, 72, 75, 78, 
           78, 79, 79, 80, 
           80, 81, 82, 83]
+elif fp[42:-1] == 'era5-1_125m_test5_v2':
+    tstr = 'ERA5-1_test5_v2'
+    xt = [78, 120, 160, 202,
+          250, 295, 335, 385,
+          435, 480, 530, 580]
+    yt = [65, 65, 65, 65,
+          65, 65, 65, 65,
+          65, 65, 65, 65]
     
     
 # xl = [50,500]
@@ -876,7 +942,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = True
+figsave = False
 
 
 
@@ -893,8 +959,8 @@ ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -910,8 +976,8 @@ ax.contour(xh7, yh7, shs7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, shs8, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh9, yh9, shs9, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh10, yh10, shs10, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh11, yh11, shs11, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh12, yh12, shs12, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh11, yh11, shs11, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh12, yh12, shs12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -931,11 +997,11 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
 ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
-ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
-ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
+# ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+# ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_uh_swath_ERA5-1_test8.png', dpi=300)
+    plt.savefig(fp+f"dbz_uh_swath_{tstr}.png", dpi=300)
 
 
 
@@ -959,8 +1025,8 @@ ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -976,8 +1042,8 @@ ax.contour(xh7, yh7, hail7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, hail8, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh9, yh9, hail9, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh10, yh10, hail10, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh11, yh11, hail11, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh11, yh11, hail11, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -997,11 +1063,11 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
 ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
-ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
-ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
+# ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+# ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_hail_swath_ERA5-1_test8.png', dpi=300)
+    plt.savefig(fp+f"dbz_hail_swath_{tstr}.png", dpi=300)
 
 
 
@@ -1025,8 +1091,8 @@ ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
-ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
+# ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap='HomeyerRainbow')
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -1042,8 +1108,8 @@ ax.contour(xh7, yh7, sws7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, sws8, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh9, yh9, sws9, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh10, yh10, sws10, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh11, yh11, sws11, levels=levs, colors=cols, linewidths=lws)
-ax.contour(xh12, yh12, sws12, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh11, yh11, sws11, levels=levs, colors=cols, linewidths=lws)
+# ax.contour(xh12, yh12, sws12, levels=levs, colors=cols, linewidths=lws)
 ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
@@ -1063,11 +1129,11 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
 ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
-ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
-ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
+# ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+# ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'dbz_wind_swath_ERA5-1_test8.png', dpi=300)
+    plt.savefig(fp+f"dbz_wind_swath_{tstr}.png", dpi=300)
 
 
 
