@@ -17,34 +17,36 @@ from era5utils import *
 #Coordinates: (51.6107,-114.198)
 #Time (UTC): 17:45
 
+fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
+
 case='tornado'
 #case='hail'
 
-region='Alberta'
+# region='Alberta'
 #region='SasMan'
-#region='GreatLakes'
-#region='Canada'
+# region='GreatLakes'
+region='Canada'
 
-yyyyt = 2023
-mmt   = 7
-ddt   = 1
+yyyyt = 2021
+mmt   = 8
+ddt   = 11
 hht   = 20
-lattstart=51.6107  # from NTP/NHP website
-lontstart=-114.198 # from NTP/NHP website
 
 timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
 
-lattstart=51.6107  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
-lontstart=-114.198 #Longitude of tornado/beginning of hail swath (from NTP/NHP database)
 
-latt=52.25       # latitude of sounding
-lont=-113.25     # longitude of sounding #if you do not need this, uncomment the next two lines
+lattstart = 46.4797  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
+lontstart = -83.6403 #Longitude of tornado/beginning of hail swath (from NTP/NHP database)
+
+
+latt = 46.50       # latitude of sounding
+lont = -83.75     # longitude of sounding #if you do not need this, uncomment the next two lines
 # latt=lattstart 
 # lont=lontstart
 
-figfolder='./figures/'
-data_preslevs=f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
-data_singlevs=f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
+figfolder=fp+'figs/'
+data_preslevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
+data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 
 #%% Define plot domain - can add other regions here
@@ -98,8 +100,8 @@ v00=data00['v'].values
 lat=data00['latitude'].values
 lon=data00['longitude'].values
 
-latt=51.5  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
-lont=-114.0
+# latt=51.5  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
+# lont=-114.0
 
 lati=np.where(lat==latt)
 loni=np.where(lon==lont)
