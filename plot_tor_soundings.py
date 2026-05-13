@@ -194,17 +194,45 @@ fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
 
 fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
 
-yyyy = 2021
-mm = 8
-dd = 11
+yyyy = 2026
+mm = 4
+dd = 15
 
-ntors = 6
+ntors = 4
 
 
 dbfile = open(fp+"tornado_locs.pkl", 'rb')
 locs_all = pickle.load(dbfile)
 locs = locs_all[f"{yyyy}{mm:02.0f}{dd:02.0f}"]
 dbfile.close()
+
+z = np.zeros((37,ntors))
+orog = np.zeros((ntors,))
+T = np.zeros((37,ntors))
+Td = np.zeros((37,ntors))
+u = np.zeros((37,ntors))
+v = np.zeros((37,ntors))
+u10 = np.zeros((ntors,))
+v10 = np.zeros((ntors,))
+leftmover = np.zeros((2,ntors))
+meanwind = np.zeros((2,ntors))
+rightmover = np.zeros((2,ntors))
+cape = np.zeros((ntors,))
+cin = np.zeros((ntors,))
+lcl_pressure = np.zeros((ntors,))
+lcl_temperature = np.zeros((ntors,))
+parcel_prof = np.zeros((37,ntors))
+
+q = np.zeros((37,ntors))
+theta = np.zeros((37,ntors))
+speed = np.zeros((37,ntors))
+direc = np.zeros((37,ntors))
+sfcp = np.zeros((ntors,))
+q2m = np.zeros((ntors,))
+t2m = np.zeros((ntors,))
+td2m = np.zeros((ntors,))
+theta2m = np.zeros((ntors,))
+
 
 for i in range(ntors):
     tloc = locs[f"loc{i+1}"]
@@ -244,21 +272,33 @@ for i in range(ntors):
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
 
     data = extract_data(latt, lont, timt, dsp, dss)
-    # z = data['z']
-    # orog = data['orog']
-    # T = data['T']
-    # Td = data['Td']
+    # z[:,i] = data['z']
+    # orog[i] = data['orog']
+    # T[:,i] = data['T']
+    # Td[:,i] = data['Td']
     # p = data['p']
-    # u = data['u']
-    # v = data['v']
-    # u10 = data['u10']
-    # v10 = data['v10']
-    # leftmover = data['leftm']
-    # meanwind = data['meanm']
-    # rightmover = data['rightm']
-    # lcl_pressure = data['lcl_pressure']
-    # lcl_temperature = data['lcl_temperature']
-    # parcel_prof = data['parcel_prof']
+    # u[:,i] = data['u']
+    # v[:,i] = data['v']
+    # u10[i] = data['u10'].magnitude
+    # v10[i] = data['v10'].magnitude
+    # leftmover[:,i] = data['leftm']
+    # meanwind[:,i] = data['meanm']
+    # rightmover[:,i] = data['rightm']
+    # cape[i] = data['cape']
+    # cin[i] = data['cin']
+    # lcl_pressure[i] = data['lcl_pressure'].magnitude
+    # lcl_temperature[i] = data['lcl_temperature'].magnitude
+    # parcel_prof[:,i] = data['parcel_prof']
+    # q[:,i] = data['q']
+    # theta[:,i] = data['theta']
+    # speed[:,i] = data['speed']
+    # direc[:,i] = data['direc']
+    # sfcp[i] = data['sfcp']
+    # q2m[i] = data['q2m'].magnitude
+    # t2m[i] = data['t2m'].magnitude
+    # td2m[i] = data['td2m'].magnitude
+    # theta2m[i] = data['theta2m'].magnitude
+    
     figfolder = None
 
     dsp.close()
@@ -268,9 +308,22 @@ for i in range(ntors):
     
     
     fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
-    
-    
-    
+
+
+# meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
+#             'u':np.mean(u,axis=1)*units("m/s"), 'v':np.mean(v,axis=1)*units("m/s"), 'u10':np.mean(u10)*units("m/s"), 'v10':np.mean(v10)*units("m/s"),
+#             'speed':np.mean(speed,axis=1)*units("m/s"), 'direc':np.mean(direc,axis=1)*units.degree,
+#             'cape':np.mean(cape), 'cin':np.mean(cin), 'sfcp':np.mean(sfcp), 'orog':np.mean(orog),
+#             'q2m':np.mean(q2m), 'theta2m':np.mean(theta2m)*units.K, 'td2m':np.mean(td2m)*units.K, 't2m':np.mean(t2m)*units.K,
+#             'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
+#             'parcel_prof':np.mean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K}
+
+
+# fig = plot_skewT(timt, latt, lont, meandata, tloc, figfolder=None, figsave=False)
+
+
+
+
     
 
 
