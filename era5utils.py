@@ -143,7 +143,7 @@ def plot_skewT(timt,latt,lont,data,tloc,figfolder=None,figsave=False):
     skew.ax.set_xlabel("Temperature (C)", fontsize=12)
     skew.ax.set_ylabel("Pressure (hPa)", fontsize=12)
     # skew.ax.set_title(f"{name} , {timt[:13]} UTC \n lat,lon = {latt:.2f}, {lont:.2f} ", fontsize=12)
-    skew.ax.set_title(f"{name} , {yyyyt}-{mmt:02.0f}-{ddt:02.0f} T{timestr[:2]}:{timestr[2:]} UTC ({lattstart:.2f}, {lontstart:.2f}) \n ERA5 sounding: {timt[:13]} UTC ({latt:.2f}, {lont:.2f})", fontsize=12)
+    skew.ax.set_title(f"{name} , {yyyyt}-{mmt:02.0f}-{ddt:02.0f} T{timestr[:2]}:{timestr[2:]} UTC ({lattstart:.2f}, {lontstart:.2f}) \n ERA5 sounding: {timt[:16]} UTC ({latt:.2f}, {lont:.2f})", fontsize=12)
 
     # Create a hodograph
     ax_hod = inset_axes(skew.ax, '40%', '40%', loc=1)

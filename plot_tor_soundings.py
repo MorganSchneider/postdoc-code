@@ -194,11 +194,11 @@ fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
 
 fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
 
-yyyy = 2026
-mm = 4
-dd = 15
+yyyy = 2021
+mm = 8
+dd = 11
 
-ntors = 4
+ntors = 6
 
 
 dbfile = open(fp+"tornado_locs.pkl", 'rb')
