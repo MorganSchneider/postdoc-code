@@ -193,12 +193,20 @@ fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
 #%% Load data and plot all soundings per event
 
 fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
+figfolder = fp+"figs/"
 
-yyyy = 2021
-mm = 8
-dd = 11
+yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
+# yyyy = 2025; mm = 6; dd = 23; ntors = 6; casetype = "Tornado outbreak"
+# yyyy = 2022; mm = 5; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
+# yyyy = 2022; mm = 5; dd = 21; ntors = 4; casetype = "Tornado sub-outbreak"
+# yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
+# yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
 
-ntors = 6
+leadtime = 0 #hours before hit
+
+
+figsave = False
+
 
 
 dbfile = open(fp+"tornado_locs.pkl", 'rb')
@@ -234,8 +242,11 @@ td2m = np.zeros((ntors,))
 theta2m = np.zeros((ntors,))
 
 
+
 for i in range(ntors):
     tloc = locs[f"loc{i+1}"]
+    if yyyy == 2026:
+        tloc = locs[f"loc{i+3}"]
     
     name = tloc["name"]
     yyyyt = tloc["date_ymd"][0]
@@ -245,7 +256,7 @@ for i in range(ntors):
     lattstart = tloc["lat"]
     lontstart = tloc["lon"]
     
-    hht = float(timestr) // 100
+    hht = float(timestr) // 100 - leadtime
     # latt = np.round(lattstart/0.25) * 0.25
     # lont = np.round(lontstart/0.25) * 0.25
 
@@ -260,71 +271,73 @@ for i in range(ntors):
     dsp = xr.open_dataset(fp+fn_preslev)
     dss = xr.open_dataset(fp+fn_singlev)
 
-    lats = dsp['latitude'][:].values
-    lons = dsp['longitude'][:].values
+    latitude = dsp['latitude'][:].values
+    longitude = dsp['longitude'][:].values
 
-    lati = np.argmin(np.abs(lats-lattstart))
-    loni = np.argmin(np.abs(lons-lontstart))
+    lati = np.argmin(np.abs(latitude-lattstart))
+    loni = np.argmin(np.abs(longitude-lontstart))
 
-    latt = lats[lati]
-    lont = lons[loni]
-
+    latt = latitude[lati]
+    lont = longitude[loni]
+    
+    
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
 
     data = extract_data(latt, lont, timt, dsp, dss)
-    # z[:,i] = data['z']
-    # orog[i] = data['orog']
-    # T[:,i] = data['T']
-    # Td[:,i] = data['Td']
-    # p = data['p']
-    # u[:,i] = data['u']
-    # v[:,i] = data['v']
-    # u10[i] = data['u10'].magnitude
-    # v10[i] = data['v10'].magnitude
-    # leftmover[:,i] = data['leftm']
-    # meanwind[:,i] = data['meanm']
-    # rightmover[:,i] = data['rightm']
-    # cape[i] = data['cape']
-    # cin[i] = data['cin']
-    # lcl_pressure[i] = data['lcl_pressure'].magnitude
-    # lcl_temperature[i] = data['lcl_temperature'].magnitude
-    # parcel_prof[:,i] = data['parcel_prof']
-    # q[:,i] = data['q']
-    # theta[:,i] = data['theta']
-    # speed[:,i] = data['speed']
-    # direc[:,i] = data['direc']
-    # sfcp[i] = data['sfcp']
-    # q2m[i] = data['q2m'].magnitude
-    # t2m[i] = data['t2m'].magnitude
-    # td2m[i] = data['td2m'].magnitude
-    # theta2m[i] = data['theta2m'].magnitude
     
-    figfolder = None
+    z[:,i] = data['z']
+    orog[i] = data['orog']
+    T[:,i] = data['T']
+    Td[:,i] = data['Td']
+    p = data['p']
+    u[:,i] = data['u']
+    v[:,i] = data['v']
+    u10[i] = data['u10'].magnitude
+    v10[i] = data['v10'].magnitude
+    leftmover[:,i] = data['leftm']
+    meanwind[:,i] = data['meanm']
+    rightmover[:,i] = data['rightm']
+    cape[i] = data['cape']
+    cin[i] = data['cin']
+    lcl_pressure[i] = data['lcl_pressure'].magnitude
+    lcl_temperature[i] = data['lcl_temperature'].magnitude
+    parcel_prof[:,i] = data['parcel_prof'].magnitude
+    q[:,i] = data['q']
+    theta[:,i] = data['theta']
+    speed[:,i] = data['speed']
+    direc[:,i] = data['direc']
+    sfcp[i] = data['sfcp']
+    q2m[i] = data['q2m'].magnitude
+    t2m[i] = data['t2m'].magnitude
+    td2m[i] = data['td2m'].magnitude
+    theta2m[i] = data['theta2m'].magnitude
 
     dsp.close()
     dss.close()
     
-    figsave = False
     
     
-    fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
+    fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=figfolder, figsave=figsave)
 
 
-# meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
-#             'u':np.mean(u,axis=1)*units("m/s"), 'v':np.mean(v,axis=1)*units("m/s"), 'u10':np.mean(u10)*units("m/s"), 'v10':np.mean(v10)*units("m/s"),
-#             'speed':np.mean(speed,axis=1)*units("m/s"), 'direc':np.mean(direc,axis=1)*units.degree,
-#             'cape':np.mean(cape), 'cin':np.mean(cin), 'sfcp':np.mean(sfcp), 'orog':np.mean(orog),
-#             'q2m':np.mean(q2m), 'theta2m':np.mean(theta2m)*units.K, 'td2m':np.mean(td2m)*units.K, 't2m':np.mean(t2m)*units.K,
-#             'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
-#             'parcel_prof':np.mean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K}
+meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
+            'u':np.mean(u,axis=1)*units("m/s"), 'v':np.mean(v,axis=1)*units("m/s"), 'u10':np.mean(u10)*units("m/s"), 'v10':np.mean(v10)*units("m/s"),
+            'speed':np.mean(speed,axis=1)*units("m/s"), 'direc':np.mean(direc,axis=1)*units.degree,
+            'cape':np.mean(cape), 'cin':np.mean(cin), 'sfcp':np.mean(sfcp), 'orog':np.mean(orog),
+            'q2m':np.mean(q2m), 'theta2m':np.mean(theta2m)*units.K, 'td2m':np.mean(td2m)*units.K, 't2m':np.mean(t2m)*units.K,
+            'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
+            'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K}
+
+# figsave = False
+
+titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding: T-{leadtime}H"
+figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
+fig = plot_skewT(timt, latt, lont, meandata, tloc, titlestr=titlestr, figname=figname, figfolder=figfolder, figsave=figsave)
 
 
-# fig = plot_skewT(timt, latt, lont, meandata, tloc, figfolder=None, figsave=False)
 
 
 
-
-    
 
 
 

@@ -69,28 +69,32 @@ def extract_data(latt,lont,timt,data,datas):
     [rightm,leftm,meanm] = mc.bunkers_storm_motion(p[z>orog], u[z>orog], v[z>orog], z[z>orog]*units.m)
     
     # Calculate the LCL
-    lcl_pressure,lcl_temperature = mc.lcl(p[0], T[0], Td[0])
+    lcl_pressure,lcl_temperature = mc.lcl(p[z>orog][0], T[z>orog][0], Td[z>orog][0])
     
     # Calculate the parcel profile.
-    calclow = 0
-    for i in range(0,len(p)):
-        if calclow == 0:
-            if z[i] > orog:
-                parcel_prof = mc.parcel_profile(p[i:], T[i], Td[i]).to('degC')
-                #parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
-                calclow = 1
-                parcelstart = i
+    # calclow = 0
+    # for i in range(0,len(p)):
+    #     if calclow == 0:
+    #         if z[i] > orog:
+    #             parcel_prof = mc.parcel_profile(p[i:], T[i], Td[i]).to('degC')
+    #             #parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
+    #             calclow = 1
+    #             parcelstart = i
+    parcel_prof = np.zeros((len(p),))
+    parcel_prof[z>orog] = mc.parcel_profile(p[z>orog], T[z>orog][0], Td[z>orog][0]).to('degC')
+    parcel_prof[z<=orog] = np.nan
+    # parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
     
     data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
                 'cape':cape, 'cin':cin, 'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m,
-                'leftm':leftm, 'meanm':meanm, 'rightm':rightm, 'parcel_prof':parcel_prof, 'lcl_pressure':lcl_pressure, 'lcl_temperature':lcl_temperature}
+                'leftm':leftm, 'meanm':meanm, 'rightm':rightm, 'parcel_prof':parcel_prof*units.degC, 'lcl_pressure':lcl_pressure, 'lcl_temperature':lcl_temperature}
     return data_out
     # return p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature
 
 
 
 # Plot skew-T with hodograph -- Mine
-def plot_skewT(timt,latt,lont,data,tloc,figfolder=None,figsave=False):
+def plot_skewT(timt,latt,lont,data,tloc,titlestr=None,figname=None,figfolder=None,figsave=False):
     z = data['z']
     orog = data['orog']
     T = data['T']
@@ -134,16 +138,25 @@ def plot_skewT(timt,latt,lont,data,tloc,figfolder=None,figsave=False):
     # log scaling in Y, as dictated by the typical meteorological plot
     skew.plot(p[z>orog], T[z>orog], 'r', linewidth=2)
     skew.plot(p[z>orog], Td[z>orog], 'g', linewidth=2)
-    skew.plot(p[z>orog], parcel_prof, 'k', linewidth=2) # Plot the parcel profile as a black line
-    skew.shade_cin(p[z>orog], T[z>orog], parcel_prof, Td[z>orog]) # Shade areas of CAPE and CIN
-    skew.shade_cape(p[z>orog], T[z>orog], parcel_prof)
+    skew.plot(p[z>orog], parcel_prof[z>orog], 'k', linewidth=2) # Plot the parcel profile as a black line
+    skew.shade_cin(p[z>orog], T[z>orog], parcel_prof[z>orog], Td[z>orog]) # Shade areas of CAPE and CIN
+    skew.shade_cape(p[z>orog], T[z>orog], parcel_prof[z>orog])
     skew.plot_barbs(p[z>orog], u[z>orog], v[z>orog], xloc=1.1, plot_units=units('kts'))
-
-
+    # skew.plot(p, T, 'r', linewidth=2)
+    # skew.plot(p, Td, 'g', linewidth=2)
+    # skew.plot(p, parcel_prof, 'k', linewidth=2) # Plot the parcel profile as a black line
+    # skew.shade_cin(p, T, parcel_prof, Td) # Shade areas of CAPE and CIN
+    # skew.shade_cape(p, T, parcel_prof)
+    # skew.plot_barbs(p, u, v, xloc=1.1, plot_units=units('kts'))
+    
+    
     skew.ax.set_xlabel("Temperature (C)", fontsize=12)
     skew.ax.set_ylabel("Pressure (hPa)", fontsize=12)
     # skew.ax.set_title(f"{name} , {timt[:13]} UTC \n lat,lon = {latt:.2f}, {lont:.2f} ", fontsize=12)
-    skew.ax.set_title(f"{name} , {yyyyt}-{mmt:02.0f}-{ddt:02.0f} T{timestr[:2]}:{timestr[2:]} UTC ({lattstart:.2f}, {lontstart:.2f}) \n ERA5 sounding: {timt[:16]} UTC ({latt:.2f}, {lont:.2f})", fontsize=12)
+    if titlestr is not None:
+        skew.ax.set_title(titlestr, fontsize=12)
+    else:
+        skew.ax.set_title(f"{name} , {yyyyt}-{mmt:02.0f}-{ddt:02.0f} T{timestr[:2]}:{timestr[2:]} UTC ({lattstart:.2f}, {lontstart:.2f}) \n ERA5 sounding: {timt[:16]} UTC ({latt:.2f}, {lont:.2f})", fontsize=12)
 
     # Create a hodograph
     ax_hod = inset_axes(skew.ax, '40%', '40%', loc=1)
@@ -155,20 +168,32 @@ def plot_skewT(timt,latt,lont,data,tloc,figfolder=None,figsave=False):
     my_cmap = ListedColormap(colors, name="my_cmap")
     my_cmap_r = my_cmap.reversed()
 
-    unew = np.zeros((len(u[z>orog])+1))
-    vnew = np.zeros((len(v[z>orog])+1))
-    znew = np.zeros((len(z[z>orog])+1))
+    # unew = np.zeros((len(u[z>orog])+1))
+    # vnew = np.zeros((len(v[z>orog])+1))
+    # znew = np.zeros((len(z[z>orog])+1))
+    # for k in range(0,len(unew)):
+    #     if k == 0:
+    #         unew[k] = u10.magnitude
+    #         vnew[k] = v10.magnitude
+    #         znew[k] = 10
+    #     else:
+    #         unew[k] = u[z>orog][k-1].magnitude
+    #         vnew[k] = v[z>orog][k-1].magnitude
+    #         znew[k] = z[z>orog][k-1] - orog
+    unew = np.zeros((len(u)+1))
+    vnew = np.zeros((len(v)+1))
+    znew = np.zeros((len(z)+1))
     for k in range(0,len(unew)):
         if k == 0:
             unew[k] = u10.magnitude
             vnew[k] = v10.magnitude
             znew[k] = 10
         else:
-            unew[k] = u[z>orog][k-1].magnitude
-            vnew[k] = v[z>orog][k-1].magnitude
-            znew[k] = z[z>orog][k-1] - orog
+            unew[k] = u[k-1].magnitude
+            vnew[k] = v[k-1].magnitude
+            znew[k] = z[k-1] - orog
 
-    hplot = h.plot_colormapped(unew*units("m/s"), vnew*units("m/s"), znew/1000, intervals=[0,1,3,5,7.5,10,12.5], colors=colors)
+    hplot = h.plot_colormapped(unew[znew>orog]*units("m/s"), vnew[znew>orog]*units("m/s"), znew[znew>orog]/1000, intervals=[0,1,3,5,7.5,10,12.5], colors=colors)
 
     cax = ax_hod.inset_axes([0.06, 0.1, 0.88, 0.04])    
     fig.colorbar(hplot, cax=cax, orientation='horizontal',ticks=[0,1,3,5,7.5,10,12.5])
@@ -187,8 +212,11 @@ def plot_skewT(timt,latt,lont,data,tloc,figfolder=None,figsave=False):
     ax_hod.yaxis.set_major_locator(MultipleLocator(20))
     ax_hod.yaxis.set_minor_locator(MultipleLocator(10))
 
-    if figsave and figfolder is not None:
-        plt.savefig(figfolder+f"input_sounding_{timt[:13]}_{latt:.2f}_{lont:.2f}.png", facecolor='white', transparent=False)
+    if figsave is not None:
+        if figname is not None:
+            plt.savefig(figfolder+figname+'.png', facecolor='white', transparent=False, dpi=300)
+        else:
+            plt.savefig(figfolder+f"input_sounding_{timt[:13]}_{latt:.2f}_{lont:.2f}.png", facecolor='white', transparent=False, dpi=300)
         # plt.close()
     
     plt.show()
