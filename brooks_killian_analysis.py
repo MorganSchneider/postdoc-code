@@ -11,7 +11,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
-ds = nc.Dataset(fp+f"cm1out_000041.nc")
+ds = nc.Dataset(fp+f"cm1out_000048.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -222,13 +222,14 @@ if False:
 # is_db = data['is_db']
 # is_mv_rij = data['is_mv_rij']
 # is_mv_db = data['is_mv_db']
+# V80m = data['V80m']
 # dbfile.close()
 
 
 
 rij_mask = (is_rij==0)
 mv_mask = (is_mv==0)
-db_mask = (is_db==0) | (is_rij>0)
+db_mask = (is_db==0) #| (is_rij>0)
 mv_rij_mask = (is_mv_rij==0)
 mv_db_mask = (is_mv_db==0)
 

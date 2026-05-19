@@ -142,12 +142,6 @@ def plot_skewT(timt,latt,lont,data,tloc,titlestr=None,figname=None,figfolder=Non
     skew.shade_cin(p[z>orog], T[z>orog], parcel_prof[z>orog], Td[z>orog]) # Shade areas of CAPE and CIN
     skew.shade_cape(p[z>orog], T[z>orog], parcel_prof[z>orog])
     skew.plot_barbs(p[z>orog], u[z>orog], v[z>orog], xloc=1.1, plot_units=units('kts'))
-    # skew.plot(p, T, 'r', linewidth=2)
-    # skew.plot(p, Td, 'g', linewidth=2)
-    # skew.plot(p, parcel_prof, 'k', linewidth=2) # Plot the parcel profile as a black line
-    # skew.shade_cin(p, T, parcel_prof, Td) # Shade areas of CAPE and CIN
-    # skew.shade_cape(p, T, parcel_prof)
-    # skew.plot_barbs(p, u, v, xloc=1.1, plot_units=units('kts'))
     
     
     skew.ax.set_xlabel("Temperature (C)", fontsize=12)
@@ -167,19 +161,7 @@ def plot_skewT(timt,latt,lont,data,tloc,titlestr=None,figname=None,figfolder=Non
     colors = [cmap(i) for i in range(7)] # Extract the first 7 colors from it
     my_cmap = ListedColormap(colors, name="my_cmap")
     my_cmap_r = my_cmap.reversed()
-
-    # unew = np.zeros((len(u[z>orog])+1))
-    # vnew = np.zeros((len(v[z>orog])+1))
-    # znew = np.zeros((len(z[z>orog])+1))
-    # for k in range(0,len(unew)):
-    #     if k == 0:
-    #         unew[k] = u10.magnitude
-    #         vnew[k] = v10.magnitude
-    #         znew[k] = 10
-    #     else:
-    #         unew[k] = u[z>orog][k-1].magnitude
-    #         vnew[k] = v[z>orog][k-1].magnitude
-    #         znew[k] = z[z>orog][k-1] - orog
+    
     unew = np.zeros((len(u)+1))
     vnew = np.zeros((len(v)+1))
     znew = np.zeros((len(z)+1))
@@ -558,7 +540,7 @@ def PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
     
     plt.title('10m-3km wind difference (barbs, knots), 500 hPa Geopotential (gpdm, black contours),\n\
-               CAPE (shaded), specific humidity 500m AGL (g/kg, cyan contours)\n\%sUTC' %(timt[:13]), fontsize = 20)
+               CAPE (shaded), specific humidity 500m AGL (g/kg, cyan contours)\n %sUTC' %(timt[:13]), fontsize = 20)
     if case == 'tornado':
         ax.scatter(lontstart, lattstart, s=150, marker="v", edgecolors='k', color='yellow')
         ax.scatter(lont, latt, s=150, marker="v", edgecolors='k', color='green', alpha=0.5)
@@ -576,16 +558,15 @@ def PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
 
 
 def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=None):
-#n
     for presl in [850,700,500,300]:
         data01 = data.sel(pressure_level=presl, valid_time=timt)
 
-        t = data01["t"]-273.15
-        z = data01["z"]/9.81
+        t = data01["t"].values-273.15
+        z = data01["z"].values/9.81
         uu = data01["u"]*1.94384449 #in knots
         vv = data01["v"]*1.94384449 #in knots
-        lon = data01["longitude"]
-        lat = data01["latitude"]
+        lon = data01["longitude"].values
+        lat = data01["latitude"].values
         X,Y = np.meshgrid(lon,lat)
 
         fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
@@ -603,8 +584,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 800; xmax_z = 1800; xint_z = 25     # z interval
+            ax850 = ax
         
-        if (presl == 700):
+        elif (presl == 700):
             color_vals = [-50,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,\
                           4,6,8,10,12,14,16,18,20,22,30]
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
@@ -613,8 +595,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 2400; xmax_z = 4000; xint_z = 50    # z interval
+            ax700 = ax
 
-        if (presl == 500):
+        elif (presl == 500):
             color_vals = [-60,-56,-54,-52,-48,-46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,\
                           -20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,10]
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
@@ -623,8 +606,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 4800; xmax_z = 6500; xint_z = 50    # z interval
+            ax500 = ax
         
-        if (presl == 300):
+        elif (presl == 300):
             color_vals = [-90,-82,-80,-78,-76,-74,-72,-70,-68,-66,-64,-62,-60,-58,-56,-54,-52,-48,\
                           -46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-10]
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
@@ -633,6 +617,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 8000; xmax_z = 10000; xint_z = 100# z interval
+            ax300 = ax
 
         vmin = np.min(np.min(color_vals))#levels)#-20#np.min(t)
         vmax = np.max(np.max(color_vals)) #-5#np.max(t)
@@ -674,11 +659,17 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             ax.scatter(lontstart, lattstart, s=150, marker="^", edgecolors='k', color='cyan')
             ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
         
+        # for i in range(len(lat)):
+        #     ix = np.argmin(abs(z[i,:] - np.min(z[i,:])))
+        #     lon_trough = lon[ix]
+        #     lat_trough = lat[i]
+        #     ax.scatter(lon_trough, lat_trough, s=300, marker='.', color='k')
+        
         if pngfolder is not None:
             plt.savefig(pngfolder+"pressure_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        # plt.show()
         
-        return
+    return ax850,ax700,ax500,ax300
 
 
 
@@ -781,6 +772,53 @@ def PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lat
 
 
 
+# Convert lat/lon coordinates to x/y distances relative to an origin point (in km)
+def latlon2xy(lat, lon, lat_o, lon_o):
+    # lat, lon:     1-D vectors of lat/lon in decimal degrees N/deg E
+    # lat_o, lon_o: lat/lon of origin in decimal degrees N/deg E
+    
+    r_earth = 6378.1 # km
+    
+    thy = lat_o*np.pi/180 # convert to radians
+    thz = -lon_o*np.pi/180
+    
+    # transform matrices
+    Ry = [[np.cos(thy), 0, np.sin(thy)],
+          [0, 1, 0],
+          [-np.sin(thy), 0, np.cos(thy)]]
+    
+    Rz = [[np.cos(thz), -np.sin(thz), 0],
+          [np.sin(thz), np.cos(thz), 0],
+          [0, 0, 1]]
+    
+    # i'm actually not sure exactly how this works, i just copied this function from some of Boonleng's code
+    R = np.matmul(Ry,Rz)
+    # xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
+    #             np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
+    #             np.sin(lat*np.pi/180)])
+    # # get x and y positions
+    # posx = np.matmul(R[1],xyz)
+    # posy = np.matmul(R[2],xyz)
+    
+    if len(lat) != len(lon):
+        posx = np.zeros(shape=(len(lat),len(lon)))
+        posy = np.zeros(shape=(len(lat),len(lon)))
+        for i in range(len(lon)):
+            for j in range(len(lat)):
+                xyz = r_earth * np.array([np.cos(lat[j]*np.pi/180) * np.cos(lon[i]*np.pi/180),
+                            np.cos(lat[j]*np.pi/180) * np.sin(lon[i]*np.pi/180),
+                            np.sin(lat[j]*np.pi/180)])
+                posx[j,i] = np.matmul(R[1],xyz)
+                posy[j,i] = np.matmul(R[2],xyz)
+    else:
+        xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
+                    np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
+                    np.sin(lat*np.pi/180)])
+        # get x and y positions
+        posx = np.matmul(R[1],xyz)
+        posy = np.matmul(R[2],xyz)
+    
+    return posx,posy
 
 
 
