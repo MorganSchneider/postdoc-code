@@ -565,6 +565,8 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
         z = data01["z"].values/9.81
         uu = data01["u"]*1.94384449 #in knots
         vv = data01["v"]*1.94384449 #in knots
+        vo = data01["vo"].values
+        pv = data01["pv"].values
         lon = data01["longitude"].values
         lat = data01["latitude"].values
         X,Y = np.meshgrid(lon,lat)
@@ -584,7 +586,6 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 800; xmax_z = 1800; xint_z = 25     # z interval
-            ax850 = ax
         
         elif (presl == 700):
             color_vals = [-50,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,\
@@ -595,7 +596,6 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 2400; xmax_z = 4000; xint_z = 50    # z interval
-            ax700 = ax
 
         elif (presl == 500):
             color_vals = [-60,-56,-54,-52,-48,-46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,\
@@ -606,7 +606,6 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 4800; xmax_z = 6500; xint_z = 50    # z interval
-            ax500 = ax
         
         elif (presl == 300):
             color_vals = [-90,-82,-80,-78,-76,-74,-72,-70,-68,-66,-64,-62,-60,-58,-56,-54,-52,-48,\
@@ -617,7 +616,6 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
             xmin_z = 8000; xmax_z = 10000; xint_z = 100# z interval
-            ax300 = ax
 
         vmin = np.min(np.min(color_vals))#levels)#-20#np.min(t)
         vmax = np.max(np.max(color_vals)) #-5#np.max(t)
@@ -659,6 +657,18 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             ax.scatter(lontstart, lattstart, s=150, marker="^", edgecolors='k', color='cyan')
             ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
         
+        
+        imin = np.where((z == np.min(z[(lat<=65),:])) & (Y<=65))
+        # imin = np.where(pv == np.min(pv))
+        # imax = np.where(pv == np.max(pv))
+        latmin = lat[imin[0][0]]
+        lonmin = lon[imin[1][0]]
+        
+        imax = np.where((z == np.max(z[:,(lon>lonmin)])) & (X>lonmin))
+        latmax = lat[imax[0][0]]
+        lonmax = lon[imax[1][0]]
+        ax.scatter(lonmin, latmin, s=300, marker='*', color='k')
+        ax.scatter(lonmax, latmax, s=300, marker='o', color='k', facecolor='k')
         # for i in range(len(lat)):
         #     ix = np.argmin(abs(z[i,:] - np.min(z[i,:])))
         #     lon_trough = lon[ix]
@@ -669,7 +679,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             plt.savefig(pngfolder+"pressure_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
         
-    return ax850,ax700,ax500,ax300
+    return
 
 
 
@@ -793,30 +803,30 @@ def latlon2xy(lat, lon, lat_o, lon_o):
     
     # i'm actually not sure exactly how this works, i just copied this function from some of Boonleng's code
     R = np.matmul(Ry,Rz)
-    # xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
-    #             np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
-    #             np.sin(lat*np.pi/180)])
-    # # get x and y positions
-    # posx = np.matmul(R[1],xyz)
-    # posy = np.matmul(R[2],xyz)
+    xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
+                np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
+                np.sin(lat*np.pi/180)])
+    # get x and y positions
+    posx = np.matmul(R[1],xyz)
+    posy = np.matmul(R[2],xyz)
     
-    if len(lat) != len(lon):
-        posx = np.zeros(shape=(len(lat),len(lon)))
-        posy = np.zeros(shape=(len(lat),len(lon)))
-        for i in range(len(lon)):
-            for j in range(len(lat)):
-                xyz = r_earth * np.array([np.cos(lat[j]*np.pi/180) * np.cos(lon[i]*np.pi/180),
-                            np.cos(lat[j]*np.pi/180) * np.sin(lon[i]*np.pi/180),
-                            np.sin(lat[j]*np.pi/180)])
-                posx[j,i] = np.matmul(R[1],xyz)
-                posy[j,i] = np.matmul(R[2],xyz)
-    else:
-        xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
-                    np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
-                    np.sin(lat*np.pi/180)])
-        # get x and y positions
-        posx = np.matmul(R[1],xyz)
-        posy = np.matmul(R[2],xyz)
+    # if len(lat) != len(lon):
+    #     posx = np.zeros(shape=(len(lat),len(lon)))
+    #     posy = np.zeros(shape=(len(lat),len(lon)))
+    #     for i in range(len(lon)):
+    #         for j in range(len(lat)):
+    #             xyz = r_earth * np.array([np.cos(lat[j]*np.pi/180) * np.cos(lon[i]*np.pi/180),
+    #                         np.cos(lat[j]*np.pi/180) * np.sin(lon[i]*np.pi/180),
+    #                         np.sin(lat[j]*np.pi/180)])
+    #             posx[j,i] = np.matmul(R[1],xyz)
+    #             posy[j,i] = np.matmul(R[2],xyz)
+    # else:
+    #     xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
+    #                 np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
+    #                 np.sin(lat*np.pi/180)])
+    #     # get x and y positions
+    #     posx = np.matmul(R[1],xyz)
+    #     posy = np.matmul(R[2],xyz)
     
     return posx,posy
 

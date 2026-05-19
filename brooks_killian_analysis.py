@@ -11,7 +11,7 @@ from CM1utils import *
 
 fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
-ds = nc.Dataset(fp+f"cm1out_000048.nc")
+ds = nc.Dataset(fp+f"cm1out_000049.nc")
 
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
@@ -352,8 +352,8 @@ vmove1 = ds.variables['vmove'][:].data[0]
 shs1 = ds.variables['shs2'][:].data[0,:,:]
 hail1 = ds.variables['hail2'][:].data[0,:,:]
 dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp1 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove1, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove1, axis=0))**2)
+wsp1 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove1, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove1, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000009.nc')
@@ -363,8 +363,8 @@ vmove2 = ds.variables['vmove'][:].data[0]
 shs2 = ds.variables['shs2'][:].data[0,:,:]
 hail2 = ds.variables['hail2'][:].data[0,:,:]
 dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp2 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove2, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove2, axis=0))**2)
+wsp2 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove2, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove2, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000013.nc')
@@ -374,8 +374,8 @@ vmove3 = ds.variables['vmove'][:].data[0]
 shs3 = ds.variables['shs2'][:].data[0,:,:]
 hail3 = ds.variables['hail2'][:].data[0,:,:]
 dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp3 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove3, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove3, axis=0))**2)
+wsp3 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove3, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove3, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000017.nc')
@@ -385,8 +385,8 @@ vmove4 = ds.variables['vmove'][:].data[0]
 shs4 = ds.variables['shs2'][:].data[0,:,:]
 hail4 = ds.variables['hail2'][:].data[0,:,:]
 dbz4 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp4 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove4, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove4, axis=0))**2)
+wsp4 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove4, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove4, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000021.nc')
@@ -396,8 +396,8 @@ vmove5 = ds.variables['vmove'][:].data[0]
 shs5 = ds.variables['shs2'][:].data[0,:,:]
 hail5 = ds.variables['hail2'][:].data[0,:,:]
 dbz5 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp5 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove5, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove5, axis=0))**2)
+wsp5 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove5, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove5, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000025.nc')
@@ -407,8 +407,8 @@ vmove6 = ds.variables['vmove'][:].data[0]
 shs6 = ds.variables['shs2'][:].data[0,:,:]
 hail6 = ds.variables['hail2'][:].data[0,:,:]
 dbz6 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp6 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove6, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove6, axis=0))**2)
+wsp6 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove6, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove6, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000029.nc')
@@ -418,8 +418,8 @@ vmove7 = ds.variables['vmove'][:].data[0]
 shs7 = ds.variables['shs2'][:].data[0,:,:]
 hail7 = ds.variables['hail2'][:].data[0,:,:]
 dbz7 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp7 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove7, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove7, axis=0))**2)
+wsp7 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove7, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove7, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000033.nc')
@@ -429,8 +429,8 @@ vmove8 = ds.variables['vmove'][:].data[0]
 shs8 = ds.variables['shs2'][:].data[0,:,:]
 hail8 = ds.variables['hail2'][:].data[0,:,:]
 dbz8 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp8 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove8, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove8, axis=0))**2)
+wsp8 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove8, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove8, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000037.nc')
@@ -440,8 +440,8 @@ vmove9 = ds.variables['vmove'][:].data[0]
 shs9 = ds.variables['shs2'][:].data[0,:,:]
 hail9 = ds.variables['hail2'][:].data[0,:,:]
 dbz9 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove9, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove9, axis=0))**2)
+wsp9 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove9, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove9, axis=0))**2)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000041.nc')
@@ -451,31 +451,31 @@ vmove10 = ds.variables['vmove'][:].data[0]
 shs10 = ds.variables['shs2'][:].data[0,:,:]
 hail10 = ds.variables['hail2'][:].data[0,:,:]
 dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
-# wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove10, axis=0))**2 + 
-#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove10, axis=0))**2)
+wsp10 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove10, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove10, axis=0))**2)
 ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000045.nc')
-# umove11 = ds.variables['umove'][:].data[0]
-# vmove11 = ds.variables['vmove'][:].data[0]
-# # sws11 = ds.variables['sws2'][:].data[0,:,:]
-# shs11 = ds.variables['shs2'][:].data[0,:,:]
-# hail11 = ds.variables['hail2'][:].data[0,:,:]
-# dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
-# # wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove11, axis=0))**2 + 
-# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove11, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000045.nc')
+umove11 = ds.variables['umove'][:].data[0]
+vmove11 = ds.variables['vmove'][:].data[0]
+# sws11 = ds.variables['sws2'][:].data[0,:,:]
+shs11 = ds.variables['shs2'][:].data[0,:,:]
+hail11 = ds.variables['hail2'][:].data[0,:,:]
+dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove11, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove11, axis=0))**2)
+ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000049.nc')
-# umove12 = ds.variables['umove'][:].data[0]
-# vmove12 = ds.variables['vmove'][:].data[0]
-# # sws12 = ds.variables['sws2'][:].data[0,:,:]
-# shs12 = ds.variables['shs2'][:].data[0,:,:]
-# hail12 = ds.variables['hail2'][:].data[0,:,:]
-# dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
-# # wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove12, axis=0))**2 + 
-# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove12, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000049.nc')
+umove12 = ds.variables['umove'][:].data[0]
+vmove12 = ds.variables['vmove'][:].data[0]
+# sws12 = ds.variables['sws2'][:].data[0,:,:]
+shs12 = ds.variables['shs2'][:].data[0,:,:]
+hail12 = ds.variables['hail2'][:].data[0,:,:]
+dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
+wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove12, axis=0))**2 + 
+               (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove12, axis=0))**2)
+ds.close()
 
 
 
@@ -489,11 +489,11 @@ dbfile = open(fp+'wind_mechanisms_420min.pkl', 'rb'); crit7 = pickle.load(dbfile
 dbfile = open(fp+'wind_mechanisms_480min.pkl', 'rb'); crit8 = pickle.load(dbfile); dbfile.close()
 dbfile = open(fp+'wind_mechanisms_540min.pkl', 'rb'); crit9 = pickle.load(dbfile); dbfile.close()
 dbfile = open(fp+'wind_mechanisms_600min.pkl', 'rb'); crit10 = pickle.load(dbfile); dbfile.close()
-# dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
-# dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
 
 
-crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7, '8':crit8, '9':crit9, '10':crit10}
+crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7, '8':crit8, '9':crit9, '10':crit10, '11':crit11, '12':crit12}
 
 
 # x_added = umove*3600/1000
@@ -536,8 +536,8 @@ xh7 = xh6 + umove7*3600/1000
 xh8 = xh7 + umove8*3600/1000
 xh9 = xh8 + umove9*3600/1000
 xh10 = xh9 + umove10*3600/1000
-# xh11 = xh10 + umove11*3600/1000
-# xh12 = xh11 + umove12*3600/1000
+xh11 = xh10 + umove11*3600/1000
+xh12 = xh11 + umove12*3600/1000
 
 yh1 = yh + 100
 yh2 = yh1 + vmove2*3600/1000
@@ -549,11 +549,11 @@ yh7 = yh6 + vmove7*3600/1000
 yh8 = yh7 + vmove8*3600/1000
 yh9 = yh8 + vmove9*3600/1000
 yh10 = yh9 + vmove10*3600/1000
-# yh11 = yh10 + vmove11*3600/1000
-# yh12 = yh11 + vmove12*3600/1000
+yh11 = yh10 + vmove11*3600/1000
+yh12 = yh11 + vmove12*3600/1000
 
-xx = {'1':xh1, '2':xh2, '3':xh3, '4':xh4, '5':xh5, '6':xh6, '7':xh7, '8':xh8, '9':xh9, '10':xh10}
-yy = {'1':yh1, '2':yh2, '3':yh3, '4':yh4, '5':yh5, '6':yh6, '7':yh7, '8':yh8, '9':yh9, '10':yh10}
+xx = {'1':xh1, '2':xh2, '3':xh3, '4':xh4, '5':xh5, '6':xh6, '7':xh7, '8':xh8, '9':xh9, '10':xh10, '11':xh11, '12':xh12}
+yy = {'1':yh1, '2':yh2, '3':yh3, '4':yh4, '5':yh5, '6':yh6, '7':yh7, '8':yh8, '9':yh9, '10':yh10, '11':yh11, '12':yh12}
 
 
 #%% Plot translated swaths with wind mechanisms
@@ -637,8 +637,8 @@ ax.contourf(xh7, yh7, np.ma.masked_array(wsp7, dbz7<20), levels=levs, vmin=0, vm
 ax.contourf(xh8, yh8, np.ma.masked_array(wsp8, dbz8<20), levels=levs, vmin=0, vmax=30, cmap=cm)
 ax.contourf(xh9, yh9, np.ma.masked_array(wsp9, dbz9<20), levels=levs, vmin=0, vmax=30, cmap=cm)
 ax.contourf(xh10, yh10, np.ma.masked_array(wsp10, dbz10<20), levels=levs, vmin=0, vmax=30, cmap=cm)
-# ax.contourf(xh11, yh11, np.ma.masked_array(wsp11, dbz11<20), levels=levs, vmin=0, vmax=30, cmap=cm)
-# ax.contourf(xh12, yh12, np.ma.masked_array(wsp12, dbz12<20), levels=levs, vmin=0, vmax=30, cmap=cm)
+ax.contourf(xh11, yh11, np.ma.masked_array(wsp11, dbz11<20), levels=levs, vmin=0, vmax=30, cmap=cm)
+ax.contourf(xh12, yh12, np.ma.masked_array(wsp12, dbz12<20), levels=levs, vmin=0, vmax=30, cmap=cm)
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,35,8))
@@ -677,7 +677,7 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 # ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
 
 
-for i in range(10):
+for i in range(12):
     is_rij = crit[f"{i+1}"]['is_rij']
     is_mv = crit[f"{i+1}"]['is_mv']
     is_db = crit[f"{i+1}"]['is_db']
@@ -729,7 +729,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - 80-m wind speed + wind mechanisms (0-10 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - 80-m wind speed + wind mechanisms (0-12 h)", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
@@ -753,8 +753,8 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
 ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
-# ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
-# ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
+ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test5_v2.png', dpi=300)
@@ -840,8 +840,8 @@ ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0
 ax.contourf(xh8, yh8, np.ma.masked_array(dbz8, dbz8<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
 ax.contourf(xh9, yh9, np.ma.masked_array(dbz9, dbz9<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
 ax.contourf(xh10, yh10, np.ma.masked_array(dbz10, dbz10<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
-# ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
-# ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh11, yh11, np.ma.masked_array(dbz11, dbz11<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
+ax.contourf(xh12, yh12, np.ma.masked_array(dbz12, dbz12<20), levels=dbz_levs, vmin=0, vmax=70, cmap=cm)
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
@@ -877,11 +877,11 @@ ax.contour(xh7, yh7, hail7, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh8, yh8, hail8, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh9, yh9, hail9, levels=levs, colors=cols, linewidths=lws)
 ax.contour(xh10, yh10, hail10, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh11, yh11, hail11, levels=levs, colors=cols, linewidths=lws)
-# ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh11, yh11, hail11, levels=levs, colors=cols, linewidths=lws)
+ax.contour(xh12, yh12, hail12, levels=levs, colors=cols, linewidths=lws)
 
 
-for i in range(10):
+for i in range(12):
     is_rij = crit[f"{i+1}"]['is_rij']
     is_mv = crit[f"{i+1}"]['is_mv']
     is_db = crit[f"{i+1}"]['is_db']
@@ -934,7 +934,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('y (km)', fontsize=10)
-ax.set_title(f"{sounding_str} - Surface reflectivity + wind mechanisms (0-10 h)", fontsize=10)
+ax.set_title(f"{sounding_str} - Surface reflectivity + wind mechanisms (0-12 h)", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
@@ -968,8 +968,8 @@ ax.text(xt[6], yt[6], '7 h', fontsize=9, fontweight='bold')
 ax.text(xt[7], yt[7], '8 h', fontsize=9, fontweight='bold')
 ax.text(xt[8], yt[8], '9 h', fontsize=9, fontweight='bold')
 ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
-# ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
-# ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
+ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
     plt.savefig(fp+'hail_wind_mechanism_swath_ERA5-1_test5_v2.png', dpi=300)

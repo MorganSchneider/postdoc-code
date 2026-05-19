@@ -49,7 +49,7 @@ data_preslevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
 data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 
-#%% Define plot domain - can add other regions here
+#% Define plot domain - can add other regions here
 
 #Plotdomain:
 #lonW=-125
@@ -115,6 +115,12 @@ loni=np.where(lon==lont)
 
 #%% Calculate trough tilt
 
+p850 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}
+p700 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}
+p500 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}
+p300 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}
+trough = {'850':{}, '700':{}, '500':{}, '300':{}}
+
 
 
 for pres in [850,700,500,300]:
@@ -124,68 +130,39 @@ for pres in [850,700,500,300]:
     lat1 = dat1["latitude"].values
     u1 = dat1["u"].values
     v1 = dat1["v"].values
+    vort1 = dat1["vo"].values
+    pv1 = dat1["pv"].values
     LON,LAT = np.meshgrid(lon1,lat1)
     
-    xx,yy = latlon2xy(lat1, lon1, lat1[0], lon1[0])
-    dvdx1 = np.zeros(shape=(len(lat1),len(lon1)))
-    dudy1 = np.zeros(shape=(len(lat1),len(lon1)))
-    for i in range(len(lat1)):
-        dvdx1[i,:] = np.gradient(v1[i,:], xx[i,:]*1000)
-    for j in range(len(lon1)):
-        dudy1[:,j] = np.gradient(u1[:,j], yy[:,j]*1000)
-    vort1 = dvdx1 - dudy1
+    # xx,yy = latlon2xy(lat1, lon1, lat1[0], lon1[0])
     # X,Y = np.meshgrid(xx,yy)
     
-    vortmin = np.where(vort1 == np.min(vort1))
-    ixmin = vortmin[1][0]
-    iymin = vortmin[0][0]
-    vortmax = np.where(vort1 == np.max(vort1))
-    ixmax = vortmax[1][0]
-    iymax = vortmax[0][0]
+    imin = np.where((z1 == np.min(z1[(lat1<=65),:])) & (LAT<=65))
+    latmin = lat1[imin[0][0]]
+    lonmin = lon1[imin[1][0]]
     
-    xmin = xx[iymin,ixmin]
-    ymin = yy[iymin,ixmin]
-    xmax = xx[iymax,ixmax]
-    ymax = yy[iymax,ixmax]
-    # xmin,ymin = latlon2xy(lat1[iymin], lon1[ixmin], lat1[0], lon1[0])
-    # xmax,ymax = latlon2xy(lat1[iymax], lon1[ixmax], lat1[0], lon1[0])
+    imax = np.where((z1 == np.max(z1[:,(lon1>lonmin)])) & (LON>lonmin))
+    latmax = lat1[imax[0][0]]
+    lonmax = lon1[imax[1][0]]
     
-    if pres == 850:
-        trough_tilt_850 = (ymax-ymin) / (xmax-xmin)
-    elif pres == 700:
-        trough_tilt_700 = (ymax-ymin) / (xmax-xmin)
-    elif pres == 500:
-        trough_tilt_500 = (ymax-ymin) / (xmax-xmin)
-    elif pres == 300:
-        trough_tilt_300 = (ymax-ymin) / (xmax-xmin)
     
-    # izmin = np.where(z1 == np.min(z1))
-    # iy0 = izmin[0][0]
-    # ix0 = izmin[1][0]
-    # x_trough = np.zeros(shape=(iy0,))
-    # y_trough = np.zeros(shape=(iy0,))
-    # for ii in range(iy0):
-    #     ix = np.argmin(abs(z1[ii,:] - np.min(z1[ii,:])))
-    #     # x,y = latlon2xy(lat1[ii], lon1[ix], lat1[0], lon1[0])
-    #     x_trough[ii] = xx[ix,ii]
-    #     y_trough[ii] = yy[ix,ii]
+    # xmin = xx[iymin,ixmin]
+    # ymin = yy[iymin,ixmin]
+    # xmax = xx[iymax,ixmax]
+    # ymax = yy[iymax,ixmax]
+    xmin,ymin = latlon2xy(latmin, lonmin, lat1[-1], lon1[0])
+    xmax,ymax = latlon2xy(latmax, lonmax, lat1[-1], lon1[0])
     
-    # slopes = np.zeros(shape=(len(x_trough),))
-    # for i in range(len(x_trough)-1):
-    #     slopes[i] = (y_trough[i+1]-y_trough[i]) / (x_trough[i+1]-x_trough[i])
+    trough_tilt = (ymax-ymin) / (xmax-xmin)
     
-    # if pres == 850:
-    #     trough_tilt_850 = np.mean(slopes)
-    # elif pres == 700:
-    #     trough_tilt_700 = np.mean(slopes)
-    # elif pres == 500:
-    #     trough_tilt_500 = np.mean(slopes)
-    # elif pres == 300:
-    #     trough_tilt_300 = np.mean(slopes)
+    trough[f"{pres}"].update({'lonmin':lonmin, 'latmin':latmin, 'latmax':latmax, 'lonmax':lonmax,
+                              'xmin':xmin, 'ymin':ymin, 'xmax':xmax, 'ymax':ymax,
+                              'tilt':trough_tilt})
+    
 
-
-
-
-
+print(f"Trough tilt (850 mb) = {trough['850']['tilt']}")
+print(f"Trough tilt (700 mb) = {trough['700']['tilt']}")
+print(f"Trough tilt (500 mb) = {trough['500']['tilt']}")
+print(f"Trough tilt (300 mb) = {trough['300']['tilt']}")
 
 
