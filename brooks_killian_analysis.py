@@ -85,12 +85,12 @@ w_thres_rij = -1 #RIJ downdraft --> Killion uses -2, Garrett Statum uses -1
 w_thres_db = -5 #DB downdraft
 # ******* need to adjust OW threshold to account for higher horizontal resolution :(((( *******
 #***** Killion and Lasher-Trapp used 1-km grid and OW >= 0.0001
-ow_thres_mv = 0.002 #MV OW
+ow_thres_mv = 0.0001 #MV OW
 wk_thres_mv = 1 #Kinematic vorticity number? -- threshold?
 
 is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #2-km wind speed
-w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #0-2 km mean w
+w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #0.5-2 km mean w
 sub_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #sub svr 80-m wind
 svr_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #svr 80-m wind
 sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #sig svr 80-m wind
@@ -185,7 +185,7 @@ for j in range(len(yf)):
 
 
 
-if True:
+if False:
     dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db, 'V80m':V80m}
     pickle.dump(data, dbfile)

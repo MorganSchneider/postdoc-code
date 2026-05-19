@@ -58,7 +58,7 @@ data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 #latN=65
 
 if region=='GreatLakes':    
-    [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]   
+    [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
     n=5
 if region=='SasMan':
     [lonW,lonE,latS,latN] = [-114.0,-88.0,46.5,60.5]
@@ -67,7 +67,7 @@ if region=='Alberta':
     [lonW,lonE,latS,latN] = [-128.0,-102.0,46.5,60.5]
     n=5
 if region=='Canada':
-    [lonW,lonE,latS,latN] = [-132.0,-50.0,35.0,75.0] 
+    [lonW,lonE,latS,latN] = [-132.0,-58.0,35.0,75.0]
     n=10
 
 
@@ -113,7 +113,7 @@ loni=np.where(lon==lont)
 #     print('%d\t%.1f\t%.1f' %(z00[i,lati,loni],u00[i,lati,loni],v00[i,lati,loni]))
 
 
-#%% Calculate trough tilt
+#%% Calculate trough tilt?
 
 p850 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}
 p700 = {'latmin':0, 'lonmin':0, 'latmax':0, 'lonmax':0, 'xmin':0, 'ymin':0, 'xmax':0, 'ymax':0, 'tilt':0}

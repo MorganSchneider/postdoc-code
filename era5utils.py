@@ -658,22 +658,14 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
         
         
-        imin = np.where((z == np.min(z[(lat<=65),:])) & (Y<=65))
-        # imin = np.where(pv == np.min(pv))
-        # imax = np.where(pv == np.max(pv))
-        latmin = lat[imin[0][0]]
-        lonmin = lon[imin[1][0]]
-        
-        imax = np.where((z == np.max(z[:,(lon>lonmin)])) & (X>lonmin))
-        latmax = lat[imax[0][0]]
-        lonmax = lon[imax[1][0]]
-        ax.scatter(lonmin, latmin, s=300, marker='*', color='k')
-        ax.scatter(lonmax, latmax, s=300, marker='o', color='k', facecolor='k')
-        # for i in range(len(lat)):
-        #     ix = np.argmin(abs(z[i,:] - np.min(z[i,:])))
-        #     lon_trough = lon[ix]
-        #     lat_trough = lat[i]
-        #     ax.scatter(lon_trough, lat_trough, s=300, marker='.', color='k')
+        # imin = np.where((z == np.min(z[(lat<=65),:])) & (Y<=65))
+        # latmin = lat[imin[0][0]]
+        # lonmin = lon[imin[1][0]]
+        # imax = np.where((z == np.max(z[:,(lon>lonmin)])) & (X>lonmin))
+        # latmax = lat[imax[0][0]]
+        # lonmax = lon[imax[1][0]]
+        # ax.scatter(lonmin, latmin, s=300, marker='*', color='k')
+        # ax.scatter(lonmax, latmax, s=300, marker='o', color='k', facecolor='k')
         
         if pngfolder is not None:
             plt.savefig(pngfolder+"pressure_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
