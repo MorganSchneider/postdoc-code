@@ -33,6 +33,9 @@ from metpy.calc import dewpoint_from_relative_humidity,specific_humidity_from_de
 from metpy.calc import potential_temperature,temperature_from_potential_temperature
 from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
 
+import pyart
+import cmocean
+
 # import geopandas as gpd
 # from shapely.geometry import LineString, Point
 
@@ -487,14 +490,16 @@ def PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     vmax = 3000 #np.max(cape)
     nlevels = 32
     #colormap=cm.get_cmap("plasma").copy()
-    colormap = cm.get_cmap("inferno").copy()
-    colormap.set_over("magenta")
+    # colormap = cm.get_cmap("inferno").copy()
+    # colormap = pyart.graph.cmweather.cm.LangRainbow12.copy()
+    colormap = cmocean.cm.thermal.copy()
+    colormap.set_over("gray")
     colormap.set_under(alpha=0)
 
     alphas = np.maximum(0, np.minimum(1, (np.array(cape)/100)))
     alphas[np.isnan(alphas)] = 0
     
-    print(np.shape(X), np.shape(alphas))
+    # print(np.shape(X), np.shape(alphas))
     
     if Y[1,1] > Y[0,0]:
         myorigin = "lower"
@@ -542,11 +547,11 @@ def PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     plt.title('10m-3km wind difference (barbs, knots), 500 hPa Geopotential (gpdm, black contours),\n\
                CAPE (shaded), specific humidity 500m AGL (g/kg, cyan contours)\n %sUTC' %(timt[:13]), fontsize = 20)
     if case == 'tornado':
-        ax.scatter(lontstart, lattstart, s=150, marker="v", edgecolors='k', color='yellow')
-        ax.scatter(lont, latt, s=150, marker="v", edgecolors='k', color='green', alpha=0.5)
+        ax.scatter(lontstart, lattstart, s=200, marker="v", edgecolors='k', color='yellow', linewidth=1.25)
+        ax.scatter(lont, latt, s=200, marker="v", edgecolors='k', color='green', linewidth=1.25)
     else:
-        ax.scatter(lontstart, lattstart, s=150, marker="^", edgecolors='k', color='cyan')
-        ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
+        ax.scatter(lontstart, lattstart, s=200, marker="^", edgecolors='k', color='cyan', linewidth=1.25)
+        ax.scatter(lont, latt, s=200, marker="^", edgecolors='k', color='green', linewidth=1.25)
 
     if pngfolder is not None:
         plt.savefig(pngfolder+"cape_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
@@ -578,8 +583,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
         ax.add_feature(cfeature.COASTLINE)
         
         if (presl == 850):
-            color_vals = [-40,-32,-28,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,\
-                          8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42]
+            # color_vals = [-40,-32,-28,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,\
+            #               8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42]
+            color_vals = np.arange(-20, 42, 2)
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
                           '#823ae4','#5f52f3','#416cfe','#3f8bf8','#3eaaf3','#3cc9ed','#51cdc0','#69cf8f',\
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
@@ -588,8 +594,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             xmin_z = 800; xmax_z = 1800; xint_z = 25     # z interval
         
         elif (presl == 700):
-            color_vals = [-50,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,\
-                          4,6,8,10,12,14,16,18,20,22,30]
+            # color_vals = [-50,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,\
+            #               4,6,8,10,12,14,16,18,20,22,30]
+            color_vals = np.arange(-30, 32, 2)
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
                           '#823ae4','#5f52f3','#416cfe','#3f8bf8','#3eaaf3','#3cc9ed','#51cdc0','#69cf8f',\
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
@@ -598,8 +605,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             xmin_z = 2400; xmax_z = 4000; xint_z = 50    # z interval
 
         elif (presl == 500):
-            color_vals = [-60,-56,-54,-52,-48,-46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,\
-                          -20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,10]
+            # color_vals = [-60,-56,-54,-52,-48,-46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,\
+            #               -20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,10]
+            color_vals = np.arange(-40, 22, 2)
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
                           '#823ae4','#5f52f3','#416cfe','#3f8bf8','#3eaaf3','#3cc9ed','#51cdc0','#69cf8f',\
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
@@ -608,8 +616,9 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             xmin_z = 4800; xmax_z = 6500; xint_z = 50    # z interval
         
         elif (presl == 300):
-            color_vals = [-90,-82,-80,-78,-76,-74,-72,-70,-68,-66,-64,-62,-60,-58,-56,-54,-52,-48,\
-                          -46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-10]
+            # color_vals = [-90,-82,-80,-78,-76,-74,-72,-70,-68,-66,-64,-62,-60,-58,-56,-54,-52,-48,\
+            #               -46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-10]
+            color_vals = np.arange(-70, -8, 2)
             color_cols = ['#ffffff','#ffe0ff','#ffc1ff','#ffa2ff','#ef7df4','#d854e6','#c22cd7','#a621d6',\
                           '#823ae4','#5f52f3','#416cfe','#3f8bf8','#3eaaf3','#3cc9ed','#51cdc0','#69cf8f',\
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
@@ -625,13 +634,17 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
         else:
             shrinkscale = 0.6
         
-        cf = ax.contourf(X, Y, t, color_vals, colors=color_cols, alpha=1, vmin=vmin, vmax=vmax)
+        # cf = ax.contourf(X, Y, t, color_vals, colors=color_cols, alpha=1, vmin=vmin, vmax=vmax)
+        cf = ax.contourf(X, Y, t, color_vals, cmap='LangRainbow12', alpha=1, vmin=vmin, vmax=vmax)
         cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Specific humidity [°C]', shrink=shrinkscale)
         cbar.set_label('Temperature [°C]', fontsize=16)  
         cbar.ax.tick_params(labelsize=12) 
 
         ct = ax.contour(X, Y, t, levels=30, colors='white', linewidths=1)
         ax.clabel(ct, inline=True, fontsize=11, fmt='%d')#'%.2f')
+        if (presl == 850) | (presl == 700):
+            c0 = ax.contour(X, Y, t, levels=[0], colors='b', linewidths=1.5, linestyles='--')
+            ax.clabel(c0, inline=True, fontsize=11, fmt='%d')
     
         cs = ax.contour(X, Y, z, levels=np.arange(xmin_z,xmax_z+1,xint_z), colors='black', linewidths=2)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
@@ -651,21 +664,23 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
             plt.title('%d hPa Geopotential [gpdm, contour], Temperature (color), Wind (barbs, knots)\n\
             %sUTC' %(presl,timt), fontsize=20)
         if case == 'tornado':
-            ax.scatter(lontstart, lattstart, s=150, marker="v", edgecolors='k', color='yellow')
-            ax.scatter(lont, latt, s=150, marker="v", edgecolors='k', color='green', alpha=0.5)
+            ax.scatter(lontstart, lattstart, s=200, marker="v", edgecolors='k', color='magenta', linewidth=1.25)
+            ax.scatter(lont, latt, s=200, marker="v", edgecolors='k', color='green', linewidth=1.25)
         else:
-            ax.scatter(lontstart, lattstart, s=150, marker="^", edgecolors='k', color='cyan')
-            ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
+            ax.scatter(lontstart, lattstart, s=200, marker="^", edgecolors='k', color='cyan', linewidth=1.25)
+            ax.scatter(lont, latt, s=200, marker="^", edgecolors='k', color='green', linewidth=1.25)
         
+        # iyl,ixl = mc.find_peaks(z, maxima=False)
+        # iyh,ixh = mc.find_peaks(z)
+        # for i in range(len(iyl)):
+        #     lonmin = lon[ixl[i]]
+        #     latmin = lat[iyl[i]]
+        #     ax.scatter(lonmin, latmin, s=400, marker='*', color='k', facecolor='b', linewidth=1.5)
+        # for j in range(len(iyh)):
+        #     lonmax = lon[ixh[j]]
+        #     latmax = lat[iyh[j]]
+        #     ax.scatter(lonmax, latmax, s=400, marker='*', color='k', facecolor='r', linewidth=1.5)
         
-        # imin = np.where((z == np.min(z[(lat<=65),:])) & (Y<=65))
-        # latmin = lat[imin[0][0]]
-        # lonmin = lon[imin[1][0]]
-        # imax = np.where((z == np.max(z[:,(lon>lonmin)])) & (X>lonmin))
-        # latmax = lat[imax[0][0]]
-        # lonmax = lon[imax[1][0]]
-        # ax.scatter(lonmin, latmin, s=300, marker='*', color='k')
-        # ax.scatter(lonmax, latmax, s=300, marker='o', color='k', facecolor='k')
         
         if pngfolder is not None:
             plt.savefig(pngfolder+"pressure_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
@@ -723,8 +738,10 @@ def PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lat
 
     if region == 'Canada':
         shrinkscale = 0.25
+        scale = 5
     else:
         shrinkscale = 0.55
+        scale = 10
         
     cbar = fig.colorbar(
         ScalarMappable(norm=cf.norm, cmap=cf.cmap),
@@ -752,18 +769,18 @@ def PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lat
     ax.clabel(ct60, inline=True, fontsize=11, fmt='%.1f')
 
     #Wind arrows are plotted every n gridpoint
-    cuv = ax.quiver(X[::n,::n], Y[::n,::n], u500[::n,::n], v500[::n,::n], angles='xy', scale_units='xy', scale=5)
-    ax.quiverkey(cuv, X=1.09, Y=0.99, U=5, label='5 m/s', labelpos='E')
+    cuv = ax.quiver(X[::n,::n], Y[::n,::n], u500[::n,::n], v500[::n,::n], angles='xy', scale_units='xy', scale=scale)
+    ax.quiverkey(cuv, X=1.08, Y=0.99, U=scale, label=f"{scale} m/s", labelpos='N', fontproperties=dict(size=12))
     
     plt.title('Specific humidity at 500m AGL (g/kg, shaded+white), Lapse Rate (K/km, red)\n\
     %sUTC' %(timt), fontsize=20)
 #    plt.text(lontstart,lattstart,"T", fontsize = 18, weight="bold",color='yellow')
     if case == 'tornado':
-        ax.scatter(lontstart, lattstart, s=150, marker="v", edgecolors='k', color='yellow')
-        ax.scatter(lont, latt, s=150, marker="v", edgecolors='k', color='green', alpha=0.5)
+        ax.scatter(lontstart, lattstart, s=200, marker="v", edgecolors='k', color='magenta', linewidth=1.25)
+        ax.scatter(lont, latt, s=200, marker="v", edgecolors='k', color='green', linewidth=1.25)
     else:
-        ax.scatter(lontstart, lattstart, s=150, marker="^", edgecolors='k', color='cyan')
-        ax.scatter(lont, latt, s=150, marker="^", edgecolors='k', color='green', alpha=0.5)
+        ax.scatter(lontstart, lattstart, s=200, marker="^", edgecolors='k', color='cyan', linewidth=1.25)
+        ax.scatter(lont, latt, s=200, marker="^", edgecolors='k', color='green', linewidth=1.25)
     
     if pngfolder is not None:
         plt.savefig(pngfolder+"moisture_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
