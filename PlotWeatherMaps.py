@@ -68,8 +68,7 @@ elif (yyyyt==2026) & (mmt==4) & (ddt==15):
 
 latt = 46.50       # latitude of sounding
 lont = -83.75     # longitude of sounding #if you do not need this, uncomment the next two lines
-latt = np.mean(lattstart)
-lont = np.mean(lontstart)
+
 
 figfolder=fp+'figs/'
 data_preslevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
@@ -100,8 +99,8 @@ datas.head(5)
 
 # region='Alberta'
 #region='SasMan'
-region='GreatLakes'
-# region='Canada'
+# region='GreatLakes'
+region='Canada'
 
 if region=='GreatLakes':    
     [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
@@ -118,27 +117,40 @@ if region=='Canada':
 
 
 
+data00 = data.sel(valid_time=timt)
+z00 = data00['z'].values/9.81
+u00 = data00['u'].values*units('m/s')
+v00 = data00['v'].values*units('m/s')
+p00 = data00.pressure_level.values * units.hPa
+lat = data00['latitude'].values
+lon = data00['longitude'].values
+
+lati = np.argmin(np.abs(lat-np.mean(lattstart)))
+loni = np.argmin(np.abs(lon-np.mean(lontstart)))
+latt = lat[lati]
+lont = lon[loni]
+
+
+
+
 figfolder=None
 
-PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+# PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
-PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+# PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
-PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+# PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
+PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
-data00 = data.sel(valid_time=timt)
-z00=data00['z'].values/9.81
-u00=data00['u'].values
-v00=data00['v'].values
-lat=data00['latitude'].values
-lon=data00['longitude'].values
 
 # latt=51.5  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
 # lont=-114.0
 
-lati=np.where(lat==latt)
-loni=np.where(lon==lont)
+# lati=np.where(lat==latt)
+# loni=np.where(lon==lont)
+
+
 
 # print(np.shape(z00))
 # print(lati,loni)

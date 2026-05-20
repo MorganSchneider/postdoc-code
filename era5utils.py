@@ -683,7 +683,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
         
         
         if pngfolder is not None:
-            plt.savefig(pngfolder+"pressure_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
+            plt.savefig(pngfolder+f"pressure_map_{presl}mb.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
         # plt.show()
         
     return
@@ -791,6 +791,171 @@ def PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lat
 
 
 
+def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=None):
+    
+    data00 = data.sel(valid_time=timt)
+    data00s = datas.sel(valid_time=timt)
+    
+    u10s = data00s['u10'].values
+    v10s = data00s['v10'].values
+    orog = data00s['z'].values/9.81
+    u00 = data00['u']
+    v00 = data00['v']
+    z00 = data00['z'].values/9.81
+    p00 = data00.pressure_level.values * units.hPa
+    z500 = z00[(p00==500),:,:]
+    
+    # u500 = InterpolateToHeightAboveGround(z00, orog, np.array(u00), 500)
+    # v500 = InterpolateToHeightAboveGround(z00, orog, np.array(v00), 500)
+    
+    
+    lat = data['latitude']
+    lon = data['longitude']
+    X,Y = np.meshgrid(lon,lat)
+    
+    u_rm = np.zeros(shape=orog.shape); v_rm = np.zeros(shape=orog.shape)
+    u_lm = np.zeros(shape=orog.shape); v_lm = np.zeros(shape=orog.shape)
+    u_mm = np.zeros(shape=orog.shape); v_mm = np.zeros(shape=orog.shape)
+    for j in range(len(lat)):
+        for i in range(len(lon)):
+            z01 = z00[:,j,i]
+            orog01 = orog[j,i]
+            u01 = u00[:,j,i]
+            v01 = v00[:,j,i]
+            
+            [rm,lm,mm] = mc.bunkers_storm_motion(p00[z01>orog01], u01[z01>orog01], v01[z01>orog01], z01[z01>orog01]*units.m)
+            u_rm[j,i] = rm[0].magnitude; v_rm[j,i] = rm[1].magnitude
+            u_lm[j,i] = lm[0].magnitude; v_lm[j,i] = lm[1].magnitude
+            u_mm[j,i] = mm[0].magnitude; v_mm[j,i] = mm[1].magnitude
+    
+    storm_u = u_mm*units('m/s')
+    storm_v = v_mm*units('m/s')
+    
+    
+    for zdep in [1000,3000]:
+        
+        uu = InterpolateToHeightAboveGround(z00, orog, np.array(u00.values), zdep)
+        vv = InterpolateToHeightAboveGround(z00, orog, np.array(v00.values), zdep)
+        uu = uu - u10s
+        vv = vv - v10s
+        
+        
+        [srhpos,srhneg,srhtot] = calcSRH(z00[z00>orog]*units.m, u00[z00>orog], v00[z00>orog], zdep*units.m, storm_u=storm_u, storm_v=storm_v)
+        
+        srh = srhtot.magnitude
+        
+        # srh = np.zeros(shape=orog.shape)
+        
+        # for j in range(len(lat)):
+        #     for i in range(len(lon)):
+        #         z01 = z00[:,j,i]
+        #         orog01 = orog[j,i]
+        #         u01 = u00[:,j,i]
+        #         v01 = v00[:,j,i]
+                
+        #         [rightm,leftm,meanm] = mc.bunkers_storm_motion(p00[z01>orog01], u01[z01>orog01], v01[z01>orog01], z01[z01>orog01]*units.m)
+        #         uright = rightm[0]; vright = rightm[1]
+        #         uleft = leftm[0]; vleft = leftm[1]
+        #         umean = meanm[0]; vmean = meanm[1]
+                
+        #         [srhpos,srhneg,srhtot] = mc.storm_relative_helicity(z01[z01>orog01]*units.m, u01[z01>orog01], v01[z01>orog01],
+        #                                                depth=zdep*units.m, storm_u=umean, storm_v=vmean)
+        #         srh[j,i] = srhtot.magnitude
+                
+        
+        fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+        ax.set_extent([lonW,lonE,latS,latN], crs=ccrs.PlateCarree())
+        ax.add_feature(cfeature.BORDERS, linestyle='-')
+        ax.add_feature(cfeature.STATES, linestyle='-')
+        ax.add_feature(cfeature.COASTLINE)
+        ax.add_feature(cfeature.LAKES, alpha=0.2)
+        
+        if zdep == 3000:
+            vmin = 10    #np.min(srh)
+            vmax = 300 #np.max(srh)
+            nlevels = 30
+        elif zdep == 1000:
+            vmin = 10    #np.min(srh)
+            vmax = 150 #np.max(srh)
+            nlevels = 30
+        #colormap=cm.get_cmap("plasma").copy()
+        # colormap = cm.get_cmap("inferno").copy()
+        colormap = pyart.graph.cmweather.cm.LangRainbow12.copy()
+        # colormap = cmocean.cm.thermal.copy()
+        colormap.set_over("gray")
+        colormap.set_under(alpha=0)
+    
+        alphas = np.maximum(0, np.minimum(1, (np.array(srh)/10)))
+        alphas[np.isnan(alphas)] = 0
+        
+        # print(np.shape(X), np.shape(alphas))
+        
+        if Y[1,1] > Y[0,0]:
+            myorigin = "lower"
+        else:
+            myorigin = "upper"
+    
+        if region == 'Canada':
+            shrinkscale = 0.3
+            scale = 5
+        else:
+            shrinkscale = 0.6
+            scale = 10
+    
+        #cape2=np.array(cape)
+        #cape2[cape2<100]=np.nan
+        if zdep == 3000:
+            levels = np.arange(10,301,10)
+        elif zdep == 1000:
+            levels = np.arange(10,151,5)
+        
+        alphas = np.zeros(len(levels))
+        for i in range(0,len(levels)):
+            alphas[i] = 1 - i/len(levels)
+        norm = BoundaryNorm(np.linspace(vmin, vmax, nlevels+1), ncolors=colormap.N)
+        
+        cf = ax.contourf(X, Y, srh, levels=levels, cmap=colormap, norm=norm, vmin=vmin, vmax=vmax, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', shrink=shrinkscale)
+        cbar.set_label('SRH [m2/s2]', fontsize=16)  
+        cbar.ax.tick_params(labelsize=12)
+        
+        #extent=[np.min(X),np.max(X),np.min(Y),np.max(Y)]
+        #cape_shaded = ax.imshow(cape, interpolation='bilinear', transform=ccrs.PlateCarree(), origin=myorigin, 
+        #                        cmap='plasma', vmin=vmin, vmax=vmax, alpha=alphas, 
+        ##                        cmap=mymap, vmin=mymin, vmax=mymax, alpha=alphas, 
+        #                        extent=extent, aspect='auto', zorder=20)
+        #cape_shaded_colorbar  = ax.imshow(cape, transform=ccrs.PlateCarree(), origin=myorigin, cmap='plasma', 
+        #                                  vmin=vmin, vmax=vmax, extent=[0,0.5,0,0.5], aspect='auto', zorder=20)
+    #    fig.colorbar(cape_shaded, ax=ax, orientation='vertical', shrink=shrinkscale)
+    #    cbar = plt.colorbar(cape_shaded, ax=ax, orientation='vertical', shrink=shrinkscale)
+    
+    
+        #n=7
+        #Wind barbs are plotted every n gridpoint
+        cuv = ax.quiver(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n], angles='xy', scale_units='xy', scale=scale)
+        ax.quiverkey(cuv, X=1.08, Y=0.99, U=scale, label=f"{scale} m/s", labelpos='N', fontproperties=dict(size=12))
+    
+        cs = ax.contour(X, Y, z500, levels=np.arange(4800,6501,50), colors='k', linewidths=2)#'white', linewidths=1)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
+        
+        plt.title(f" 10m-{zdep/1000:.0f}km wind difference (vectors, m/s), 500 hPa Geopotential (gpdm, black contours),\n\
+                  0-{zdep/1000:.0f}km SRH (shaded)\n {timt[:13]} UTC", fontsize=20)
+        if case == 'tornado':
+            ax.scatter(lontstart, lattstart, s=200, marker="v", edgecolors='k', color='yellow', linewidth=1.25)
+            ax.scatter(lont, latt, s=200, marker="v", edgecolors='k', color='green', linewidth=1.25)
+        else:
+            ax.scatter(lontstart, lattstart, s=200, marker="^", edgecolors='k', color='cyan', linewidth=1.25)
+            ax.scatter(lont, latt, s=200, marker="^", edgecolors='k', color='green', linewidth=1.25)
+    
+        if pngfolder is not None:
+            plt.savefig(pngfolder+"srh_0{zdep/1000:.0f}km_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
+        plt.show()
+    
+    return
+
+
+
+
 # Convert lat/lon coordinates to x/y distances relative to an origin point (in km)
 def latlon2xy(lat, lon, lat_o, lon_o):
     # lat, lon:     1-D vectors of lat/lon in decimal degrees N/deg E
@@ -842,6 +1007,88 @@ def latlon2xy(lat, lon, lat_o, lon_o):
 
 
 
+
+def calcSRH(z, u, v, depth, bottom=None, storm_u=None, storm_v=None, with_agl=False):
+    
+    if bottom is None:
+        bottom = units.Quantity(0, 'm')
+    if storm_u is None:
+        storm_u = units.Quantity(0, 'm/s')
+    if storm_v is None:
+        storm_v = units.Quantity(0, 'm/s')
+    
+    
+    if with_agl:
+        sfc_height = np.tile( np.min(z, axis=0), [z.shape[0], 1, 1] )
+        height = z - sfc_height
+    else:
+        height = z
+    
+    height = height.to_base_units()
+    bottom = bottom.to_base_units()
+    top = bottom + depth
+    
+    
+    # ret = []
+    
+    sort_inds = np.argsort(height, axis=0)
+    height = height[sort_inds]
+    u = u[sort_inds]
+    v = v[sort_inds]
+    
+    inds = ((height>bottom) | np.isclose(height,bottom)) & ((height<top) | np.isclose(height,top))
+    heights_interp = height[inds]
+    u_interp = u[inds]
+    v_interp = v[inds]
+    
+    if top not in heights_interp:
+        top_arr = top.m * np.ones(shape=(heights_interp.shape[1], heights_interp.shape[2]))
+        heights2 = np.append(heights_interp.m, top_arr, axis=0)
+        sort_inds2 = np.argsort(heights2, axis=0)
+        
+        heights_interp = units.Quantity(np.sort(np.append(heights_interp.m, top_arr, axis=0), axis=0), height.units)
+        
+        u_arr = InterpolateToHeightAboveGround(height, 0, u, top.m)
+        u_interp = np.append(u_interp, u_arr, axis=0)
+        u_interp = units.Quantity(u_interp[sort_inds2], 'm/s')
+        
+        v_arr = InterpolateToHeightAboveGround(height, 0, v, top.m)
+        v_interp = np.append(v_interp, v_arr, axis=0)
+        v_interp = units.Quantity(v_interp[sort_inds2], 'm/s')
+    if bottom not in heights_interp:
+        bottom_arr = bottom.m * np.ones(shape=(heights_interp.shape[1], heights_interp.shape[2]))
+        heights3 = np.append(heights_interp.m, bottom_arr, axis=0)
+        sort_inds3 = np.argsort(heights3, axis=0)
+        
+        heights_interp = units.Quantity(np.sort(np.append(heights_interp.m, bottom_arr, axis=0), axis=0), height.units)
+        
+        u_arr = InterpolateToHeightAboveGround(height, 0, u, bottom.m)
+        u_interp = np.append(u_interp, u_arr, axis=0)
+        u_interp = units.Quantity(u_interp[sort_inds3], 'm/s')
+        
+        v_arr = InterpolateToHeightAboveGround(height, 0, v, bottom.m)
+        v_interp = np.append(v_interp, v_arr, axis=0)
+        v_interp = units.Quantity(v_interp[sort_inds3], 'm/s')
+    
+    # ret.append(heights_interp)
+    
+    storm_relative_u = u_interp - np.tile(storm_u, [z.shape[0], 1, 1])
+    storm_relative_v = v_interp - np.tile(storm_v, [z.shape[0], 1, 1])
+    
+    int_layers = (storm_relative_u[1:] * storm_relative_v[:-1]
+                  - storm_relative_u[:-1] * storm_relative_v[1:])
+    
+    positive_srh = int_layers[int_layers.magnitude > 0.].sum()
+    if np.ma.is_masked(positive_srh):
+        positive_srh = units.Quantity(0.0, 'meter**2 / second**2')
+    negative_srh = int_layers[int_layers.magnitude < 0.].sum()
+    if np.ma.is_masked(negative_srh):
+        negative_srh = units.Quantity(0.0, 'meter**2 / second**2')
+    
+    return (positive_srh.to('meter ** 2 / second ** 2'),
+            negative_srh.to('meter ** 2 / second ** 2'),
+            (positive_srh + negative_srh).to('meter ** 2 / second ** 2'))
+    
 
 
 
