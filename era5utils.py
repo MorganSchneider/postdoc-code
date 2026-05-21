@@ -840,8 +840,8 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
             nlevels = 30
         elif zdep == 1000:
             vmin = 10    #np.min(srh)
-            vmax = 200 #np.max(srh)
-            nlevels = 20
+            vmax = 300 #np.max(srh)
+            nlevels = 30
         
         # vmin = 10
         # vmax = 1000
@@ -873,7 +873,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         if zdep == 3000:
             levels = np.arange(10,301,10)
         elif zdep == 1000:
-            levels = np.arange(10,201,10)
+            levels = np.arange(10,301,30)
         
         
         

@@ -101,8 +101,8 @@ from era5utils import *
 
 # region='Alberta'
 #region='SasMan'
-# region='GreatLakes'
-region='Canada'
+region='GreatLakes'
+# region='Canada'
 
 if region=='GreatLakes':    
     [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
