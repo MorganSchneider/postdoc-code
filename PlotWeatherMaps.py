@@ -89,6 +89,8 @@ datas.head(5)
 
 #%% Make plots
 
+from era5utils import *
+
 #% Define plot domain - can add other regions here
 
 #Plotdomain:
@@ -157,6 +159,178 @@ PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,re
 
 # for i in range(0,np.shape(z00)[0]):
 #     print('%d\t%.1f\t%.1f' %(z00[i,lati,loni],u00[i,lati,loni],v00[i,lati,loni]))
+
+#%% 
+
+data00 = data.sel(valid_time=timt)
+data00s = datas.sel(valid_time=timt)
+
+u10s = data00s['u10'].values
+v10s = data00s['v10'].values
+orog = data00s['z'].values/9.81
+u = data00['u'].values
+v = data00['v'].values
+z = data00['z'].values/9.81
+p = data00.pressure_level.values * units.hPa
+# z = Z - np.tile(orog, [len(p),1,1])
+lat = data00["latitude"].values
+lon = data00["longitude"].values
+
+bottom = 10
+depth = 3000
+top = 3000
+
+
+
+u500 = InterpolateToHeightAboveGround(z, orog, u, 500)
+v500 = InterpolateToHeightAboveGround(z, orog, v, 500)
+u5500 = InterpolateToHeightAboveGround(z, orog, u, 5500)
+v5500 = InterpolateToHeightAboveGround(z, orog, v, 5500)
+u6000 = InterpolateToHeightAboveGround(z, orog, u, 6000)
+v6000 = InterpolateToHeightAboveGround(z, orog, v, 6000)
+
+
+z_interp = z
+u_interp = u
+v_interp = v
+
+if 6000 not in z_interp:
+    arr1 = 6000 * np.ones(shape=orog.shape)
+    z1 = np.append(z_interp, arr1[np.newaxis,:], axis=0)
+    sort_inds1 = np.argsort(z1[:,0,0])
+    z_interp = z1[sort_inds1,:,:]
+    
+    u1 = np.append(u_interp, u6000[np.newaxis,:], axis=0)
+    u_interp = u1[sort_inds1,:,:]
+    v1 = np.append(v_interp, v6000[np.newaxis,:], axis=0)
+    v_interp = v1[sort_inds1,:,:]
+    
+if 5500 not in z_interp:
+    arr2 = 5500 * np.ones(shape=orog.shape)
+    z2 = np.append(z_interp, arr2[np.newaxis,:], axis=0)
+    sort_inds2 = np.argsort(z2[:,0,0])
+    z_interp = z2[sort_inds2,:,:]
+    
+    u2 = np.append(u_interp, u5500[np.newaxis,:], axis=0)
+    u_interp = u2[sort_inds2,:,:]
+    v2 = np.append(v_interp, v5500[np.newaxis,:], axis=0)
+    v_interp = v2[sort_inds2,:,:]
+    
+if 500 not in z_interp:
+    arr3 = 500 * np.ones(shape=orog.shape)
+    z3 = np.append(z_interp, arr3[np.newaxis,:], axis=0)
+    sort_inds3 = np.argsort(z3[:,0,0])
+    z_interp = z3[sort_inds3,:,:]
+    
+    u3 = np.append(u_interp, u500[np.newaxis,:], axis=0)
+    u_interp = u3[sort_inds3,:,:]
+    v3 = np.append(v_interp, v500[np.newaxis,:], axis=0)
+    v_interp = v3[sort_inds3,:,:]
+
+
+mask1 = (z_interp<6000) | np.isclose(z_interp,6000)
+u_0_6 = np.ma.masked_array(u_interp, ~mask1)
+v_0_6 = np.ma.masked_array(v_interp, ~mask1)
+
+mask2 = (z_interp<500) | np.isclose(z_interp,500)
+u_0_05 = np.ma.masked_array(u_interp, ~mask2)
+v_0_05 = np.ma.masked_array(v_interp, ~mask2)
+
+mask3 = ((z_interp>5500) | np.isclose(z_interp,5500)) & ((z_interp<6000) | np.isclose(z_interp,6000))
+u_55_6 = np.ma.masked_array(u_interp, ~mask3)
+v_55_6 = np.ma.masked_array(v_interp, ~mask3)
+
+u_mean = np.nanmean(u_0_6, axis=0)
+v_mean = np.nanmean(v_0_6, axis=0)
+wind_mean = np.array([u_mean, v_mean])
+
+u_500m = np.nanmean(u_0_05, axis=0)
+v_500m = np.nanmean(v_0_05, axis=0)
+wind_500m = np.array([u_500m, v_500m])
+
+u_5500m = np.nanmean(u_55_6, axis=0)
+v_5500m = np.nanmean(v_55_6, axis=0)
+wind_5500m = np.array([u_5500m, v_5500m])
+
+shear = wind_5500m - wind_500m
+shear_cross = np.asarray([shear[1,:,:], -1*shear[0,:,:]])
+# shear_mag = np.hypot(*shear)
+shear_mag = np.sqrt(shear[0,:,:]**2 + shear[1,:,:]**2)
+rdev = shear_cross * (7.5 / shear_mag)
+
+right_mover = wind_mean + rdev
+left_mover = wind_mean - rdev
+
+
+#%
+# inds = ((z>bottom) | np.isclose(z,bottom)) & ((z<top) | np.isclose(z,top))
+# z_interp = z[inds]
+# u_interp = u[inds]
+# v_interp = v[inds]
+
+
+#%
+
+z_interp = z
+u_interp = u
+v_interp = v
+
+top_arr = top * np.ones(shape=orog.shape)
+z1 = np.append(z_interp, top_arr[np.newaxis,:], axis=0)
+sort_inds1 = np.argsort(z1[:,0,0])
+# z_interp = np.sort(z1, axis=0)
+z_interp = z1[sort_inds1,:,:]
+
+u_top = InterpolateToHeightAboveGround(z, orog, u, top)
+u1 = np.append(u_interp, u_top[np.newaxis,:], axis=0)
+u_interp = u1[sort_inds1,:,:]
+
+v_top = InterpolateToHeightAboveGround(z, orog, v, top)
+v1 = np.append(v_interp, v_top[np.newaxis,:], axis=0)
+v_interp = v1[sort_inds1,:,:]
+
+
+
+bot_arr = bottom * np.ones(shape=orog.shape)
+z2 = np.append(z_interp, bot_arr[np.newaxis,:], axis=0)
+sort_inds2 = np.argsort(z2[:,0,0])
+# z_interp = np.sort(z2, axis=0)
+z_interp = z2[sort_inds2,:,:]
+
+# u_bot = InterpolateToHeightAboveGround(z, orog, u, bottom)
+# u2 = np.append(u_interp, u_bot[np.newaxis,:], axis=0)
+u2 = np.append(u_interp, u10s[np.newaxis,:], axis=0)
+u_interp = u2[sort_inds2,:,:]
+
+# v_bot = InterpolateToHeightAboveGround(z, orog, v, bottom)
+# v2 = np.append(v_interp, v_bot[np.newaxis,:], axis=0)
+v2 = np.append(v_interp, v10s[np.newaxis,:], axis=0)
+v_interp = v2[sort_inds2,:,:]
+
+
+# [rm,lm,mw] = getStormMotion(z, orog, u, v)
+# u_rm=rm[0,:,:]; v_rm=rm[1,:,:]
+# u_lm=lm[0,:,:]; v_lm=lm[1,:,:]
+# u_mw=mw[0,:,:]; v_mw=mw[1,:,:]
+
+
+storm_u = right_mover[0,:,:] # right_mover[0,:,:], left_mover[0,:,:], wind_mean[0,:,:]
+storm_v = right_mover[1,:,:] # right_mover[1,:,:], left_mover[1,:,:], wind_mean[1,:,:]
+
+storm_relative_u = u_interp - np.tile(storm_u, [u_interp.shape[0], 1, 1])
+storm_relative_v = v_interp - np.tile(storm_v, [v_interp.shape[0], 1, 1])
+
+int_layers = (storm_relative_u[1:,:,:] * storm_relative_v[:-1,:,:]
+              - storm_relative_u[:-1,:,:] * storm_relative_v[1:,:,:])
+
+int_layers_pos = np.ma.masked_array(int_layers, int_layers<0)
+int_layers_neg = np.ma.masked_array(int_layers, int_layers>0)
+positive_srh = np.nansum(int_layers_pos, axis=0)
+negative_srh = np.nansum(int_layers_neg, axis=0)
+
+# positive_srh = np.sum(int_layers[int_layers > 0], axis=0)
+# negative_srh = np.sum(int_layers[int_layers < 0], axis=0)
+total_srh = positive_srh + negative_srh
 
 
 

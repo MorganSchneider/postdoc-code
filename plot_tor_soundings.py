@@ -100,16 +100,16 @@ data = extract_data(latt, lont, timt, dsp, dss)
 # parcel_prof = data['parcel_prof']
 figfolder = fp+"figs/"
 
-dsp.close()
-dss.close()
+# dsp.close()
+# dss.close()
 
 
 
 
-figsave = False
+# figsave = False
 
 
-fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
+# fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=None, figsave=False)
 
 
 # plot_with_hodograph(timt, lont, latt, z, orog, T, Td, p, u, v, u10, v10, leftm, meanm, rightm, lcl_pressure, lcl_temperature, parcel_prof, pngfolder=figfolder)

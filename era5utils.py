@@ -36,6 +36,8 @@ from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
 import pyart
 import cmocean
 
+
+
 # import geopandas as gpd
 # from shapely.geometry import LineString, Point
 
@@ -802,34 +804,13 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     u00 = data00['u']
     v00 = data00['v']
     z00 = data00['z'].values/9.81
-    p00 = data00.pressure_level.values * units.hPa
-    z500 = z00[(p00==500),:,:]
-    
-    # u500 = InterpolateToHeightAboveGround(z00, orog, np.array(u00), 500)
-    # v500 = InterpolateToHeightAboveGround(z00, orog, np.array(v00), 500)
-    
+    p00 = data00.pressure_level.values
+    z500 = z00[(p00==500),:,:].squeeze()
     
     lat = data['latitude']
     lon = data['longitude']
     X,Y = np.meshgrid(lon,lat)
     
-    u_rm = np.zeros(shape=orog.shape); v_rm = np.zeros(shape=orog.shape)
-    u_lm = np.zeros(shape=orog.shape); v_lm = np.zeros(shape=orog.shape)
-    u_mm = np.zeros(shape=orog.shape); v_mm = np.zeros(shape=orog.shape)
-    for j in range(len(lat)):
-        for i in range(len(lon)):
-            z01 = z00[:,j,i]
-            orog01 = orog[j,i]
-            u01 = u00[:,j,i]
-            v01 = v00[:,j,i]
-            
-            [rm,lm,mm] = mc.bunkers_storm_motion(p00[z01>orog01], u01[z01>orog01], v01[z01>orog01], z01[z01>orog01]*units.m)
-            u_rm[j,i] = rm[0].magnitude; v_rm[j,i] = rm[1].magnitude
-            u_lm[j,i] = lm[0].magnitude; v_lm[j,i] = lm[1].magnitude
-            u_mm[j,i] = mm[0].magnitude; v_mm[j,i] = mm[1].magnitude
-    
-    storm_u = u_mm*units('m/s')
-    storm_v = v_mm*units('m/s')
     
     
     for zdep in [1000,3000]:
@@ -840,27 +821,10 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         vv = vv - v10s
         
         
-        [srhpos,srhneg,srhtot] = calcSRH(z00[z00>orog]*units.m, u00[z00>orog], v00[z00>orog], zdep*units.m, storm_u=storm_u, storm_v=storm_v)
+        [srhpos,srhneg,srhtot] = getSRH(z00, orog, u00.values, v00.values, zdep, u10s, v10s)
         
         srh = srhtot.magnitude
         
-        # srh = np.zeros(shape=orog.shape)
-        
-        # for j in range(len(lat)):
-        #     for i in range(len(lon)):
-        #         z01 = z00[:,j,i]
-        #         orog01 = orog[j,i]
-        #         u01 = u00[:,j,i]
-        #         v01 = v00[:,j,i]
-                
-        #         [rightm,leftm,meanm] = mc.bunkers_storm_motion(p00[z01>orog01], u01[z01>orog01], v01[z01>orog01], z01[z01>orog01]*units.m)
-        #         uright = rightm[0]; vright = rightm[1]
-        #         uleft = leftm[0]; vleft = leftm[1]
-        #         umean = meanm[0]; vmean = meanm[1]
-                
-        #         [srhpos,srhneg,srhtot] = mc.storm_relative_helicity(z01[z01>orog01]*units.m, u01[z01>orog01], v01[z01>orog01],
-        #                                                depth=zdep*units.m, storm_u=umean, storm_v=vmean)
-        #         srh[j,i] = srhtot.magnitude
                 
         
         fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
@@ -872,16 +836,19 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         
         if zdep == 3000:
             vmin = 10    #np.min(srh)
-            vmax = 300 #np.max(srh)
-            nlevels = 30
+            vmax = 1000 #np.max(srh)
+            nlevels = 50
         elif zdep == 1000:
             vmin = 10    #np.min(srh)
-            vmax = 150 #np.max(srh)
-            nlevels = 30
-        #colormap=cm.get_cmap("plasma").copy()
-        # colormap = cm.get_cmap("inferno").copy()
+            vmax = 500 #np.max(srh)
+            nlevels = 50
+        
+        vmin = 10
+        vmax = 800
+        nlevels = 40
+        
+        
         colormap = pyart.graph.cmweather.cm.LangRainbow12.copy()
-        # colormap = cmocean.cm.thermal.copy()
         colormap.set_over("gray")
         colormap.set_under(alpha=0)
     
@@ -902,12 +869,14 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
             shrinkscale = 0.6
             scale = 10
     
-        #cape2=np.array(cape)
-        #cape2[cape2<100]=np.nan
+        
         if zdep == 3000:
-            levels = np.arange(10,301,10)
+            levels = np.arange(10,501,10)
         elif zdep == 1000:
-            levels = np.arange(10,151,5)
+            levels = np.arange(10,301,10)
+        
+        levels = np.arange(vmin, vmax+1, nlevels)
+        
         
         alphas = np.zeros(len(levels))
         for i in range(0,len(levels)):
@@ -919,15 +888,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         cbar.set_label('SRH [m2/s2]', fontsize=16)  
         cbar.ax.tick_params(labelsize=12)
         
-        #extent=[np.min(X),np.max(X),np.min(Y),np.max(Y)]
-        #cape_shaded = ax.imshow(cape, interpolation='bilinear', transform=ccrs.PlateCarree(), origin=myorigin, 
-        #                        cmap='plasma', vmin=vmin, vmax=vmax, alpha=alphas, 
-        ##                        cmap=mymap, vmin=mymin, vmax=mymax, alpha=alphas, 
-        #                        extent=extent, aspect='auto', zorder=20)
-        #cape_shaded_colorbar  = ax.imshow(cape, transform=ccrs.PlateCarree(), origin=myorigin, cmap='plasma', 
-        #                                  vmin=vmin, vmax=vmax, extent=[0,0.5,0,0.5], aspect='auto', zorder=20)
-    #    fig.colorbar(cape_shaded, ax=ax, orientation='vertical', shrink=shrinkscale)
-    #    cbar = plt.colorbar(cape_shaded, ax=ax, orientation='vertical', shrink=shrinkscale)
+        
     
     
         #n=7
@@ -1008,87 +969,175 @@ def latlon2xy(lat, lon, lat_o, lon_o):
 
 
 
-def calcSRH(z, u, v, depth, bottom=None, storm_u=None, storm_v=None, with_agl=False):
+
+def getStormMotion(z, orog, u, v):
+    # orog = data00s["z"].values/9.81
+    # u = data00['u']
+    # v = data00['v']
+    # z = data00['z'].values/9.81
+    
+    u500 = InterpolateToHeightAboveGround(z, orog, u, 500)
+    v500 = InterpolateToHeightAboveGround(z, orog, v, 500)
+    u5500 = InterpolateToHeightAboveGround(z, orog, u, 5500)
+    v5500 = InterpolateToHeightAboveGround(z, orog, v, 5500)
+    u6000 = InterpolateToHeightAboveGround(z, orog, u, 6000)
+    v6000 = InterpolateToHeightAboveGround(z, orog, v, 6000)
+    
+    
+    z_interp = z
+    u_interp = u
+    v_interp = v
+    
+    if 6000 not in z_interp:
+        arr1 = 6000 * np.ones(shape=orog.shape)
+        z1 = np.append(z_interp, arr1[np.newaxis,:], axis=0)
+        sort_inds1 = np.argsort(z1[:,0,0])
+        z_interp = z1[sort_inds1,:,:]
+        
+        u1 = np.append(u_interp, u6000[np.newaxis,:], axis=0)
+        u_interp = u1[sort_inds1,:,:]
+        v1 = np.append(v_interp, v6000[np.newaxis,:], axis=0)
+        v_interp = v1[sort_inds1,:,:]
+        
+    if 5500 not in z_interp:
+        arr2 = 5500 * np.ones(shape=orog.shape)
+        z2 = np.append(z_interp, arr2[np.newaxis,:], axis=0)
+        sort_inds2 = np.argsort(z2[:,0,0])
+        z_interp = z2[sort_inds2,:,:]
+        
+        u2 = np.append(u_interp, u5500[np.newaxis,:], axis=0)
+        u_interp = u2[sort_inds2,:,:]
+        v2 = np.append(v_interp, v5500[np.newaxis,:], axis=0)
+        v_interp = v2[sort_inds2,:,:]
+        
+    if 500 not in z_interp:
+        arr3 = 500 * np.ones(shape=orog.shape)
+        z3 = np.append(z_interp, arr3[np.newaxis,:], axis=0)
+        sort_inds3 = np.argsort(z3[:,0,0])
+        z_interp = z3[sort_inds3,:,:]
+        
+        u3 = np.append(u_interp, u500[np.newaxis,:], axis=0)
+        u_interp = u3[sort_inds3,:,:]
+        v3 = np.append(v_interp, v500[np.newaxis,:], axis=0)
+        v_interp = v3[sort_inds3,:,:]
+    
+    mask1 = (z_interp<6000) | np.isclose(z_interp,6000)
+    u_0_6 = np.ma.masked_array(u_interp, ~mask1)
+    v_0_6 = np.ma.masked_array(v_interp, ~mask1)
+    
+    mask2 = (z_interp<500) | np.isclose(z_interp,500)
+    u_0_05 = np.ma.masked_array(u_interp, ~mask2)
+    v_0_05 = np.ma.masked_array(v_interp, ~mask2)
+    
+    mask3 = ((z_interp>5500) | np.isclose(z_interp,5500)) & ((z_interp<6000) | np.isclose(z_interp,6000))
+    u_55_6 = np.ma.masked_array(u_interp, ~mask3)
+    v_55_6 = np.ma.masked_array(v_interp, ~mask3)
+    
+    u_mean = np.nanmean(u_0_6, axis=0)
+    v_mean = np.nanmean(v_0_6, axis=0)
+    wind_mean = np.array([u_mean, v_mean])
+    
+    u_500m = np.nanmean(u_0_05, axis=0)
+    v_500m = np.nanmean(v_0_05, axis=0)
+    wind_500m = np.array([u_500m, v_500m])
+    
+    u_5500m = np.nanmean(u_55_6, axis=0)
+    v_5500m = np.nanmean(v_55_6, axis=0)
+    wind_5500m = np.array([u_5500m, v_5500m])
+    
+    shear = wind_5500m - wind_500m
+    shear_cross = np.asarray([shear[1,:,:], -1*shear[0,:,:]])
+    shear_mag = np.sqrt(shear[0,:,:]**2 + shear[1,:,:]**2)
+    rdev = shear_cross * (7.5 / shear_mag)
+    
+    right_mover = wind_mean + rdev
+    left_mover = wind_mean - rdev
+    
+    return right_mover, left_mover, wind_mean
+
+
+
+
+def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
     
     if bottom is None:
-        bottom = units.Quantity(0, 'm')
-    if storm_u is None:
-        storm_u = units.Quantity(0, 'm/s')
-    if storm_v is None:
-        storm_v = units.Quantity(0, 'm/s')
-    
-    
-    if with_agl:
-        sfc_height = np.tile( np.min(z, axis=0), [z.shape[0], 1, 1] )
-        height = z - sfc_height
+        bottom = 10
+        top = depth
+    # if storm_u is None:
+    #     storm_u = 0
+    # if storm_v is None:
+    #     storm_v = 0
     else:
-        height = z
+        top = bottom + depth
     
-    height = height.to_base_units()
-    bottom = bottom.to_base_units()
-    top = bottom + depth
+    z_interp = z
+    u_interp = u
+    v_interp = v
     
-    
-    # ret = []
-    
-    sort_inds = np.argsort(height, axis=0)
-    height = height[sort_inds]
-    u = u[sort_inds]
-    v = v[sort_inds]
-    
-    inds = ((height>bottom) | np.isclose(height,bottom)) & ((height<top) | np.isclose(height,top))
-    heights_interp = height[inds]
-    u_interp = u[inds]
-    v_interp = v[inds]
-    
-    if top not in heights_interp:
-        top_arr = top.m * np.ones(shape=(heights_interp.shape[1], heights_interp.shape[2]))
-        heights2 = np.append(heights_interp.m, top_arr, axis=0)
-        sort_inds2 = np.argsort(heights2, axis=0)
+    if top not in z_interp:
+        top_arr = top * np.ones(shape=orog.shape)
+        z1 = np.append(z_interp, top_arr[np.newaxis,:], axis=0)
+        sort_inds1 = np.argsort(z1[:,0,0])
         
-        heights_interp = units.Quantity(np.sort(np.append(heights_interp.m, top_arr, axis=0), axis=0), height.units)
+        z_interp = z1[sort_inds1,:,:]
         
-        u_arr = InterpolateToHeightAboveGround(height, 0, u, top.m)
-        u_interp = np.append(u_interp, u_arr, axis=0)
-        u_interp = units.Quantity(u_interp[sort_inds2], 'm/s')
+        u_top = InterpolateToHeightAboveGround(z, orog, u, top)
+        u1 = np.append(u_interp, u_top[np.newaxis,:], axis=0)
+        u_interp = u1[sort_inds1,:,:]
+
+        v_top = InterpolateToHeightAboveGround(z, orog, v, top)
+        v1 = np.append(v_interp, v_top[np.newaxis,:], axis=0)
+        v_interp = v1[sort_inds1,:,:]
         
-        v_arr = InterpolateToHeightAboveGround(height, 0, v, top.m)
-        v_interp = np.append(v_interp, v_arr, axis=0)
-        v_interp = units.Quantity(v_interp[sort_inds2], 'm/s')
-    if bottom not in heights_interp:
-        bottom_arr = bottom.m * np.ones(shape=(heights_interp.shape[1], heights_interp.shape[2]))
-        heights3 = np.append(heights_interp.m, bottom_arr, axis=0)
-        sort_inds3 = np.argsort(heights3, axis=0)
+    if bottom not in z_interp:
+        bot_arr = bottom * np.ones(shape=orog.shape)
+        z2 = np.append(z_interp, bot_arr[np.newaxis,:], axis=0)
+        sort_inds2 = np.argsort(z2[:,0,0])
         
-        heights_interp = units.Quantity(np.sort(np.append(heights_interp.m, bottom_arr, axis=0), axis=0), height.units)
+        z_interp = z2[sort_inds2,:,:]
         
-        u_arr = InterpolateToHeightAboveGround(height, 0, u, bottom.m)
-        u_interp = np.append(u_interp, u_arr, axis=0)
-        u_interp = units.Quantity(u_interp[sort_inds3], 'm/s')
+        u2 = np.append(u_interp, u10[np.newaxis,:], axis=0)
+        u_interp = u2[sort_inds2,:,:]
         
-        v_arr = InterpolateToHeightAboveGround(height, 0, v, bottom.m)
-        v_interp = np.append(v_interp, v_arr, axis=0)
-        v_interp = units.Quantity(v_interp[sort_inds3], 'm/s')
+        v2 = np.append(v_interp, v10[np.newaxis,:], axis=0)
+        v_interp = v2[sort_inds2,:,:]
     
-    # ret.append(heights_interp)
     
-    storm_relative_u = u_interp - np.tile(storm_u, [z.shape[0], 1, 1])
-    storm_relative_v = v_interp - np.tile(storm_v, [z.shape[0], 1, 1])
+    [rm,lm,mw] = getStormMotion(z, orog, u, v)
+    u_rm=rm[0,:,:]; v_rm=rm[1,:,:]
+    u_lm=lm[0,:,:]; v_lm=lm[1,:,:]
+    u_mw=mw[0,:,:]; v_mw=mw[1,:,:]
     
-    int_layers = (storm_relative_u[1:] * storm_relative_v[:-1]
-                  - storm_relative_u[:-1] * storm_relative_v[1:])
+    if storm_vector is None:
+        storm_u = u_rm
+        storm_v = v_rm
+    elif (storm_vector == 'rightmover') | (storm_vector == 'right'):
+        storm_u = u_rm
+        storm_v = v_rm
+    elif (storm_vector == 'leftmover') | (storm_vector == 'left'):
+        storm_u = u_lm
+        storm_v = v_lm
+    elif (storm_vector == 'meanwind') | (storm_vector == 'mean'):
+        storm_u = u_mw
+        storm_v = v_mw
     
-    positive_srh = int_layers[int_layers.magnitude > 0.].sum()
-    if np.ma.is_masked(positive_srh):
-        positive_srh = units.Quantity(0.0, 'meter**2 / second**2')
-    negative_srh = int_layers[int_layers.magnitude < 0.].sum()
-    if np.ma.is_masked(negative_srh):
-        negative_srh = units.Quantity(0.0, 'meter**2 / second**2')
+    storm_relative_u = u_interp - np.tile(storm_u, [u_interp.shape[0], 1, 1])
+    storm_relative_v = v_interp - np.tile(storm_v, [v_interp.shape[0], 1, 1])
     
-    return (positive_srh.to('meter ** 2 / second ** 2'),
-            negative_srh.to('meter ** 2 / second ** 2'),
-            (positive_srh + negative_srh).to('meter ** 2 / second ** 2'))
+    int_layers = (storm_relative_u[1:,:,:] * storm_relative_v[:-1,:,:]
+                  - storm_relative_u[:-1,:,:] * storm_relative_v[1:,:,:])
+    int_layers_pos = np.ma.masked_array(int_layers, int_layers<0)
+    int_layers_neg = np.ma.masked_array(int_layers, int_layers>0)
     
+    positive_srh = np.asarray(np.nansum(int_layers_pos, axis=0))
+    negative_srh = np.asarray(np.nansum(int_layers_neg, axis=0))
+    total_srh = np.asarray(positive_srh + negative_srh)
+    
+    return (positive_srh*units('meter**2 / second**2'),
+            negative_srh*units('meter**2 / second**2'),
+            total_srh*units('meter**2 / second**2'))
+
+
 
 
 
