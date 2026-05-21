@@ -175,10 +175,16 @@ p = data00.pressure_level.values * units.hPa
 # z = Z - np.tile(orog, [len(p),1,1])
 lat = data00["latitude"].values
 lon = data00["longitude"].values
+X,Y = np.meshgrid(lon,lat)
 
 bottom = 10
 depth = 3000
-top = 3000
+top = depth
+
+vmin = 10
+vmax = 400
+nlevels = 10
+levels = np.arange(vmin, vmax+1, nlevels)
 
 
 
@@ -314,23 +320,124 @@ v_interp = v2[sort_inds2,:,:]
 # u_mw=mw[0,:,:]; v_mw=mw[1,:,:]
 
 
+mask = ((z_interp>bottom) | np.isclose(z_interp,bottom)) & ((z_interp<top) | np.isclose(z_interp,top))
+u_layer = np.ma.masked_array(u_interp, ~mask)
+v_layer = np.ma.masked_array(v_interp, ~mask)
+
+
 storm_u = right_mover[0,:,:] # right_mover[0,:,:], left_mover[0,:,:], wind_mean[0,:,:]
 storm_v = right_mover[1,:,:] # right_mover[1,:,:], left_mover[1,:,:], wind_mean[1,:,:]
 
-storm_relative_u = u_interp - np.tile(storm_u, [u_interp.shape[0], 1, 1])
-storm_relative_v = v_interp - np.tile(storm_v, [v_interp.shape[0], 1, 1])
+storm_relative_u = u_layer - np.tile(storm_u, [u_layer.shape[0], 1, 1])
+storm_relative_v = v_layer - np.tile(storm_v, [v_layer.shape[0], 1, 1])
 
 int_layers = (storm_relative_u[1:,:,:] * storm_relative_v[:-1,:,:]
               - storm_relative_u[:-1,:,:] * storm_relative_v[1:,:,:])
 
 int_layers_pos = np.ma.masked_array(int_layers, int_layers<0)
 int_layers_neg = np.ma.masked_array(int_layers, int_layers>0)
-positive_srh = np.nansum(int_layers_pos, axis=0)
-negative_srh = np.nansum(int_layers_neg, axis=0)
+positive_srh = np.asarray(np.nansum(int_layers_pos, axis=0))
+negative_srh = np.asarray(np.nansum(int_layers_neg, axis=0))
 
 # positive_srh = np.sum(int_layers[int_layers > 0], axis=0)
 # negative_srh = np.sum(int_layers[int_layers < 0], axis=0)
-total_srh = positive_srh + negative_srh
+total_srh = np.asarray(positive_srh + negative_srh)
+
+
+
+srh = total_srh
+zdep = depth
+
+
+
+
+
+fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+ax.set_extent([lonW,lonE,latS,latN], crs=ccrs.PlateCarree())
+ax.add_feature(cfeature.BORDERS, linestyle='-')
+ax.add_feature(cfeature.STATES, linestyle='-')
+ax.add_feature(cfeature.COASTLINE)
+ax.add_feature(cfeature.LAKES, alpha=0.2)
+
+# if zdep == 3000:
+#     vmin = 1    #np.min(srh)
+#     vmax = 1000 #np.max(srh)
+#     nlevels = 50
+# elif zdep == 1000:
+#     vmin = 10    #np.min(srh)
+#     vmax = 500 #np.max(srh)
+#     nlevels = 50
+
+
+
+colormap = pyart.graph.cmweather.cm.LangRainbow12.copy()
+colormap.set_over("gray")
+colormap.set_under(alpha=0)
+
+alphas = np.maximum(0, np.minimum(1, (np.array(srh)/10)))
+alphas[np.isnan(alphas)] = 0
+
+# print(np.shape(X), np.shape(alphas))
+
+if Y[1,1] > Y[0,0]:
+    myorigin = "lower"
+else:
+    myorigin = "upper"
+
+if region == 'Canada':
+    shrinkscale = 0.3
+    scale = 5
+else:
+    shrinkscale = 0.6
+    scale = 10
+
+
+# if zdep == 3000:
+#     levels = np.arange(10,501,10)
+# elif zdep == 1000:
+#     levels = np.arange(10,301,10)
+
+
+
+
+alphas = np.zeros(len(levels))
+for i in range(0,len(levels)):
+    alphas[i] = 1 - i/len(levels)
+norm = BoundaryNorm(np.linspace(vmin, vmax, nlevels+1), ncolors=colormap.N)
+
+cf = ax.contourf(X, Y, total_srh, levels=levels, cmap=colormap, norm=norm, vmin=vmin, vmax=vmax, extend='both')
+cbar = plt.colorbar(cf, ax=ax, orientation='vertical', shrink=shrinkscale)
+cbar.set_label('SRH [m2/s2]', fontsize=16)  
+cbar.ax.tick_params(labelsize=12)
+
+
+
+
+#n=7
+#Wind barbs are plotted every n gridpoint
+# cuv = ax.quiver(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n], angles='xy', scale_units='xy', scale=scale)
+# ax.quiverkey(cuv, X=1.08, Y=0.99, U=scale, label=f"{scale} m/s", labelpos='N', fontproperties=dict(size=12))
+
+# cs = ax.contour(X, Y, z500, levels=np.arange(4800,6501,50), colors='k', linewidths=2)#'white', linewidths=1)
+# ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
+
+plt.title(f" 10m-{zdep/1000:.0f}km wind difference (vectors, m/s), 500 hPa Geopotential (gpdm, black contours),\n\
+          0-{zdep/1000:.0f}km SRH (shaded)\n {timt[:13]} UTC", fontsize=20)
+if case == 'tornado':
+    ax.scatter(lontstart, lattstart, s=200, marker="v", edgecolors='k', color='yellow', linewidth=1.25)
+    ax.scatter(lont, latt, s=200, marker="v", edgecolors='k', color='green', linewidth=1.25)
+else:
+    ax.scatter(lontstart, lattstart, s=200, marker="^", edgecolors='k', color='cyan', linewidth=1.25)
+    ax.scatter(lont, latt, s=200, marker="^", edgecolors='k', color='green', linewidth=1.25)
+    
+    
+    
+    
+    
+    
+
+
+
 
 
 

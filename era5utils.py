@@ -807,8 +807,8 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     p00 = data00.pressure_level.values
     z500 = z00[(p00==500),:,:].squeeze()
     
-    lat = data['latitude']
-    lon = data['longitude']
+    lat = data00['latitude']
+    lon = data00['longitude']
     X,Y = np.meshgrid(lon,lat)
     
     
@@ -821,7 +821,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         vv = vv - v10s
         
         
-        [srhpos,srhneg,srhtot] = getSRH(z00, orog, u00.values, v00.values, zdep, u10s, v10s)
+        [srhpos,srhneg,srhtot] = getSRH(z00, orog, u00.values, v00.values, zdep, u10s, v10s, storm_vector='rightmover')
         
         srh = srhtot.magnitude
         
@@ -836,16 +836,16 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         
         if zdep == 3000:
             vmin = 10    #np.min(srh)
-            vmax = 1000 #np.max(srh)
-            nlevels = 50
+            vmax = 300 #np.max(srh)
+            nlevels = 30
         elif zdep == 1000:
             vmin = 10    #np.min(srh)
-            vmax = 500 #np.max(srh)
-            nlevels = 50
+            vmax = 200 #np.max(srh)
+            nlevels = 20
         
-        vmin = 10
-        vmax = 800
-        nlevels = 40
+        # vmin = 10
+        # vmax = 1000
+        # nlevels = 50
         
         
         colormap = pyart.graph.cmweather.cm.LangRainbow12.copy()
@@ -871,11 +871,10 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     
         
         if zdep == 3000:
-            levels = np.arange(10,501,10)
-        elif zdep == 1000:
             levels = np.arange(10,301,10)
+        elif zdep == 1000:
+            levels = np.arange(10,201,10)
         
-        levels = np.arange(vmin, vmax+1, nlevels)
         
         
         alphas = np.zeros(len(levels))
@@ -910,7 +909,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
     
         if pngfolder is not None:
             plt.savefig(pngfolder+"srh_0{zdep/1000:.0f}km_map.png", dpi=200, bbox_inches='tight', pad_inches=0.1)
-        plt.show()
+        # plt.show()
     
     return
 
@@ -1089,7 +1088,8 @@ def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
         v1 = np.append(v_interp, v_top[np.newaxis,:], axis=0)
         v_interp = v1[sort_inds1,:,:]
         
-    if bottom not in z_interp:
+    # if bottom not in z_interp:
+    if True:
         bot_arr = bottom * np.ones(shape=orog.shape)
         z2 = np.append(z_interp, bot_arr[np.newaxis,:], axis=0)
         sort_inds2 = np.argsort(z2[:,0,0])
@@ -1121,8 +1121,12 @@ def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
         storm_u = u_mw
         storm_v = v_mw
     
-    storm_relative_u = u_interp - np.tile(storm_u, [u_interp.shape[0], 1, 1])
-    storm_relative_v = v_interp - np.tile(storm_v, [v_interp.shape[0], 1, 1])
+    mask = ((z_interp>bottom) | np.isclose(z_interp,bottom)) & ((z_interp<top) | np.isclose(z_interp,top))
+    u_layer = np.ma.masked_array(u_interp, ~mask)
+    v_layer = np.ma.masked_array(v_interp, ~mask)
+    
+    storm_relative_u = u_layer - np.tile(storm_u, [u_layer.shape[0], 1, 1])
+    storm_relative_v = v_layer - np.tile(storm_v, [v_layer.shape[0], 1, 1])
     
     int_layers = (storm_relative_u[1:,:,:] * storm_relative_v[:-1,:,:]
                   - storm_relative_u[:-1,:,:] * storm_relative_v[1:,:,:])
