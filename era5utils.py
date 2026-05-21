@@ -873,7 +873,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         if zdep == 3000:
             levels = np.arange(10,301,10)
         elif zdep == 1000:
-            levels = np.arange(10,301,30)
+            levels = np.arange(10,301,10)
         
         
         
