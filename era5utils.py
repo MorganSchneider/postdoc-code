@@ -893,7 +893,7 @@ def PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstar
         #n=7
         #Wind barbs are plotted every n gridpoint
         cuv = ax.quiver(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n], angles='xy', scale_units='xy', scale=scale)
-        ax.quiverkey(cuv, X=1.08, Y=0.99, U=scale, label=f"{scale} m/s", labelpos='N', fontproperties=dict(size=12))
+        ax.quiverkey(cuv, X=1.08, Y=1.02, U=10, label="10 m/s", labelpos='N', fontproperties=dict(size=12))
     
         cs = ax.contour(X, Y, z500, levels=np.arange(4800,6501,50), colors='k', linewidths=2)#'white', linewidths=1)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
