@@ -1109,7 +1109,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = True
+figsave = False
 
 
 
@@ -1184,7 +1184,6 @@ for i in range(7):
     ax.contour(x, y, is_db, levels=[1], colors='dodgerblue', linewidths=0.5)
     ax.contour(x, y, is_mv_rij, levels=[1], colors='violet', linewidths=0.5)
     ax.contour(x, y, is_mv_db, levels=[1], colors='gold', linewidths=0.5)
-    
     # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
 
 # ax.contour(xh1, yh1, wsp1, levels=[V_thres], colors='k', linewidths=[1])
