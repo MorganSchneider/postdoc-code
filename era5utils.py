@@ -20,18 +20,16 @@ import pickle
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Normalize, BoundaryNorm
+from matplotlib.colors import Normalize, BoundaryNorm, colors, ListedColormap
 from matplotlib import  cm
-from matplotlib.colors import ListedColormap
-import matplotlib.colors as colors
 
 import metpy.calc as mc
 from metpy.cbook import get_test_data
 from metpy.plots import Hodograph, SkewT
 from metpy.units import units
-from metpy.calc import dewpoint_from_relative_humidity,specific_humidity_from_dewpoint
-from metpy.calc import potential_temperature,temperature_from_potential_temperature
-from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
+# from metpy.calc import dewpoint_from_relative_humidity,specific_humidity_from_dewpoint
+# from metpy.calc import potential_temperature,temperature_from_potential_temperature
+# from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
 
 import pyart
 import cmocean

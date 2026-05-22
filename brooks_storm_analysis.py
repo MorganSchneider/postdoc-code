@@ -1074,7 +1074,7 @@ if figsave:
 
 
 
-levs = [20,26]
+levs = [20,25.7]
 cols = ['gray','k']
 lws = [0.75,1]
 
@@ -1137,10 +1137,322 @@ if figsave:
 
 
 
+#%% Swath plots but just 6-12 h -- Load data
+
+fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
 
 
 
-# I think i have to interpolate dear god
+ds = nc.Dataset(fp+'cm1out_000025.nc')
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz80 = np.argmin(abs(zh-0.07))
+
+umove1 = ds.variables['umove'][:].data[0]
+vmove1 = ds.variables['vmove'][:].data[0]
+sws1 = ds.variables['sws2'][:].data[0,:,:]
+shs1 = ds.variables['shs2'][:].data[0,:,:]
+hail1 = ds.variables['hail2'][:].data[0,:,:]
+dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp1 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove1, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove1, axis=0))**2)
+# dmi1 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi1 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000029.nc')
+umove2 = ds.variables['umove'][:].data[0]
+vmove2 = ds.variables['vmove'][:].data[0]
+sws2 = ds.variables['sws2'][:].data[0,:,:]
+shs2 = ds.variables['shs2'][:].data[0,:,:]
+hail2 = ds.variables['hail2'][:].data[0,:,:]
+dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp2 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove2, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove2, axis=0))**2)
+# dmi2 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi2 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000033.nc')
+umove3 = ds.variables['umove'][:].data[0]
+vmove3 = ds.variables['vmove'][:].data[0]
+sws3 = ds.variables['sws2'][:].data[0,:,:]
+shs3 = ds.variables['shs2'][:].data[0,:,:]
+hail3 = ds.variables['hail2'][:].data[0,:,:]
+dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp3 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove3, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove3, axis=0))**2)
+# dmi3 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi3 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000037.nc')
+umove4 = ds.variables['umove'][:].data[0]
+vmove4 = ds.variables['vmove'][:].data[0]
+sws4 = ds.variables['sws2'][:].data[0,:,:]
+shs4 = ds.variables['shs2'][:].data[0,:,:]
+hail4 = ds.variables['hail2'][:].data[0,:,:]
+dbz4 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp4 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove4, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove4, axis=0))**2)
+# dmi4 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi4 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000041.nc')
+umove5 = ds.variables['umove'][:].data[0]
+vmove5 = ds.variables['vmove'][:].data[0]
+sws5 = ds.variables['sws2'][:].data[0,:,:]
+shs5 = ds.variables['shs2'][:].data[0,:,:]
+hail5 = ds.variables['hail2'][:].data[0,:,:]
+dbz5 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp5 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove5, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove5, axis=0))**2)
+# dmi5 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi5 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000045.nc')
+umove6 = ds.variables['umove'][:].data[0]
+vmove6 = ds.variables['vmove'][:].data[0]
+sws6 = ds.variables['sws2'][:].data[0,:,:]
+shs6 = ds.variables['shs2'][:].data[0,:,:]
+hail6 = ds.variables['hail2'][:].data[0,:,:]
+dbz6 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp6 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove6, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove6, axis=0))**2)
+# dmi6 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi6 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+ds = nc.Dataset(fp+'cm1out_000049.nc')
+umove7 = ds.variables['umove'][:].data[0]
+vmove7 = ds.variables['vmove'][:].data[0]
+sws7 = ds.variables['sws2'][:].data[0,:,:]
+shs7 = ds.variables['shs2'][:].data[0,:,:]
+hail7 = ds.variables['hail2'][:].data[0,:,:]
+dbz7 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp7 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove7, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove7, axis=0))**2)
+# dmi7 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
+#                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
+# sfcdmi7 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+ds.close()
+
+
+
+
+
+dbfile = open(fp+'wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+
+
+crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7}
+
+
+
+
+xh1 = xh + 50
+xh2 = xh1 + umove2*3600/1000
+xh3 = xh2 + umove3*3600/1000
+xh4 = xh3 + umove4*3600/1000
+xh5 = xh4 + umove5*3600/1000
+xh6 = xh5 + umove6*3600/1000
+xh7 = xh6 + umove7*3600/1000
+
+yh1 = yh + 50
+yh2 = yh1 + vmove2*3600/1000
+yh3 = yh2 + vmove3*3600/1000
+yh4 = yh3 + vmove4*3600/1000
+yh5 = yh4 + vmove5*3600/1000
+yh6 = yh5 + vmove6*3600/1000
+yh7 = yh6 + vmove7*3600/1000
+
+xx = {'1':xh1, '2':xh2, '3':xh3, '4':xh4, '5':xh5, '6':xh6, '7':xh7}
+yy = {'1':yh1, '2':yh2, '3':yh3, '4':yh4, '5':yh5, '6':yh6, '7':yh7}
+
+
+#%% Swath plots but just 6-12 h -- Make plots
+
+dbz_levs = np.linspace(0,70,15); dbz_cm = "HomeyerRainbow"
+wsp_levs = np.linspace(0,35,36); wsp_cm = "Blues"
+shs_levs = [500]; shs_cols = ['k']; shs_lws = [0.6]
+hail_levs = [0.1]; hail_cols = ['k']; hail_lws = [0.6]
+sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.6]
+
+
+V_thres = 25.7
+
+tstr = 'ERA5-1_test5_v2'
+xt = [46, 86, 136, 186, 231, 281, 331]
+yt = [5, 5, 5, 5, 5, 5, 5]
+
+
+xl = [0,400]
+yl = [0,150]
+
+
+
+figsave = False
+
+
+
+### dbz + UH
+fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+
+c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh3, yh3, np.ma.masked_array(dbz3, dbz3<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh4, yh4, np.ma.masked_array(dbz4, dbz4<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+
+cb = plt.colorbar(c, ax=ax, extend='max')
+cb.set_ticks(np.linspace(0,70,8))
+cb.set_label('Radar reflectivity (dBZ)', fontsize=10)
+
+ax.contour(xh1, yh1, shs1, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh2, yh2, shs2, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh3, yh3, shs3, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh4, yh4, shs4, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh5, yh5, shs5, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh6, yh6, shs6, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh7, yh7, shs7, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+
+ax.set_xlim(xl)
+ax.set_ylim(yl)
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('Translated y (km)', fontsize=10)
+ax.set_title(f"Surface reflectivity, updraft helicity swaths (6-12 h)", fontsize=10)
+l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l2], labels=['500 m2/s2'], loc='upper right', fontsize=8)
+
+ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
+ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
+ax.text(xt[2], yt[2], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[3], yt[3], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[4], yt[4], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
+
+if figsave:
+    plt.savefig(fp+f"dbz_uh_swath_6-12H.png", dpi=300)
+
+
+
+
+### dbz + hail
+fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+
+c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh3, yh3, np.ma.masked_array(dbz3, dbz3<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh4, yh4, np.ma.masked_array(dbz4, dbz4<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+
+cb = plt.colorbar(c, ax=ax, extend='max')
+cb.set_ticks(np.linspace(0,70,8))
+cb.set_label('Radar reflectivity (dBZ)', fontsize=10)
+
+ax.contour(xh1, yh1, hail1, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh2, yh2, hail2, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh3, yh3, hail3, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh4, yh4, hail4, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh5, yh5, hail5, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh6, yh6, hail6, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+ax.contour(xh7, yh7, hail7, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
+
+ax.set_xlim(xl)
+ax.set_ylim(yl)
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('Translated y (km)', fontsize=10)
+ax.set_title(f"Surface reflectivity, accumulated surface hail swaths (6-12 h)", fontsize=10)
+l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l2], labels=['1 mm'], loc='upper right', fontsize=8)
+
+ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
+ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
+ax.text(xt[2], yt[2], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[3], yt[3], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[4], yt[4], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
+
+if figsave:
+    plt.savefig(fp+f"dbz_hail_swath_6-12H.png", dpi=300)
+
+
+
+
+### dbz + wpsd
+fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+
+c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh3, yh3, np.ma.masked_array(dbz3, dbz3<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh4, yh4, np.ma.masked_array(dbz4, dbz4<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh5, yh5, np.ma.masked_array(dbz5, dbz5<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh6, yh6, np.ma.masked_array(dbz6, dbz6<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+ax.contourf(xh7, yh7, np.ma.masked_array(dbz7, dbz7<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
+
+cb = plt.colorbar(c, ax=ax, extend='max')
+cb.set_ticks(np.linspace(0,70,8))
+cb.set_label('Radar reflectivity (dBZ)', fontsize=10)
+
+ax.contour(xh1, yh1, sws1, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh2, yh2, sws2, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh3, yh3, sws3, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh4, yh4, sws4, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh5, yh5, sws5, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh6, yh6, sws6, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh7, yh7, sws7, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+
+ax.set_xlim(xl)
+ax.set_ylim(yl)
+ax.set_xlabel('Translated x (km)', fontsize=10)
+ax.set_ylabel('Translated y (km)', fontsize=10)
+ax.set_title(f"Surface reflectivity, surface wind swaths (6-12 h)", fontsize=10)
+l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l2], labels=['25.7 m/s'], loc='upper right', fontsize=8)
+
+ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
+ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
+ax.text(xt[2], yt[2], '8 h', fontsize=9, fontweight='bold')
+ax.text(xt[3], yt[3], '9 h', fontsize=9, fontweight='bold')
+ax.text(xt[4], yt[4], '10 h', fontsize=9, fontweight='bold')
+ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
+ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
+
+if figsave:
+    plt.savefig(fp+f"dbz_wind_swath_6-12H.png", dpi=300)
+
+
+
 
 
 #%% Check tendency nudging

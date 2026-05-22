@@ -28,10 +28,10 @@ case='tornado'
 region='GreatLakes'
 # region='Canada'
 
-yyyyt = 2021
-mmt   = 8
-ddt   = 11
-hht   = 20
+yyyyt = 2026
+mmt   = 4
+ddt   = 15
+hht   = 8
 
 # yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (18-22)
 # yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (19-23, 0-3)
@@ -101,8 +101,8 @@ from era5utils import *
 
 # region='Alberta'
 #region='SasMan'
-region='GreatLakes'
-# region='Canada'
+# region='GreatLakes'
+region='Canada'
 
 if region=='GreatLakes':    
     [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
@@ -137,11 +137,11 @@ lont = lon[loni]
 
 figfolder=None
 
-# PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+PlotCAPEMap(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
-# PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
-# PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
+PlotMoistureMap2(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
 PlotSRHMaps(data,datas,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart,region,case,n,pngfolder=figfolder)
 
