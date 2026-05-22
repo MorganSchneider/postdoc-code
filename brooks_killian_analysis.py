@@ -938,7 +938,7 @@ iz80 = np.argmin(abs(zh-0.07))
 
 umove1 = ds.variables['umove'][:].data[0]
 vmove1 = ds.variables['vmove'][:].data[0]
-# sws1 = ds.variables['sws2'][:].data[0,:,:]
+sws1 = ds.variables['sws2'][:].data[0,:,:]
 shs1 = ds.variables['shs2'][:].data[0,:,:]
 hail1 = ds.variables['hail2'][:].data[0,:,:]
 dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -946,14 +946,14 @@ wsp1 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove1, axis=0))**2)
 # dmi1 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi1 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi1 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000029.nc')
 umove2 = ds.variables['umove'][:].data[0]
 vmove2 = ds.variables['vmove'][:].data[0]
-# sws2 = ds.variables['sws2'][:].data[0,:,:]
+sws2 = ds.variables['sws2'][:].data[0,:,:]
 shs2 = ds.variables['shs2'][:].data[0,:,:]
 hail2 = ds.variables['hail2'][:].data[0,:,:]
 dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -961,14 +961,14 @@ wsp2 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove2, axis=0))**2)
 # dmi2 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi2 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi2 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000033.nc')
 umove3 = ds.variables['umove'][:].data[0]
 vmove3 = ds.variables['vmove'][:].data[0]
-# sws3 = ds.variables['sws2'][:].data[0,:,:]
+sws3 = ds.variables['sws2'][:].data[0,:,:]
 shs3 = ds.variables['shs2'][:].data[0,:,:]
 hail3 = ds.variables['hail2'][:].data[0,:,:]
 dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -976,14 +976,14 @@ wsp3 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove3, axis=0))**2)
 # dmi3 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi3 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi3 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000037.nc')
 umove4 = ds.variables['umove'][:].data[0]
 vmove4 = ds.variables['vmove'][:].data[0]
-# sws4 = ds.variables['sws2'][:].data[0,:,:]
+sws4 = ds.variables['sws2'][:].data[0,:,:]
 shs4 = ds.variables['shs2'][:].data[0,:,:]
 hail4 = ds.variables['hail2'][:].data[0,:,:]
 dbz4 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -991,14 +991,14 @@ wsp4 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove4, axis=0))**2)
 # dmi4 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi4 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi4 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000041.nc')
 umove5 = ds.variables['umove'][:].data[0]
 vmove5 = ds.variables['vmove'][:].data[0]
-# sws5 = ds.variables['sws2'][:].data[0,:,:]
+sws5 = ds.variables['sws2'][:].data[0,:,:]
 shs5 = ds.variables['shs2'][:].data[0,:,:]
 hail5 = ds.variables['hail2'][:].data[0,:,:]
 dbz5 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -1006,14 +1006,14 @@ wsp5 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove5, axis=0))**2)
 # dmi5 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi5 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi5 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000045.nc')
 umove6 = ds.variables['umove'][:].data[0]
 vmove6 = ds.variables['vmove'][:].data[0]
-# sws6 = ds.variables['sws2'][:].data[0,:,:]
+sws6 = ds.variables['sws2'][:].data[0,:,:]
 shs6 = ds.variables['shs2'][:].data[0,:,:]
 hail6 = ds.variables['hail2'][:].data[0,:,:]
 dbz6 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -1021,14 +1021,14 @@ wsp6 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove6, axis=0))**2)
 # dmi6 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi6 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi6 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000049.nc')
 umove7 = ds.variables['umove'][:].data[0]
 vmove7 = ds.variables['vmove'][:].data[0]
-# sws7 = ds.variables['sws2'][:].data[0,:,:]
+sws7 = ds.variables['sws2'][:].data[0,:,:]
 shs7 = ds.variables['shs2'][:].data[0,:,:]
 hail7 = ds.variables['hail2'][:].data[0,:,:]
 dbz7 = ds.variables['dbz'][:].data[0,0,:,:]
@@ -1036,8 +1036,8 @@ wsp7 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove7, axis=0))**2)
 # dmi7 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,:,:,:], ds.variables['p3_dmi2'][:].data[0,:,:,:],
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
-sfcdmi7 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
-                             ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# sfcdmi7 = np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 
@@ -1084,6 +1084,7 @@ dbz_levs = np.linspace(0,70,15); dbz_cm = "HomeyerRainbow"
 wsp_levs = np.linspace(0,30,31); wsp_cm = "Blues"
 shs_levs = [500]; shs_cols = ['dimgray']; shs_lws = [0.6]
 hail_levs = [0.1]; hail_cols = ['dimgray']; hail_lws = [0.6]
+sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.5]
 
 
 V_thres = 25.7
@@ -1146,6 +1147,14 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 # ax.contour(xh6, yh6, hail6, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
 # ax.contour(xh7, yh7, hail7, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
 
+ax.contour(xh1, yh1, sws1, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh2, yh2, sws2, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh3, yh3, sws3, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh4, yh4, sws4, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh5, yh5, sws5, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh6, yh6, sws6, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh7, yh7, sws7, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+
 
 for i in range(7):
     is_rij = crit[f"{i+1}"]['is_rij']
@@ -1176,7 +1185,7 @@ for i in range(7):
     ax.contour(x, y, is_mv_rij, levels=[1], colors='violet', linewidths=0.5)
     ax.contour(x, y, is_mv_db, levels=[1], colors='gold', linewidths=0.5)
     
-    ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
+    # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
 
 # ax.contour(xh1, yh1, wsp1, levels=[V_thres], colors='k', linewidths=[1])
 # ax.contour(xh2, yh2, wsp2, levels=[V_thres], colors='k', linewidths=[1])
