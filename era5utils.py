@@ -204,7 +204,7 @@ def plot_skewT(timt,latt,lont,data,tloc,titlestr=None,figname=None,figfolder=Non
             plt.savefig(figfolder+f"input_sounding_{timt[:13]}_{latt:.2f}_{lont:.2f}.png", facecolor='white', transparent=False, dpi=300)
         # plt.close()
     
-    plt.show()
+    # plt.show()
     return fig
 
 

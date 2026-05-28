@@ -200,9 +200,9 @@ figfolder = fp+"figs/"
 # yyyy = 2022; mm = 5; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
 # yyyy = 2022; mm = 5; dd = 21; ntors = 4; casetype = "Tornado sub-outbreak"
 # yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
-yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
+yyyy = 2026; mm = 4; dd = 15; ntors = 4; casetype = "Null event"
 
-leadtime = 1 #hours before hit
+leadtime = 0 #hours before hit
 
 
 figsave = False
@@ -248,8 +248,10 @@ srh03 = np.zeros((ntors,))
 
 for i in range(ntors):
     tloc = locs[f"loc{i+1}"]
-    if yyyy == 2026:
-        tloc = locs[f"loc{i+3}"]
+    # if yyyy == 2026:
+    #     tloc = locs[f"loc{i+3}"]
+    
+    # tloc = locs[f"loc{i+3}"]
     
     name = tloc["name"]
     yyyyt = tloc["date_ymd"][0]
@@ -337,6 +339,7 @@ for i in range(ntors):
     fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=figfolder, figsave=figsave)
 
 
+
 meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
             'u':np.mean(u,axis=1)*units("m/s"), 'v':np.mean(v,axis=1)*units("m/s"), 'u10':np.mean(u10)*units("m/s"), 'v10':np.mean(v10)*units("m/s"),
             'speed':np.mean(speed,axis=1)*units("m/s"), 'direc':np.mean(direc,axis=1)*units.degree,
@@ -346,7 +349,7 @@ meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.
             'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K,
             'shear06':np.nanmean(shear06)*units('m/s'), 'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2')}
 
-# figsave = False
+figsave = False
 
 titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding: T-{leadtime}H"
 figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
@@ -371,14 +374,74 @@ srh01_mean = meandata['srh01']
 srh03_mean = meandata['srh03']
 
 
+print(f"---{mm:02.0f}-{dd:02.0f}-{yyyy}---")
+print(f"   Lead time: {leadtime} h")
+print(f"CAPE = {cape_mean:.1f} J/kg")
+print(f"CIN = -{cin_mean:.1f} J/kg")
+print(f"Shear 0-6km = {shear_mean.magnitude:.1f} m/s")
+print(f"SRH 0-3km = {srh03_mean.magnitude:.1f} m2/s2")
+print(f"SRH 0-1km = {srh01_mean.magnitude:.1f} m2/s2")
+print(f"LCL pres = {lcl_mean.magnitude:.1f} hPa")
 
 
 
+#%% 
+
+capes1 = {'0h':1111.8, '1h':1076.5, '2h':544.8}
+cins1 = {'0h':-167.3, '1h':-52.1, '2h':-414.3}
+shears1 = {'0h':26.3, '1h':22.4, '2h':22.0}
+srh3s1 = {'0h':281.2, '1h':198.5, '2h':150.2}
+srh1s1 = {'0h':162.5, '1h':111.9, '2h':69.5}
+lcls1 = {'0h':933.3, '1h':904.5, '2h':877.8}
 
 
+capes2 = {'0h':1177.3, '1h':1131.4, '2h':1158.6, '3h':947.2}
+cins2 = {'0h':-73.6, '1h':-114.9, '2h':-108.0, '3h':-69.9}
+shears2 = {'0h':15.9, '1h':17.1, '2h':16.5, '3h':15.1}
+srh3s2 = {'0h':165.1, '1h':221.3, '2h':208.6, '3h':187.0}
+srh1s2 = {'0h':136.7, '1h':141.4, '2h':117.3, '3h':98.3}
+lcls2 = {'0h':901.8, '1h':889.4, '2h':871.0, '3h':872.1}
 
 
+capes3 = {'0h':725.2, '1h':762.6, '2h':904.6, '3h':1077.3}
+cins3 = {'0h':-51.0, '1h':-49.1, '2h':-54.6, '3h':-75.1}
+shears3 = {'0h':32.4, '1h':30.8, '2h':29.4, '3h':28.0}
+srh3s3 = {'0h':359.6, '1h':362.2, '2h':317.5, '3h':386.2}
+srh1s3 = {'0h':243.8, '1h':219.2, '2h':182.8, '3h':224.4}
+lcls3 = {'0h':879.1, '1h':879.3, '2h':903.5, '3h':916.5}
 
+
+capes4 = {'0h':1044.0, '1h':1286.7, '2h':1149.3}
+cins4 = {'0h':-125.3, '1h':-121.1, '2h':-183.0}
+shears4 = {'0h':25.1, '1h':23.2, '2h':24.2}
+srh3s4 = {'0h':110.1, '1h':114.8, '2h':123.2}
+srh1s4 = {'0h':52.5, '1h':76.3, '2h':78.7}
+lcls4 = {'0h':915.3, '1h':903.9, '2h':903.0}
+
+
+capes5 = {'0h':1561.8, '1h':1473.4, '2h':1238.1}
+cins5 = {'0h':-103.2, '1h':-263.0, '2h':-304.0}
+shears5 = {'0h':17.2, '1h':18.5, '2h':17.5}
+srh3s5 = {'0h':92.3, '1h':112.6, '2h':117.6}
+srh1s5 = {'0h':73.2, '1h':89.9, '2h':82.6}
+lcls5 = {'0h':908.3, '1h':870.3, '2h':842.1}
+
+
+capes6 = {'0h':530.6, '1h':995.1, '2h':1432.5}
+cins6 = {'0h':-31.2, '1h':-63.8, '2h':-75.0}
+shears6 = {'0h':26.5, '1h':24.5, '2h':18.9}
+srh3s6 = {'0h':385.7, '1h':175.5, '2h':12.6}
+srh1s6 = {'0h':325.5, '1h':183.6, '2h':88.4}
+lcls6 = {'0h':942.0, '1h':941.4, '2h':935.5}
+
+
+# April 15 with Michigan tors
+capes6_2 = {'0h':497.2, '1h':959.8, '2h':1280.4}
+cins6_2 = {'0h':-34.1, '1h':-80.6, '2h':-118.6}
+shears6_2 = {'0h':26.6, '1h':25.3, '2h':19.8}
+srh3s6_2 = {'0h':448.7, '1h':244.1, '2h':30.9}
+srh1s6_2 = {'0h':352.5, '1h':224.3, '2h':94.4}
+lcls6_2 = {'0h':942.3, '1h':939.7, '2h':935.6}
 
 
 
