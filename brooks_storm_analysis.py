@@ -1312,12 +1312,12 @@ yl = [0,150]
 
 
 
-figsave = False
+figsave = True
 
 
 
 ### dbz + UH
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
@@ -1363,7 +1363,7 @@ if figsave:
 
 
 ### dbz + hail
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
@@ -1409,7 +1409,7 @@ if figsave:
 
 
 ### dbz + wpsd
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
 ax.contourf(xh2, yh2, np.ma.masked_array(dbz2, dbz2<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)

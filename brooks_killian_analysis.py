@@ -76,6 +76,10 @@ ds.close()
 
 #%% Set criteria
 
+# try calculating precipitaiton loading - evaporative cooling
+# RIJ - downward acceleration
+# parcels - try
+# tlv criteria pull out
 
 # Conditions from Killian thesis - adapted from Lasher-Trapp et al. 2023
 Vsub_thres = 20 #sub svr
@@ -1083,7 +1087,7 @@ yy = {'1':yh1, '2':yh2, '3':yh3, '4':yh4, '5':yh5, '6':yh6, '7':yh7}
 dbz_levs = np.linspace(0,70,15); dbz_cm = "HomeyerRainbow"
 wsp_levs = np.linspace(0,30,31); wsp_cm = "Blues"
 shs_levs = [500]; shs_cols = ['dimgray']; shs_lws = [0.6]
-hail_levs = [0.1]; hail_cols = ['dimgray']; hail_lws = [0.6]
+hail_levs = [0.1]; hail_cols = ['dimgray']; hail_lws = [0.7]
 sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.5]
 
 
@@ -1115,7 +1119,7 @@ figsave = False
 
 ### Wind speed + wind mechanisms
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 # fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(wsp1, dbz1<20), levels=wsp_levs, vmin=0, vmax=30, cmap=wsp_cm)
@@ -1199,7 +1203,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('Translated y (km)', fontsize=10)
-ax.set_title(f"80-m wind speed + wind mechanisms (6-12 h)", fontsize=10)
+ax.set_title(f"80-m & 10-m wind speed, severe wind mechanisms", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l2], labels=['500 m2/s2'], loc='lower right', fontsize=9)
@@ -1232,7 +1236,7 @@ if figsave:
 
 ### DBZ + hail swaths + wind mechanisms
 
-fig,ax = plt.subplots(1, 1, figsize=(8.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 # fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(dbz1, dbz1<20), levels=dbz_levs, vmin=0, vmax=70, cmap=dbz_cm)
@@ -1264,6 +1268,14 @@ ax.contour(xh5, yh5, hail5, levels=hail_levs, colors=hail_cols, linewidths=hail_
 ax.contour(xh6, yh6, hail6, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
 ax.contour(xh7, yh7, hail7, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
 
+ax.contour(xh1, yh1, sws1, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh2, yh2, sws2, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh3, yh3, sws3, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh4, yh4, sws4, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh5, yh5, sws5, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh6, yh6, sws6, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+ax.contour(xh7, yh7, sws7, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
+
 
 for i in range(7):
     is_rij = crit[f"{i+1}"]['is_rij']
@@ -1294,7 +1306,7 @@ for i in range(7):
     ax.contour(x, y, is_mv_rij, levels=[1], colors='violet', linewidths=0.5)
     ax.contour(x, y, is_mv_db, levels=[1], colors='gold', linewidths=0.5)
     
-    ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
+    # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
 
 
 # ax.contour(xh1, yh1, wsp1, levels=[V_thres], colors='k', linewidths=[1])
@@ -1310,7 +1322,7 @@ ax.set_xlim(xl)
 ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('Translated y (km)', fontsize=10)
-ax.set_title(f"Surface reflectivity, hail accumulation, wind mechanisms (6-12 h)", fontsize=10)
+ax.set_title(f"Surface dBZ, 10-m wind speed, accum. hail, severe wind mechanisms", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)

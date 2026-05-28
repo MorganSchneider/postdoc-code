@@ -20,7 +20,7 @@ import pickle
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Normalize, BoundaryNorm, colors, ListedColormap
+from matplotlib.colors import Normalize, BoundaryNorm, ListedColormap
 from matplotlib import  cm
 
 import metpy.calc as mc

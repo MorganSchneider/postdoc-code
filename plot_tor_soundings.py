@@ -195,14 +195,14 @@ figfolder = fp+"figs/"
 fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
 figfolder = fp+"figs/"
 
-yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
+# yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
 # yyyy = 2025; mm = 6; dd = 23; ntors = 6; casetype = "Tornado outbreak"
 # yyyy = 2022; mm = 5; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
 # yyyy = 2022; mm = 5; dd = 21; ntors = 4; casetype = "Tornado sub-outbreak"
 # yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
-# yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
+yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
 
-leadtime = 0 #hours before hit
+leadtime = 1 #hours before hit
 
 
 figsave = False
@@ -241,6 +241,9 @@ t2m = np.zeros((ntors,))
 td2m = np.zeros((ntors,))
 theta2m = np.zeros((ntors,))
 
+shear06 = np.zeros((ntors,))
+srh01 = np.zeros((ntors,))
+srh03 = np.zeros((ntors,))
 
 
 for i in range(ntors):
@@ -311,6 +314,20 @@ for i in range(ntors):
     t2m[i] = data['t2m'].magnitude
     td2m[i] = data['td2m'].magnitude
     theta2m[i] = data['theta2m'].magnitude
+    
+    
+    zh = z[:,i] - orog[i]
+    shear = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=6000*units.m)
+    shear06[i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+    
+    srh1 = mc.storm_relative_helicity(zh*units.m, u[:,i]*units('m/s'), v[:,i]*units('m/s'), depth=1000*units.m,
+                                      storm_u=rightmover[0,i]*units('m/s'), storm_v=rightmover[1,i]*units('m/s'))
+    srh01[i] = srh1[2].magnitude
+
+    srh3 = mc.storm_relative_helicity(zh*units.m, u[:,i]*units('m/s'), v[:,i]*units('m/s'), depth=3000*units.m,
+                                      storm_u=rightmover[0,i]*units('m/s'), storm_v=rightmover[1,i]*units('m/s'))
+    srh03[i] = srh3[2].magnitude
+    
 
     dsp.close()
     dss.close()
@@ -326,7 +343,8 @@ meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.
             'cape':np.mean(cape), 'cin':np.mean(cin), 'sfcp':np.mean(sfcp), 'orog':np.mean(orog),
             'q2m':np.mean(q2m), 'theta2m':np.mean(theta2m)*units.K, 'td2m':np.mean(td2m)*units.K, 't2m':np.mean(t2m)*units.K,
             'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
-            'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K}
+            'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K,
+            'shear06':np.nanmean(shear06)*units('m/s'), 'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2')}
 
 # figsave = False
 
@@ -336,6 +354,21 @@ fig = plot_skewT(timt, latt, lont, meandata, tloc, titlestr=titlestr, figname=fi
 
 
 
+z_mean = meandata['z'] - meandata['orog']
+u_mean = meandata['u']
+v_mean = meandata['v']
+
+cape_mean = meandata['cape']
+cin_mean = meandata['cin']
+
+rm_mean = meandata['rightm']
+mw_mean = meandata['meanm']
+
+lcl_mean = meandata['lcl_pressure']
+
+shear_mean = meandata['shear06']
+srh01_mean = meandata['srh01']
+srh03_mean = meandata['srh03']
 
 
 
