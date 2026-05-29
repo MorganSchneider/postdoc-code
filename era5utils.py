@@ -925,9 +925,9 @@ def latlon2xy(lat, lon, lat_o, lon_o):
     thz = -lon_o*np.pi/180
     
     # transform matrices
-    Ry = [[np.cos(thy), 0, np.sin(thy)],
-          [0, 1, 0],
-          [-np.sin(thy), 0, np.cos(thy)]]
+    Ry = [[np.cos(thy),  0,  np.sin(thy)],
+          [0,            1,  0],
+          [-np.sin(thy), 0,  np.cos(thy)]]
     
     Rz = [[np.cos(thz), -np.sin(thz), 0],
           [np.sin(thz), np.cos(thz), 0],
@@ -936,8 +936,8 @@ def latlon2xy(lat, lon, lat_o, lon_o):
     # i'm actually not sure exactly how this works, i just copied this function from some of Boonleng's code
     R = np.matmul(Ry,Rz)
     xyz = r_earth * np.array([np.cos(lat*np.pi/180) * np.cos(lon*np.pi/180),
-                np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
-                np.sin(lat*np.pi/180)])
+                              np.cos(lat*np.pi/180) * np.sin(lon*np.pi/180),
+                              np.sin(lat*np.pi/180)])
     # get x and y positions
     posx = np.matmul(R[1],xyz)
     posy = np.matmul(R[2],xyz)
@@ -1032,7 +1032,7 @@ def getStormMotion(z, orog, u, v):
     
     u_mean = np.nanmean(u_0_6, axis=0)
     v_mean = np.nanmean(v_0_6, axis=0)
-    wind_mean = np.array([u_mean, v_mean])
+    mean_wind = np.array([u_mean, v_mean])
     
     u_500m = np.nanmean(u_0_05, axis=0)
     v_500m = np.nanmean(v_0_05, axis=0)
@@ -1047,10 +1047,10 @@ def getStormMotion(z, orog, u, v):
     shear_mag = np.sqrt(shear[0,:,:]**2 + shear[1,:,:]**2)
     rdev = shear_cross * (7.5 / shear_mag)
     
-    right_mover = wind_mean + rdev
-    left_mover = wind_mean - rdev
+    right_mover = mean_wind + rdev
+    left_mover = mean_wind - rdev
     
-    return right_mover, left_mover, wind_mean
+    return right_mover, left_mover, mean_wind
 
 
 
@@ -1142,9 +1142,40 @@ def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
 
 
 
+# Get distance of a point from an ECCC radar in km
+def getDistanceFromRadar(lat, lon, radar_id='CASET', filepath=None):
+    if filepath is None:
+        filepath = 'C:/Users/mschne28/Documents/'
+    if filepath[-1] is not '/':
+        filepath = filepath+'/'
+    
+    df = pd.read_csv(filepath+"ECCC_radar_locations.csv", header=0, usecols=['Call sign', 'Latitude', 'Longitude'], index_col='Call sign')
+    radar_lat = df['Latitude'].loc[radar_id]
+    radar_lon = df['Longitude'].loc[radar_id]
+    
+    dist_x,dist_y = latlon2xy(lat, lon, radar_lat, radar_lon)
+    
+    return dist_x, dist_y
 
 
 
+# Get effective radar beam height in km given lat/lon coordinates and elevation angle in degrees
+def getBeamHeight(lat, lon, elevation_angle, lat_o=None, lon_o=None, radar_id=None, filepath=None):
+    if (radar_id is None) & ((lat_o is None) | (lon_o is None)):
+        print("Need to specify a radar call sign (e.g. 'CASKR') or radar lat/lon")
+        return
+    
+    if radar_id is not None:
+        x,y = getDistanceFromRadar(lat, lon, radar_id=radar_id, filepath=filepath)
+    else:
+        x,y = latlon2xy(lat, lon, lat_o, lon_o)
+    
+    r = np.sqrt(x**2 + y**2)
+    elev_rad = elevation_angle * np.pi/180
+    
+    beam_height = r * np.tan(elev_rad)
+    
+    return beam_height
 
 
 

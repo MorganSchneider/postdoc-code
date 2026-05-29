@@ -1312,7 +1312,7 @@ yl = [0,150]
 
 
 
-figsave = True
+figsave = False
 
 
 
@@ -1331,13 +1331,13 @@ cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,70,8))
 cb.set_label('Radar reflectivity (dBZ)', fontsize=10)
 
-ax.contour(xh1, yh1, shs1, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh2, yh2, shs2, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh3, yh3, shs3, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh4, yh4, shs4, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh5, yh5, shs5, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh6, yh6, shs6, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh7, yh7, shs7, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh1[:-50], yh1, shs1[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh2[:-50], yh2, shs2[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh3[:-50], yh3, shs3[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh4[:-50], yh4, shs4[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh5[:-50], yh5, shs5[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh6[:-50], yh6, shs6[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+ax.contour(xh7[:-50], yh7, shs7[:,:-50], levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
 
 ax.set_xlim(xl)
 ax.set_ylim(yl)
@@ -1346,7 +1346,7 @@ ax.set_ylabel('Translated y (km)', fontsize=10)
 ax.set_title(f"Surface reflectivity, updraft helicity swaths (6-12 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l2], labels=['500 m2/s2'], loc='upper right', fontsize=8)
+ax.legend(handles=[l2], labels=['UH=500 m2/s2'], loc='upper right', fontsize=8)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
@@ -1438,7 +1438,7 @@ ax.set_ylabel('Translated y (km)', fontsize=10)
 ax.set_title(f"Surface reflectivity, surface wind swaths (6-12 h)", fontsize=10)
 l1, = ax.plot([-2,-1], [-2,-1], 'dimgray', linewidth=1)
 l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l2], labels=['25.7 m/s'], loc='upper right', fontsize=8)
+ax.legend(handles=[l2], labels=['V=25.7 m/s'], loc='upper right', fontsize=8)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
