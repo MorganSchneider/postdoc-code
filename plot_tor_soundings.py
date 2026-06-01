@@ -200,9 +200,14 @@ figfolder = fp+"figs/"
 # yyyy = 2022; mm = 5; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
 # yyyy = 2022; mm = 5; dd = 21; ntors = 4; casetype = "Tornado sub-outbreak"
 # yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
-yyyy = 2026; mm = 4; dd = 15; ntors = 4; casetype = "Null event"
+yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
 
-leadtime = 0 #hours before hit
+leadtime = -1 #hours before hit
+
+
+
+ntors = 1
+
 
 
 figsave = False
@@ -241,6 +246,8 @@ t2m = np.zeros((ntors,))
 td2m = np.zeros((ntors,))
 theta2m = np.zeros((ntors,))
 
+shear01 = np.zeros((ntors,))
+shear03 = np.zeros((ntors,))
 shear06 = np.zeros((ntors,))
 srh01 = np.zeros((ntors,))
 srh03 = np.zeros((ntors,))
@@ -248,8 +255,8 @@ srh03 = np.zeros((ntors,))
 
 for i in range(ntors):
     tloc = locs[f"loc{i+1}"]
-    # if yyyy == 2026:
-    #     tloc = locs[f"loc{i+3}"]
+    if yyyy == 2026:
+        tloc = locs[f"loc{i+3}"]
     
     # tloc = locs[f"loc{i+3}"]
     
@@ -319,8 +326,12 @@ for i in range(ntors):
     
     
     zh = z[:,i] - orog[i]
-    shear = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=6000*units.m)
-    shear06[i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+    shear6 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=6000*units.m)
+    shear06[i] = np.sqrt(shear6[0].magnitude**2 + shear6[1].magnitude**2)
+    shear3 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=3000*units.m)
+    shear03[i] = np.sqrt(shear3[0].magnitude**2 + shear3[1].magnitude**2)
+    shear1 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=1000*units.m)
+    shear01[i] = np.sqrt(shear1[0].magnitude**2 + shear1[1].magnitude**2)
     
     srh1 = mc.storm_relative_helicity(zh*units.m, u[:,i]*units('m/s'), v[:,i]*units('m/s'), depth=1000*units.m,
                                       storm_u=rightmover[0,i]*units('m/s'), storm_v=rightmover[1,i]*units('m/s'))
@@ -347,13 +358,14 @@ meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.
             'q2m':np.mean(q2m), 'theta2m':np.mean(theta2m)*units.K, 'td2m':np.mean(td2m)*units.K, 't2m':np.mean(t2m)*units.K,
             'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
             'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K,
-            'shear06':np.nanmean(shear06)*units('m/s'), 'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2')}
+            'shear01':np.nanmean(shear01)*units('m/s'), 'shear03':np.nanmean(shear03)*units('m/s'), 'shear06':np.nanmean(shear06)*units('m/s'),
+            'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2')}
 
 figsave = False
 
-titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding: T-{leadtime}H"
-figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
-fig = plot_skewT(timt, latt, lont, meandata, tloc, titlestr=titlestr, figname=figname, figfolder=figfolder, figsave=figsave)
+# titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding: T-{leadtime}H"
+# figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
+# fig = plot_skewT(timt, latt, lont, meandata, tloc, titlestr=titlestr, figname=figname, figfolder=figfolder, figsave=figsave)
 
 
 
@@ -369,7 +381,9 @@ mw_mean = meandata['meanm']
 
 lcl_mean = meandata['lcl_pressure']
 
-shear_mean = meandata['shear06']
+shear01_mean = meandata['shear01']
+shear03_mean = meandata['shear03']
+shear06_mean = meandata['shear06']
 srh01_mean = meandata['srh01']
 srh03_mean = meandata['srh03']
 
@@ -378,7 +392,9 @@ print(f"---{mm:02.0f}-{dd:02.0f}-{yyyy}---")
 print(f"   Lead time: {leadtime} h")
 print(f"CAPE = {cape_mean:.1f} J/kg")
 print(f"CIN = -{cin_mean:.1f} J/kg")
-print(f"Shear 0-6km = {shear_mean.magnitude:.1f} m/s")
+print(f"Shear 0-1km = {shear01_mean.magnitude:.1f} m/s")
+print(f"Shear 0-3km = {shear03_mean.magnitude:.1f} m/s")
+print(f"Shear 0-6km = {shear06_mean.magnitude:.1f} m/s")
 print(f"SRH 0-3km = {srh03_mean.magnitude:.1f} m2/s2")
 print(f"SRH 0-1km = {srh01_mean.magnitude:.1f} m2/s2")
 print(f"LCL pres = {lcl_mean.magnitude:.1f} hPa")
@@ -389,31 +405,39 @@ print(f"LCL pres = {lcl_mean.magnitude:.1f} hPa")
 
 capes1 = {'0h':1111.8, '1h':1076.5, '2h':544.8}
 cins1 = {'0h':-167.3, '1h':-52.1, '2h':-414.3}
-shears1 = {'0h':26.3, '1h':22.4, '2h':22.0}
+shear1s1 = {'0h':12.6, '1h':10.3, '2h':10.1}
+shear3s1 = {'0h':20.1, '1h':16.5, '2h':15.6}
+shear6s1 = {'0h':26.3, '1h':22.4, '2h':22.0}
 srh3s1 = {'0h':281.2, '1h':198.5, '2h':150.2}
 srh1s1 = {'0h':162.5, '1h':111.9, '2h':69.5}
 lcls1 = {'0h':933.3, '1h':904.5, '2h':877.8}
 
 
-capes2 = {'0h':1177.3, '1h':1131.4, '2h':1158.6, '3h':947.2}
-cins2 = {'0h':-73.6, '1h':-114.9, '2h':-108.0, '3h':-69.9}
-shears2 = {'0h':15.9, '1h':17.1, '2h':16.5, '3h':15.1}
-srh3s2 = {'0h':165.1, '1h':221.3, '2h':208.6, '3h':187.0}
-srh1s2 = {'0h':136.7, '1h':141.4, '2h':117.3, '3h':98.3}
-lcls2 = {'0h':901.8, '1h':889.4, '2h':871.0, '3h':872.1}
+capes2 = {'0h':1177.3, '1h':1131.4, '2h':1158.6}
+cins2 = {'0h':-73.6, '1h':-114.9, '2h':-108.0}
+shear1s2 = {'0h':12.8, '1h':12.4, '2h':11.6}
+shear3s2 = {'0h':14.2, '1h':14.9, '2h':15.1}
+shear6s2 = {'0h':15.9, '1h':17.1, '2h':16.5}
+srh3s2 = {'0h':165.1, '1h':221.3, '2h':208.6}
+srh1s2 = {'0h':136.7, '1h':141.4, '2h':117.3}
+lcls2 = {'0h':901.8, '1h':889.4, '2h':871.0}
 
 
-capes3 = {'0h':725.2, '1h':762.6, '2h':904.6, '3h':1077.3}
-cins3 = {'0h':-51.0, '1h':-49.1, '2h':-54.6, '3h':-75.1}
-shears3 = {'0h':32.4, '1h':30.8, '2h':29.4, '3h':28.0}
-srh3s3 = {'0h':359.6, '1h':362.2, '2h':317.5, '3h':386.2}
-srh1s3 = {'0h':243.8, '1h':219.2, '2h':182.8, '3h':224.4}
-lcls3 = {'0h':879.1, '1h':879.3, '2h':903.5, '3h':916.5}
+capes3 = {'0h':725.2, '1h':762.6, '2h':904.6}
+cins3 = {'0h':-51.0, '1h':-49.1, '2h':-54.6}
+shear1s3 = {'0h':14.1, '1h':13.9, '2h':14.6}
+shear3s3 = {'0h':18.6, '1h':19.4, '2h':21.5}
+shear6s3 = {'0h':32.4, '1h':30.8, '2h':29.4}
+srh3s3 = {'0h':359.6, '1h':362.2, '2h':317.5}
+srh1s3 = {'0h':243.8, '1h':219.2, '2h':182.8}
+lcls3 = {'0h':879.1, '1h':879.3, '2h':903.5}
 
 
 capes4 = {'0h':1044.0, '1h':1286.7, '2h':1149.3}
 cins4 = {'0h':-125.3, '1h':-121.1, '2h':-183.0}
-shears4 = {'0h':25.1, '1h':23.2, '2h':24.2}
+shear1s4 = {'0h':10.5, '1h':9.7, '2h':9.1}
+shear3s4 = {'0h':17.4, '1h':15.9, '2h':16.9}
+shear6s4 = {'0h':25.1, '1h':23.2, '2h':24.2}
 srh3s4 = {'0h':110.1, '1h':114.8, '2h':123.2}
 srh1s4 = {'0h':52.5, '1h':76.3, '2h':78.7}
 lcls4 = {'0h':915.3, '1h':903.9, '2h':903.0}
@@ -421,37 +445,62 @@ lcls4 = {'0h':915.3, '1h':903.9, '2h':903.0}
 
 capes5 = {'0h':1561.8, '1h':1473.4, '2h':1238.1}
 cins5 = {'0h':-103.2, '1h':-263.0, '2h':-304.0}
-shears5 = {'0h':17.2, '1h':18.5, '2h':17.5}
+shear1s5 = {'0h':11.6, '1h':9.8, '2h':8.5}
+shear3s5 = {'0h':13.3, '1h':11.9, '2h':13.1}
+shear6s5 = {'0h':17.2, '1h':18.5, '2h':17.5}
 srh3s5 = {'0h':92.3, '1h':112.6, '2h':117.6}
 srh1s5 = {'0h':73.2, '1h':89.9, '2h':82.6}
 lcls5 = {'0h':908.3, '1h':870.3, '2h':842.1}
 
 
-capes6 = {'0h':530.6, '1h':995.1, '2h':1432.5}
-cins6 = {'0h':-31.2, '1h':-63.8, '2h':-75.0}
-shears6 = {'0h':26.5, '1h':24.5, '2h':18.9}
-srh3s6 = {'0h':385.7, '1h':175.5, '2h':12.6}
-srh1s6 = {'0h':325.5, '1h':183.6, '2h':88.4}
-lcls6 = {'0h':942.0, '1h':941.4, '2h':935.5}
+capes6 = {'-1h':505.3, '0h':530.6, '1h':995.1, '2h':1432.5}
+cins6 = {'-1h':-74.7, '0h':-31.2, '1h':-63.8, '2h':-75.0}
+shear1s6 = {'-1h':20.3, '0h':22.3, '1h':17.4, '2h':13.4}
+shear3s6 = {'-1h':20.3, '0h':21.8, '1h':13.8, '2h':8.1}
+shear6s6 = {'-1h':25.1, '0h':26.5, '1h':24.5, '2h':18.9}
+srh3s6 = {'-1h':337.5, '0h':385.7, '1h':175.5, '2h':12.6}
+srh1s6 = {'-1h':275.5, '0h':325.5, '1h':183.6, '2h':88.4}
+lcls6 = {'-1h':938.6, '0h':942.0, '1h':941.4, '2h':935.5}
+
 
 
 # April 15 with Michigan tors
-capes6_2 = {'0h':497.2, '1h':959.8, '2h':1280.4}
-cins6_2 = {'0h':-34.1, '1h':-80.6, '2h':-118.6}
-shears6_2 = {'0h':26.6, '1h':25.3, '2h':19.8}
-srh3s6_2 = {'0h':448.7, '1h':244.1, '2h':30.9}
-srh1s6_2 = {'0h':352.5, '1h':224.3, '2h':94.4}
-lcls6_2 = {'0h':942.3, '1h':939.7, '2h':935.6}
+capes6_2 = {'-1h':482.1, '0h':497.2, '1h':959.8, '2h':1280.4}
+cins6_2 = {'-1h':-62.3, '0h':-34.1, '1h':-80.6, '2h':-118.6}
+shear1s6_2 = {'-1h':20.6, '0h':22.5, '1h':19.0, '2h':14.7}
+shear3s6_2 = {'-1h':20.5, '0h':22.0, '1h':15.8, '2h':10.1}
+shears6_2 = {'-1h':24.7, '0h':26.6, '1h':25.3, '2h':19.8}
+srh3s6_2 = {'-1h':364.6, '0h':448.7, '1h':244.1, '2h':30.9}
+srh1s6_2 = {'-1h':286.3, '0h':352.5, '1h':224.3, '2h':94.4}
+lcls6_2 = {'-1h':938.6, '0h':942.3, '1h':939.7, '2h':935.6}
 
 
 
+#%% First tornado only
 
+cape_1 = {'Aug11':1469.8, 'Jun23':998.0, 'May30':1096.9, 'May21':1061.2, 'Jul24':1583.5, 'Apr15':880.6}
+cape_0 = {'Aug11':1184.5, 'Jun23':958.8, 'May30':671.8,  'May21':840.9,  'Jul24':1526.0, 'Apr15':476.9}
 
+cin_1 = {'Aug11':-3.9,   'Jun23':-40.7, 'May30':-38.0, 'May21':-121.4, 'Jul24':-178.6, 'Apr15':-70.2}
+cin_0 = {'Aug11':-115.5, 'Jun23':-6.2,  'May30':-87.4, 'May21':-115.4, 'Jul24':-13.4,  'Apr15':-23.5}
 
+shear1_1 = {'Aug11':11.2, 'Jun23':11.2, 'May30':14.9, 'May21':13.2, 'Jul24':8.3, 'Apr15':18.7}
+shear1_0 = {'Aug11':13.9, 'Jun23':10.7, 'May30':13.7, 'May21':13.6, 'Jul24':9.4, 'Apr15':22.4}
 
+shear3_1 = {'Aug11':16.6, 'Jun23':16.0, 'May30':20.7, 'May21':16.3, 'Jul24':9.2,  'Apr15':15.1}
+shear3_0 = {'Aug11':21.8, 'Jun23':15.7, 'May30':21.2, 'May21':16.6, 'Jul24':11.7, 'Apr15':22.1}
 
+shear6_1 = {'Aug11':23.7, 'Jun23':16.6, 'May30':31.2, 'May21':24.0, 'Jul24':15.5, 'Apr15':25.1}
+shear6_0 = {'Aug11':29.5, 'Jun23':16.2, 'May30':36.8, 'May21':24.8, 'Jul24':15.8, 'Apr15':26.5}
 
+srh1_1 = {'Aug11':144.2, 'Jun23':137.5, 'May30':177.1, 'May21':107.8, 'Jul24':82.8, 'Apr15':210.6}
+srh1_0 = {'Aug11':227.0, 'Jun23':142.0, 'May30':239.7, 'May21':66.1,  'Jul24':13.9, 'Apr15':347.8}
 
+srh3_1 = {'Aug11':216.5, 'Jun23':235.7, 'May30':380.6, 'May21':124.4, 'Jul24':100.9, 'Apr15':215.5}
+srh3_0 = {'Aug11':324.6, 'Jun23':194.6, 'May30':404.8, 'May21':90.7,  'Jul24':33.3,  'Apr15':422.6}
+
+lcl_1 = {'Aug11':928.5, 'Jun23':878.7, 'May30':912.4, 'May21':925.5, 'Jul24':841.6, 'Apr15':940.2}
+lcl_0 = {'Aug11':946.5, 'Jun23':890.2, 'May30':873.7, 'May21':928.1, 'Jul24':897.9, 'Apr15':941.6}
 
 
 
