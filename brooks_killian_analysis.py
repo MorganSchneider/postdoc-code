@@ -952,6 +952,8 @@ wsp1 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi1 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax1 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000029.nc')
@@ -967,6 +969,8 @@ wsp2 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi2 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax2 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000033.nc')
@@ -982,6 +986,8 @@ wsp3 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi3 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax3 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000037.nc')
@@ -997,6 +1003,8 @@ wsp4 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi4 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax4 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000041.nc')
@@ -1012,6 +1020,8 @@ wsp5 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi5 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax5 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000045.nc')
@@ -1027,6 +1037,8 @@ wsp6 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi6 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax6 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 ds = nc.Dataset(fp+'cm1out_000049.nc')
@@ -1042,6 +1054,8 @@ wsp7 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove
 #                           ds.variables['p3_dmi3'][:].data[0,:,:,:], ds.variables['p3_dmi4'][:].data[0,:,:,:]]), axis=0)
 sdmi7 = 100 * np.max(np.asarray([ds.variables['p3_dmi1'][:].data[0,0,:,:], ds.variables['p3_dmi2'][:].data[0,0,:,:],
                              ds.variables['p3_dmi3'][:].data[0,0,:,:], ds.variables['p3_dmi4'][:].data[0,0,:,:]]), axis=0)
+# dhmax7 = 100 * np.max(np.asarray([ds.variables['p3_dhmax1'][:].data[0,0,:,:], ds.variables['p3_dhmax2'][:].data[0,0,:,:],
+#                              ds.variables['p3_dhmax3'][:].data[0,0,:,:], ds.variables['p3_dhmax4'][:].data[0,0,:,:]]), axis=0)
 ds.close()
 
 
@@ -1082,14 +1096,80 @@ xx = {'1':xh1, '2':xh2, '3':xh3, '4':xh4, '5':xh5, '6':xh6, '7':xh7}
 yy = {'1':yh1, '2':yh2, '3':yh3, '4':yh4, '5':yh5, '6':yh6, '7':yh7}
 
 
+#%%
+
+xgrid = np.arange(0.0625, 370.0625, 0.125)
+ygrid = np.arange(0.0625, 112.6625, 0.125)
+
+X,Y = np.meshgrid(xgrid,ygrid)
+
+rij_grid = np.zeros((len(ygrid),len(xgrid)))
+mv_grid = np.zeros((len(ygrid),len(xgrid)))
+db_grid = np.zeros((len(ygrid),len(xgrid)))
+mv_rij_grid = np.zeros((len(ygrid),len(xgrid)))
+mv_db_grid = np.zeros((len(ygrid),len(xgrid)))
+
+V80m_grid = np.zeros((len(ygrid),len(xgrid)))
+
+
+for i in range(25):
+    if i < 4:
+        x0=xh1; y0=yh1; um0=umove1; vm0=vmove1
+    elif i < 8:
+        x0=xh2; y0=yh2; um0=umove2; vm0=vmove2
+    elif i < 12:
+        x0=xh3; y0=yh3; um0=umove3; vm0=vmove3
+    elif i < 16:
+        x0=xh4; y0=yh4; um0=umove4; vm0=vmove4
+    elif i < 20:
+        x0=xh5; y0=yh5; um0=umove5; vm0=vmove5
+    elif i < 24:
+        x0=xh6; y0=yh6; um0=umove6; vm0=vmove6
+    else:
+        x0=xh7; y0=yh7; um0=umove7; vm0=vmove7
+    
+    x = x0 + um0*np.mod(i,4)*900/1000
+    y = y0 + vm0*np.mod(i,4)*900/1000
+    
+    fn = 360 + i*15
+    
+    dbfile = open(fp+f"wind_mechanisms_{fn}min.pkl", 'rb')
+    crit = pickle.load(dbfile)
+    is_rij = crit['is_rij'][50:850,50:850]
+    is_db = crit['is_db'][50:850,50:850]
+    is_mv = crit['is_mv'][50:850,50:850]
+    is_mv_rij = crit['is_mv_rij'][50:850,50:850]
+    is_mv_db = crit['is_mv_db'][50:850,50:850]
+    V80m = crit['V80m'][50:850,50:850]
+    dbfile.close()
+    
+    ix = np.argmin(abs(xgrid - x[50]))
+    iy = np.argmin(abs(ygrid - y[50]))
+    
+    ix0 = slice(ix,ix+800)
+    iy0 = slice(iy,iy+800)
+    
+    rij_grid[iy0,ix0] = np.maximum(rij_grid[iy0,ix0], is_rij)
+    mv_grid[iy0,ix0] = np.maximum(mv_grid[iy0,ix0], is_mv)
+    db_grid[iy0,ix0] = np.maximum(db_grid[iy0,ix0], is_db)
+    mv_rij_grid[iy0,ix0] = np.maximum(mv_rij_grid[iy0,ix0], is_mv_rij)
+    mv_db_grid[iy0,ix0] = np.maximum(mv_db_grid[iy0,ix0], is_mv_db)
+    
+    V80m_grid[iy0,ix0] = np.maximum(V80m_grid[iy0,ix0], V80m)
+    
+    
+    
+    
+
+
 #%% Make figures for CMOS - only 6-12 h
 
 dbz_levs = np.linspace(0,70,15); dbz_cm = "HomeyerRainbow"
-wsp_levs = np.linspace(0,30,31); wsp_cm = "Greys"; wsp_alpha=0.9
+wsp_levs = np.linspace(0,30,31); wsp_cm = "Greys"; wsp_alpha=0.75
 shs_levs = [500]; shs_cols = ['dimgray']; shs_lws = [0.6]
 hail_levs = [0.1]; hail_cols = ['k']; hail_lws = [0.6]
 sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.25]
-dmi_levs = [2.0]; dmi_cols = ['k']; dmi_lws = [1]
+dmi_levs = [1.0]; dmi_cols = ['k']; dmi_lws = [1]
 
 
 V_thres = 25.7
@@ -1160,53 +1240,121 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 # ax.contour(xh6, yh6, sws6, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
 # ax.contour(xh7, yh7, sws7, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
 
-ax.contour(xh1, yh1, sdmi1, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh2, yh2, sdmi2, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh3, yh3, sdmi3, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh4, yh4, sdmi4, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh5, yh5, sdmi5, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh6, yh6, sdmi6, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
-ax.contour(xh7, yh7, sdmi7, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh1, yh1, sdmi1, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh2, yh2, sdmi2, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh3, yh3, sdmi3, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh4, yh4, sdmi4, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh5, yh5, sdmi5, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh6, yh6, sdmi6, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
+# ax.contour(xh7, yh7, sdmi7, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws)
 
 
 
+# for i in range(7):
+#     is_rij = crit[f"{i+1}"]['is_rij']
+#     is_mv = crit[f"{i+1}"]['is_mv']
+#     is_db = crit[f"{i+1}"]['is_db']
+#     is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
+#     is_mv_db = crit[f"{i+1}"]['is_mv_db']
+#     wsp = crit[f"{i+1}"]['V80m']
+    
+#     rij_mask = (is_rij==0)
+#     mv_mask = (is_mv==0)
+#     db_mask = (is_db==0) | (is_rij>0)
+#     mv_rij_mask = (is_mv_rij==0)
+#     mv_db_mask = (is_mv_db==0)
+    
+#     x = xx[f"{i+1}"]
+#     y = yy[f"{i+1}"]
+    
+#     plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.75)
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.75)
+#     plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
+    
+#     # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
+#     # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
+#     # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
+    
+#     ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
+    
+#     # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
 
-for i in range(7):
-    is_rij = crit[f"{i+1}"]['is_rij']
-    is_mv = crit[f"{i+1}"]['is_mv']
-    is_db = crit[f"{i+1}"]['is_db']
-    is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
-    is_mv_db = crit[f"{i+1}"]['is_mv_db']
-    wsp = crit[f"{i+1}"]['V80m']
+
+# for i in range(25):
+#     if i < 4:
+#         x0=xh1; y0=yh1; um0=umove1; vm0=vmove1
+#     elif i < 8:
+#         x0=xh2; y0=yh2; um0=umove2; vm0=vmove2
+#     elif i < 12:
+#         x0=xh3; y0=yh3; um0=umove3; vm0=vmove3
+#     elif i < 16:
+#         x0=xh4; y0=yh4; um0=umove4; vm0=vmove4
+#     elif i < 20:
+#         x0=xh5; y0=yh5; um0=umove5; vm0=vmove5
+#     elif i < 24:
+#         x0=xh6; y0=yh6; um0=umove6; vm0=vmove6
+#     else:
+#         x0=xh7; y0=yh7; um0=umove7; vm0=vmove7
     
-    rij_mask = (is_rij==0)
-    mv_mask = (is_mv==0)
-    db_mask = (is_db==0) | (is_rij>0)
-    mv_rij_mask = (is_mv_rij==0)
-    mv_db_mask = (is_mv_db==0)
+#     x = x0 + um0*np.mod(i,4)*900/1000
+#     y = y0 + vm0*np.mod(i,4)*900/1000
     
-    x = xx[f"{i+1}"]
-    y = yy[f"{i+1}"]
+#     fn = 360 + i*15
+#     dbfile = open(fp+f"wind_mechanisms_{fn}min.pkl", 'rb')
+#     crit = pickle.load(dbfile)
+#     is_rij = crit['is_rij'] + crit['is_mv_rij']
+#     is_db = crit['is_db'] + crit['is_mv_db']
+#     is_mv = crit['is_mv']
+#     is_mv_rij = crit['is_mv_rij']
+#     is_mv_db = crit['is_mv_db']
+#     V80m = crit['V80m']
+#     dbfile.close()
     
-    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.75)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.75)
-    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
+#     rij_mask = (is_rij==0)
+#     mv_mask = (is_mv==0)
+#     db_mask = (is_db==0) | (is_rij>0)
+#     mv_rij_mask = (is_mv_rij==0)
+#     mv_db_mask = (is_mv_db==0)
     
-    # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
-    # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
-    # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
-    # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
-    # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
+#     plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.75)
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.75)
+#     plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
     
-    ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
+#     # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
+#     # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
     
-    # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
+#     ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
+
+
+ax.contour(xgrid, ygrid, mv_grid, levels=[0.1], colors='tab:pink', linewidths=1)
+ax.contour(xgrid, ygrid, rij_grid+mv_rij_grid, levels=[0.1], colors='r', linewidths=1.1)
+ax.contour(xgrid, ygrid, db_grid+mv_db_grid, levels=[0.1], colors='b', linewidths=0.8)
+# ax.contour(xgrid, ygrid, mv_rij_grid, levels=[0.01], colors='gold', linewidths=0.5)
+# ax.contour(xgrid, ygrid, mv_db_grid, levels=[0.01], colors='darkorchid', linewidths=0.5)
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(mv_rij_grid, mv_rij_grid<1), vmin=0, vmax=1, cmap='managua_r', alpha=0.9)
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(mv_db_grid, mv_db_grid<1), vmin=0, vmax=1, cmap='SCook18_r', alpha=0.8)
+
+ax.contour(xgrid, ygrid, V80m_grid, levels=[V_thres], colors='k', linewidths=1)
+
+
+
 
 ax.set_xlim(xl)
 ax.set_ylim(yl)
@@ -1218,14 +1366,21 @@ ax.set_title(f"80-m wind speed, severe wind mechanisms", fontsize=10)
 # # ax.legend(handles=[l2], labels=['500 m2/s2'], loc='lower right', fontsize=9)
 # ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
 
-l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
-l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
-l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
-l4 = ax.scatter(-1, -1, marker='s', s=15, c='orchid') #magenta
-l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
-l6, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
-l7, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
-ax.legend(handles=[l1,l2,l3,l4,l5,l7], labels=['RIJ','MV+RIJ','MV','MV+DB','DB','Hail>2 cm'],
+# l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
+# l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
+# l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
+# l4 = ax.scatter(-1, -1, marker='s', s=15, c='mediumorchid') #magenta
+# l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
+# l6, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
+# l7, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
+
+l1, = ax.plot([-2,-1], [-2,-1], 'tab:pink', linewidth=1)
+l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
+l3, = ax.plot([-2,-1], [-2,-1], 'b', linewidth=1)
+l4 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
+l5 = ax.scatter(-1, -1, marker='s', s=15, c='darkorchid') #magenta
+l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['MV','RIJ','DB','MV+RIJ','MV+DB','SVR wind'],
           loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
@@ -1236,8 +1391,12 @@ ax.text(xt[4], yt[4], '10 h', fontsize=9, fontweight='bold')
 ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
+
+
+# figsave = True
+
 if figsave:
-    plt.savefig(fp+'wspd_wind_mechanisms_6-12H.png', dpi=300)
+    plt.savefig(fp+'wspd_wind_mechanisms_6-12H_v2.png', dpi=300)
 
 
 #%%
