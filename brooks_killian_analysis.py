@@ -1343,14 +1343,14 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 #     ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
 
 
-ax.contour(xgrid, ygrid, mv_grid, levels=[0.1], colors='tab:pink', linewidths=1)
-ax.contour(xgrid, ygrid, rij_grid+mv_rij_grid, levels=[0.1], colors='r', linewidths=1.1)
-ax.contour(xgrid, ygrid, db_grid+mv_db_grid, levels=[0.1], colors='b', linewidths=0.8)
-# ax.contour(xgrid, ygrid, mv_rij_grid, levels=[0.01], colors='gold', linewidths=0.5)
-# ax.contour(xgrid, ygrid, mv_db_grid, levels=[0.01], colors='darkorchid', linewidths=0.5)
-ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(mv_rij_grid, mv_rij_grid<1), vmin=0, vmax=1, cmap='managua_r', alpha=0.9)
-ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(mv_db_grid, mv_db_grid<1), vmin=0, vmax=1, cmap='SCook18_r', alpha=0.8)
 
+is_rij_grid = rij_grid + mv_rij_grid
+is_db_grid = db_grid + mv_db_grid
+is_mv_grid = mv_grid + mv_rij_grid + mv_db_grid
+
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_rij_grid, is_rij_grid<1), vmin=0, vmax=1, cmap='bwr', alpha=0.65)
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_db_grid, is_db_grid<1), vmin=0, vmax=1, cmap='bwr_r', alpha=0.65)
+ax.contour(xgrid, ygrid, is_mv_grid, levels=[0.1], colors='violet', linewidths=0.9)
 ax.contour(xgrid, ygrid, V80m_grid, levels=[V_thres], colors='k', linewidths=1)
 
 
@@ -1361,10 +1361,6 @@ ax.set_ylim(yl)
 ax.set_xlabel('Translated x (km)', fontsize=10)
 ax.set_ylabel('Translated y (km)', fontsize=10)
 ax.set_title(f"80-m wind speed, severe wind mechanisms", fontsize=10)
-# l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
-# l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-# # ax.legend(handles=[l2], labels=['500 m2/s2'], loc='lower right', fontsize=9)
-# ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
 
 # l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
 # l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
@@ -1373,15 +1369,24 @@ ax.set_title(f"80-m wind speed, severe wind mechanisms", fontsize=10)
 # l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
 # l6, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
 # l7, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
+# ax.legend(handles=[l1,l2,l3,l4,l5,l7], labels=['MV','RIJ','DB','MV+RIJ','MV+DB','Hail>1 cm'],
+#           loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
 
-l1, = ax.plot([-2,-1], [-2,-1], 'tab:pink', linewidth=1)
-l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
-l3, = ax.plot([-2,-1], [-2,-1], 'b', linewidth=1)
-l4 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
-l5 = ax.scatter(-1, -1, marker='s', s=15, c='darkorchid') #magenta
-l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
-ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['MV','RIJ','DB','MV+RIJ','MV+DB','SVR wind'],
-          loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+# l1, = ax.plot([-2,-1], [-2,-1], 'tab:pink', linewidth=1)
+# l2, = ax.plot([-2,-1], [-2,-1], 'r', linewidth=1)
+# l3, = ax.plot([-2,-1], [-2,-1], 'b', linewidth=1)
+# l4 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
+# l5 = ax.scatter(-1, -1, marker='s', s=15, c='darkorchid') #magenta
+# l6, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+# ax.legend(handles=[l1,l2,l3,l4,l5,l6], labels=['MV','RIJ','DB','MV+RIJ','MV+DB','SVR wind'],
+#           loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+
+l1 = ax.scatter(-1, -1, marker='s', s=15, c='red')
+l2 = ax.scatter(-1, -1, marker='s', s=15, c='b')
+l3, = ax.plot([-2,-1], [-2,-1], 'orchid', linewidth=1)
+l4, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
+ax.legend(handles=[l1,l2,l3,l4], labels=['RIJ','DB','MV','SVR wind'],
+          loc='upper left', fontsize=7, framealpha=0.5)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
@@ -1393,7 +1398,7 @@ ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 
 
-# figsave = True
+figsave = True
 
 if figsave:
     plt.savefig(fp+'wspd_wind_mechanisms_6-12H_v2.png', dpi=300)
