@@ -202,7 +202,7 @@ figfolder = fp+"figs/"
 # yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
 yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
 
-leadtime = -1 #hours before hit
+leadtime = 0 #hours before hit
 
 
 
@@ -478,34 +478,135 @@ lcls6_2 = {'-1h':938.6, '0h':942.3, '1h':939.7, '2h':935.6}
 
 #%% First tornado only
 
-cape_1 = {'Aug11':1469.8, 'Jun23':998.0, 'May30':1096.9, 'May21':1061.2, 'Jul24':1583.5, 'Apr15':880.6}
-cape_0 = {'Aug11':1184.5, 'Jun23':958.8, 'May30':671.8,  'May21':840.9,  'Jul24':1526.0, 'Apr15':476.9}
+# cape_1 = {'Aug11':1469.8, 'Jun23':998.0, 'May30':1096.9, 'May21':1061.2, 'Jul24':1583.5, 'Apr15':880.6}
+# cape_0 = {'Aug11':1184.5, 'Jun23':958.8, 'May30':671.8,  'May21':840.9,  'Jul24':1526.0, 'Apr15':476.9}
 
-cin_1 = {'Aug11':-3.9,   'Jun23':-40.7, 'May30':-38.0, 'May21':-121.4, 'Jul24':-178.6, 'Apr15':-70.2}
-cin_0 = {'Aug11':-115.5, 'Jun23':-6.2,  'May30':-87.4, 'May21':-115.4, 'Jul24':-13.4,  'Apr15':-23.5}
+# cin_1 = {'Aug11':-3.9,   'Jun23':-40.7, 'May30':-38.0, 'May21':-121.4, 'Jul24':-178.6, 'Apr15':-70.2}
+# cin_0 = {'Aug11':-115.5, 'Jun23':-6.2,  'May30':-87.4, 'May21':-115.4, 'Jul24':-13.4,  'Apr15':-23.5}
 
-shear1_1 = {'Aug11':11.2, 'Jun23':11.2, 'May30':14.9, 'May21':13.2, 'Jul24':8.3, 'Apr15':18.7}
-shear1_0 = {'Aug11':13.9, 'Jun23':10.7, 'May30':13.7, 'May21':13.6, 'Jul24':9.4, 'Apr15':22.4}
+# shear1_1 = {'Aug11':11.2, 'Jun23':11.2, 'May30':14.9, 'May21':13.2, 'Jul24':8.3, 'Apr15':18.7}
+# shear1_0 = {'Aug11':13.9, 'Jun23':10.7, 'May30':13.7, 'May21':13.6, 'Jul24':9.4, 'Apr15':22.4}
 
-shear3_1 = {'Aug11':16.6, 'Jun23':16.0, 'May30':20.7, 'May21':16.3, 'Jul24':9.2,  'Apr15':15.1}
-shear3_0 = {'Aug11':21.8, 'Jun23':15.7, 'May30':21.2, 'May21':16.6, 'Jul24':11.7, 'Apr15':22.1}
+# shear3_1 = {'Aug11':16.6, 'Jun23':16.0, 'May30':20.7, 'May21':16.3, 'Jul24':9.2,  'Apr15':15.1}
+# shear3_0 = {'Aug11':21.8, 'Jun23':15.7, 'May30':21.2, 'May21':16.6, 'Jul24':11.7, 'Apr15':22.1}
 
-shear6_1 = {'Aug11':23.7, 'Jun23':16.6, 'May30':31.2, 'May21':24.0, 'Jul24':15.5, 'Apr15':25.1}
-shear6_0 = {'Aug11':29.5, 'Jun23':16.2, 'May30':36.8, 'May21':24.8, 'Jul24':15.8, 'Apr15':26.5}
+# shear6_1 = {'Aug11':23.7, 'Jun23':16.6, 'May30':31.2, 'May21':24.0, 'Jul24':15.5, 'Apr15':25.1}
+# shear6_0 = {'Aug11':29.5, 'Jun23':16.2, 'May30':36.8, 'May21':24.8, 'Jul24':15.8, 'Apr15':26.5}
 
-srh1_1 = {'Aug11':144.2, 'Jun23':137.5, 'May30':177.1, 'May21':107.8, 'Jul24':82.8, 'Apr15':210.6}
-srh1_0 = {'Aug11':227.0, 'Jun23':142.0, 'May30':239.7, 'May21':66.1,  'Jul24':13.9, 'Apr15':347.8}
+# srh1_1 = {'Aug11':144.2, 'Jun23':137.5, 'May30':177.1, 'May21':107.8, 'Jul24':82.8, 'Apr15':210.6}
+# srh1_0 = {'Aug11':227.0, 'Jun23':142.0, 'May30':239.7, 'May21':66.1,  'Jul24':13.9, 'Apr15':347.8}
 
-srh3_1 = {'Aug11':216.5, 'Jun23':235.7, 'May30':380.6, 'May21':124.4, 'Jul24':100.9, 'Apr15':215.5}
-srh3_0 = {'Aug11':324.6, 'Jun23':194.6, 'May30':404.8, 'May21':90.7,  'Jul24':33.3,  'Apr15':422.6}
+# srh3_1 = {'Aug11':216.5, 'Jun23':235.7, 'May30':380.6, 'May21':124.4, 'Jul24':100.9, 'Apr15':215.5}
+# srh3_0 = {'Aug11':324.6, 'Jun23':194.6, 'May30':404.8, 'May21':90.7,  'Jul24':33.3,  'Apr15':422.6}
 
-lcl_1 = {'Aug11':928.5, 'Jun23':878.7, 'May30':912.4, 'May21':925.5, 'Jul24':841.6, 'Apr15':940.2}
-lcl_0 = {'Aug11':946.5, 'Jun23':890.2, 'May30':873.7, 'May21':928.1, 'Jul24':897.9, 'Apr15':941.6}
-
-
+# lcl_1 = {'Aug11':928.5, 'Jun23':878.7, 'May30':912.4, 'May21':925.5, 'Jul24':841.6, 'Apr15':940.2}
+# lcl_0 = {'Aug11':946.5, 'Jun23':890.2, 'May30':873.7, 'May21':928.1, 'Jul24':897.9, 'Apr15':941.6}
 
 
 
+cape_1 = [1469.8, 998.0, 1096.9, 1061.2, 1583.5, 880.6]
+cape_0 = [1184.5, 958.8, 671.8, 840.9, 1526.0, 476.9]
+
+cin_1 = [3.9, 40.7, 38.0, 121.4, 178.6, 70.2]
+cin_0 = [115.5, 6.2, 87.4, 115.4, 13.4, 23.5]
+
+shear1_1 = [11.2, 11.2, 14.9, 13.2, 8.3, 18.7]
+shear1_0 = [13.9, 10.7, 13.7, 13.6, 9.4, 22.4]
+
+shear3_1 = [16.6, 16.0, 20.7, 16.3, 9.2, 15.1]
+shear3_0 = [21.8, 15.7, 21.2, 16.6, 11.7, 22.1]
+
+shear6_1 = [23.7, 16.6, 31.2, 24.0, 15.5, 25.1]
+shear6_0 = [29.5, 16.2, 36.8, 24.8, 15.8, 26.5]
+
+srh1_1 = [144.2, 137.4, 177.1, 107.8, 82.8, 210.6]
+srh1_0 = [227.0, 142.0, 238.7, 66.1, 13.9, 347.8]
+
+srh3_1 = [216.5, 235.7, 380.6, 124.4, 100.9, 215.5]
+srh3_0 = [324.6, 194.6, 404.8, 90.7, 33.3, 422.6]
+
+lcl_1 = [928.5, 878.7, 912.4, 925.5, 841.6, 940.2]
+lcl_0 = [946.5, 890.2, 873.7, 928.1, 897.9, 941.6]
+
+
+
+wid1 = 0.25
+wid2 = 0.2
+
+x1 = np.arange(len(cape_1))
+x2 = [x + wid1 for x in x1]
+x3 = [x + wid1 for x in x2]
+
+
+# Bulk shear
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, shear1_0, color='r', width=wid2, edgecolor='k', label='0-1 km')
+ax.bar(x2, shear3_0, color='gold', width=wid2, edgecolor='k', label='0-3 km')
+ax.bar(x3, shear6_0, color='b', width=wid2, edgecolor='k', label='0-6 km')
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('Bulk wind shear (m/s)', fontsize=12)
+ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
+ax.set_title('Bulk Wind Shear Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+
+
+
+
+wid1 = 0.2
+wid2 = 0.15
+
+x1 = np.arange(len(cape_1))*1.1
+x2 = [x + wid1 for x in x1]
+x3 = [x + wid1+0.05 for x in x2]
+x4 = [x + wid1 for x in x3]
+
+
+# SRH
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, srh1_1, color='pink', width=wid1, edgecolor='k', label='0-1 km (T-1H)')
+ax.bar(x2, srh3_1, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km (T-1H)')
+ax.bar(x3, srh1_0, color='r', width=wid1, edgecolor='k', label='0-1 km (T-0H)')
+ax.bar(x4, srh3_0, color='b', width=wid1, edgecolor='k', label='0-3 km (T-0H)')
+
+ax.plot([x1, x3], [srh1_1, srh1_0], '--k')
+ax.plot([x2, x4], [srh3_1, srh3_0], '--k')
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('SRH (m2/s2)', fontsize=12)
+ax.set_xticks([x + wid2/2+0.05 for x in x2], 
+              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+               '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
+               '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
+ax.set_title('Storm-Relative Helicity Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=11, loc='upper left')
+
+
+
+# CAPE
+wid1 = 0.25
+x1 = np.arange(len(cape_1))
+x2 = [x + wid1+0.05 for x in x1]
+
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, cape_1, color='lightskyblue', width=wid1, edgecolor='k', label='T-1H')
+ax.bar(x2, cape_0, color='b', width=wid1, edgecolor='k', label='T-0H')
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('CAPE (J/kg)', fontsize=12)
+ax.set_xticks([x + wid1/2 for x in x1], 
+              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+               '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
+               '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
+ax.set_title('CAPE Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper right')
+
+plt.show()
 
 
 
