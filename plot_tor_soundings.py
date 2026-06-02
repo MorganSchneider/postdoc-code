@@ -606,6 +606,8 @@ ax.set_xticks([x + wid1/2 for x in x1],
 ax.set_title('CAPE Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper right')
 
+
+
 plt.show()
 
 
