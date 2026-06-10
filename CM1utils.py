@@ -153,7 +153,7 @@ def plot_contourf(x, y, data, field, ax, levels=None, datalims=None, xlims=None,
     
     if cbar:
         cb = plt.colorbar(c, ax=ax, extend='both')
-        cb.set_label(cb_label)
+        # cb.set_label(cb_label)
         if np.max(np.abs(datalims)) < 0.1:
             cb.formatter.set_powerlimits((0,0))
         if cbfs is None:

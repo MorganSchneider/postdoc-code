@@ -34,7 +34,7 @@ fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 figsave = False
 
 plot_dbz = False
-plot_thr = True
+plot_thr = False
 plot_del2 = False
 
 
@@ -83,7 +83,7 @@ if plot_dbz:
             l1, = ax[0,0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
             l2, = ax[0,0].plot([190,200], [190,200], '-k', linewidth=0.75)
             ax[0,0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper right', fontsize=10)
-        ax[0,n].set_title(f"t = {time:.0f} s")
+        ax[0,n].set_title(f"t = {time/3600:.0f} h")
         if n == 0:
             ax[0,n].set_ylabel('y (km)', fontsize=12)
         
@@ -188,7 +188,7 @@ if plot_thr:
             ax[0,0].legend(handles=[l3], labels=["\u03B6=0.03 s$^{-1}$"], loc='upper right', fontsize=10)
             ax[0,0].quiver(80, 80, 20, 0, color='k', scale=150, width=0.01, pivot='middle')
             ax[0,0].text(40, 50, "20 m s$^{-1}$", fontsize=10)
-        ax[0,n].set_title(f"t = {time:.0f} s")
+        ax[0,n].set_title(f"t = {time/3600:.0f} h")
         if n == 0:
             ax[0,n].set_ylabel('y (km)', fontsize=12)
         
@@ -343,7 +343,7 @@ if plot_del2:
         ax[0,n].set_xlim(xl)
         ax[0,n].set_ylim(yl)
         ax[0,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
-        ax[0,n].set_title(f"t = {time:.0f} s")
+        ax[0,n].set_title(f"t = {time/3600:.0f} h")
         if n == 0:
             ax[0,n].set_ylabel('y (km)', fontsize=12)
         
@@ -442,6 +442,11 @@ if plot_del2:
 
 
 
+
+    
+    
+
+
 #%% Time series and statistics
 
 from scipy import stats
@@ -449,7 +454,7 @@ from scipy import stats
 
 fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 ds = nc.Dataset(fp1+f"cm1out_stats.nc")
-time = ds.variables['mtime'][:].data
+time = ds.variables['mtime'][:].data/3600
 wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_fs = ds.variables['wmax1000'][:].data #max w at 1000 m
 wmax2500_fs = ds.variables['wmax2500'][:].data #max w at 2500 m
@@ -645,6 +650,10 @@ for key in list(data_fs.keys()):
 figsave = False
 
 
+tlims = [0,9]
+x_major = 1
+x_minor = 0.25
+
 ### Vorticity time series
 
 fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
@@ -655,16 +664,15 @@ l3,= ax[0].plot(time[:-2], movmean(vortsfc_ss,5)[:-2], 'crimson', linewidth=2)
 # l1,= ax[0].plot(time, vortsfc_fs, 'k', linewidth=2)
 # l2,= ax[0].plot(time, vortsfc_ns, 'dodgerblue', linewidth=2)
 # l3,= ax[0].plot(time, vortsfc_ss, 'crimson', linewidth=2)
-ax[0].set_xlim([0,32400])
+ax[0].set_xlim(tlims)
 ax[0].set_ylim([0,0.2])
-# ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel("Vorticity (1/s)", fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
 ax[0].set_title(f"Max. 10-m vertical vorticity", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[0].xaxis.set_major_locator(MultipleLocator(3600))
-ax[0].xaxis.set_minor_locator(MultipleLocator(900))
+ax[0].xaxis.set_major_locator(MultipleLocator(x_major))
+ax[0].xaxis.set_minor_locator(MultipleLocator(x_minor))
 ax[0].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[0].yaxis.set_minor_locator(MultipleLocator(0.025))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -676,16 +684,12 @@ l6,= ax[1].plot(time[:-2], movmean(vort1km_ss,5)[:-2], 'crimson', linewidth=2)
 # l4,= ax[1].plot(time, vort1km_fs, 'k', linewidth=2)
 # l5,= ax[1].plot(time, vort1km_ns, 'dodgerblue', linewidth=2)
 # l6,= ax[1].plot(time, vort1km_ss, 'crimson', linewidth=2)
-ax[1].set_xlim([0,32400])
 ax[1].set_ylim([0,0.2])
-# ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("Vorticity (1/s)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
 ax[1].set_title(f"Max. 1-km vertical vorticity", fontsize=16)
 ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[1].xaxis.set_major_locator(MultipleLocator(3600))
-ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[1].yaxis.set_minor_locator(MultipleLocator(0.025))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -697,16 +701,13 @@ l9,= ax[2].plot(time[:-2], movmean(vort3km_ss,5)[:-2], 'crimson', linewidth=2)
 # l7,= ax[2].plot(time, vort3km_fs, 'k', linewidth=2)
 # l8,= ax[2].plot(time, vort3km_ns, 'dodgerblue', linewidth=2)
 # l9,= ax[2].plot(time, vort3km_ss, 'crimson', linewidth=2)
-ax[2].set_xlim([0,32400])
 ax[2].set_ylim([0,0.2])
-ax[2].set_xlabel('Time (s)', fontsize=14)
+ax[2].set_xlabel('Time (h)', fontsize=14)
 ax[2].set_ylabel("Vorticity (1/s)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
 ax[2].set_title(f"Max. 3-km vertical vorticity", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[2].xaxis.set_major_locator(MultipleLocator(3600))
-ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(0.05))
 ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
 # ax[2].legend(handles=[l7,l8,l9], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -725,16 +726,15 @@ fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 l1,= ax[0].plot(time[:-2], movmean(wmax1000_fs,5)[:-2], 'k', linewidth=2)
 l2,= ax[0].plot(time[:-2], movmean(wmax1000_ns,5)[:-2], 'dodgerblue', linewidth=2)
 l3,= ax[0].plot(time[:-2], movmean(wmax1000_ss,5)[:-2], 'crimson', linewidth=2)
-ax[0].set_xlim([0,32400])
+ax[0].set_xlim(tlims)
 ax[0].set_ylim([0,30])
-# ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel("w (m/s)", fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
 ax[0].set_title(f"Max. 1-km updraft speed", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[0].xaxis.set_major_locator(MultipleLocator(3600))
-ax[0].xaxis.set_minor_locator(MultipleLocator(900))
+ax[0].xaxis.set_major_locator(MultipleLocator(x_major))
+ax[0].xaxis.set_minor_locator(MultipleLocator(x_minor))
 ax[0].yaxis.set_major_locator(MultipleLocator(5))
 ax[0].yaxis.set_minor_locator(MultipleLocator(2.5))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -743,16 +743,12 @@ ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 l4,= ax[1].plot(time[:-2], movmean(wmax2500_fs,5)[:-2], 'k', linewidth=2)
 l5,= ax[1].plot(time[:-2], movmean(wmax2500_ns,5)[:-2], 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time[:-2], movmean(wmax2500_ss,5)[:-2], 'crimson', linewidth=2)
-ax[1].set_xlim([0,32400])
 ax[1].set_ylim([10,40])
-# ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("w (m/s)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
 ax[1].set_title(f"Max. 2.5-km updraft speed", fontsize=16)
 ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[1].xaxis.set_major_locator(MultipleLocator(3600))
-ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(5))
 ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -761,16 +757,13 @@ ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
 l7,= ax[2].plot(time[:-2], movmean(wmax5000_fs,5)[:-2], 'k', linewidth=2)
 l8,= ax[2].plot(time[:-2], movmean(wmax5000_ns,5)[:-2], 'dodgerblue', linewidth=2)
 l9,= ax[2].plot(time[:-2], movmean(wmax5000_ss,5)[:-2], 'crimson', linewidth=2)
-ax[2].set_xlim([0,32400])
 ax[2].set_ylim([20,50]) #[20,50] for 5 km
-ax[2].set_xlabel('Time (s)', fontsize=14)
+ax[2].set_xlabel('Time (h)', fontsize=14)
 ax[2].set_ylabel("w (m/s)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
 ax[2].set_title(f"Max. 5-km updraft speed", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[2].xaxis.set_major_locator(MultipleLocator(3600))
-ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(5))
 ax[2].yaxis.set_minor_locator(MultipleLocator(2.5))
 # ax[2].legend(handles=[l7,l8,l9], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -789,16 +782,15 @@ fig,ax = plt.subplots(3, 1, figsize=(10,9), sharex=True, layout='constrained')
 l1,= ax[0].plot(time[:-2], movmean(swspmax_fs,5)[:-2], 'k', linewidth=2)
 l2,= ax[0].plot(time[:-2], movmean(swspmax_ns,5)[:-2], 'dodgerblue', linewidth=2)
 l3,= ax[0].plot(time[:-2], movmean(swspmax_ss,5)[:-2], 'crimson', linewidth=2)
-ax[0].set_xlim([0,32400])
+ax[0].set_xlim(tlims)
 ax[0].set_ylim([0,60])
-# ax[0].set_xlabel('Time (s)', fontsize=14)
 ax[0].set_ylabel("Wind speed (m/s)", fontsize=14)
 ax[0].tick_params(axis='both', labelsize=12)
 ax[0].set_title(f"Max. 10-m wind speed", fontsize=16)
 ax[0].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[0].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[0].xaxis.set_major_locator(MultipleLocator(3600))
-ax[0].xaxis.set_minor_locator(MultipleLocator(900))
+ax[0].xaxis.set_major_locator(MultipleLocator(x_major))
+ax[0].xaxis.set_minor_locator(MultipleLocator(x_minor))
 ax[0].yaxis.set_major_locator(MultipleLocator(10))
 ax[0].yaxis.set_minor_locator(MultipleLocator(5))
 ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -807,16 +799,12 @@ ax[0].legend(handles=[l1,l2,l3], labels=['FREESLIP','NOSLIP','SEMISLIP'],
 l4,= ax[1].plot(time[:-2], sthpmin_fs[:-2], 'k', linewidth=2)
 l5,= ax[1].plot(time[:-2], sthpmin_ns[:-2], 'dodgerblue', linewidth=2)
 l6,= ax[1].plot(time[:-2], sthpmin_ss[:-2], 'crimson', linewidth=2)
-ax[1].set_xlim([0,32400])
 ax[1].set_ylim([-15,0])
-# ax[1].set_xlabel('Time (s)', fontsize=14)
 ax[1].set_ylabel("\u03B8' (K)", fontsize=14)
 ax[1].tick_params(axis='both', labelsize=12)
 ax[1].set_title(f"Min. 10-m temperature perturbation", fontsize=16)
 ax[1].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[1].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[1].xaxis.set_major_locator(MultipleLocator(3600))
-ax[1].xaxis.set_minor_locator(MultipleLocator(900))
 ax[1].yaxis.set_major_locator(MultipleLocator(5))
 ax[1].yaxis.set_minor_locator(MultipleLocator(2.5))
 # ax[1].legend(handles=[l4,l5,l6], labels=['FREESLIP','NOSLIP','SEMISLIP'],
@@ -831,16 +819,13 @@ ax[2].plot(time[:-2], movmean(pratemax_ss,5)[:-2], 'crimson', linewidth=2)
 # ax[2].plot(time, sratemax_ns, 'dodgerblue', linewidth=2, linestyle='--')
 # ax[2].plot(time, pratemax_ss, 'crimson', linewidth=2)
 # ax[2].plot(time, sratemax_ss, 'crimson', linewidth=2, linestyle='--')
-ax[2].set_xlim([0,32400])
 ax[2].set_ylim([0,0.1]) #[20,50] for 5 km
-ax[2].set_xlabel('Time (s)', fontsize=14)
+ax[2].set_xlabel('Time (h)', fontsize=14)
 ax[2].set_ylabel("Rain rate (kg m$^{-2}$ s$^{-1}$)", fontsize=14)
 ax[2].tick_params(axis='both', labelsize=12)
 ax[2].set_title(f"Max. surface rain/hail rate", fontsize=16)
 ax[2].grid(visible=True, which='major', color='darkgray', linestyle='-')
 ax[2].grid(visible=True, which='minor', color='lightgray', linestyle='-')
-ax[2].xaxis.set_major_locator(MultipleLocator(3600))
-ax[2].xaxis.set_minor_locator(MultipleLocator(900))
 ax[2].yaxis.set_major_locator(MultipleLocator(0.02))
 ax[2].yaxis.set_minor_locator(MultipleLocator(0.01))
 
@@ -2335,6 +2320,211 @@ ax.set_title('Wind speed in the atmospheric surface layer', fontsize=12)
 # plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/ASL_profiles.png', dpi=300)
 
 plt.show()
+
+
+#%% DBZ gif
+
+from matplotlib.animation import FuncAnimation
+
+
+
+# fn = np.linspace(1,37,10)
+fn = [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 37]
+
+
+fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+
+
+ds = nc.Dataset(fp1+'cm1out_000001.nc')
+time = ds.variables['time'][:].data[0]
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz2 = np.where(zh>2.5)[0][0]
+dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+w1 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+ds = nc.Dataset(fp2+'cm1out_000001.nc')
+dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+w2 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+ds = nc.Dataset(fp3+'cm1out_000001.nc')
+dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+w3 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+
+
+fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
+
+cf1 = plot_contourf(xh, yh, np.ma.masked_array(dbz1, dbz1<0.1), 'dbz', ax[0], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+c1 = ax[0].contour(xh, yh, w1, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=0.75)
+ax[0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper left', fontsize=12)
+ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
+ax[0].set_xlabel('x (km)', fontsize=12)
+ax[0].set_ylabel('y (km)', fontsize=12)
+ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+cf2 = plot_contourf(xh, yh, np.ma.masked_array(dbz2, dbz2<0.1), 'dbz', ax[1], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+c2 = ax[1].contour(xh, yh, w2, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
+ax[1].set_xlabel('x (km)', fontsize=12)
+ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+cf3 = plot_contourf(xh, yh, np.ma.masked_array(dbz3, dbz3<0.1), 'dbz', ax[2], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=True, cbfs=12)
+c3 = ax[2].contour(xh, yh, w3, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+# cb = plt.colorbar(cf3, ax=ax[2])
+# cb.set_label("$Z_H$ (dBZ)", fontsize=12)
+ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
+ax[2].set_xlabel('x (km)', fontsize=12)
+ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+
+
+def animate_dbz(i):
+    ax[0].clear()
+    ax[1].clear()
+    ax[2].clear()
+    
+    ds = nc.Dataset(fp1+f"cm1out_{fn[i]:06.0f}.nc")
+    time = ds.variables['time'][:].data[0]
+    dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+    w1 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+    ds.close()
+
+    ds = nc.Dataset(fp2+f"cm1out_{fn[i]:06.0f}.nc")
+    dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+    w2 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+    ds.close()
+
+    ds = nc.Dataset(fp3+f"cm1out_{fn[i]:06.0f}.nc")
+    dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+    w3 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+    ds.close()
+    
+    
+    cf1 = plot_contourf(xh, yh, np.ma.masked_array(dbz1, dbz1<0.1), 'dbz', ax[0], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c1 = ax[0].contour(xh, yh, w1, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+    l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=0.75)
+    ax[0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper left', fontsize=12)
+    ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
+    ax[0].set_xlabel('x (km)', fontsize=12)
+    ax[0].set_ylabel('y (km)', fontsize=12)
+    ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+    cf2 = plot_contourf(xh, yh, np.ma.masked_array(dbz2, dbz2<0.1), 'dbz', ax[1], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c2 = ax[1].contour(xh, yh, w2, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
+    ax[1].set_xlabel('x (km)', fontsize=12)
+    ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+    cf3 = plot_contourf(xh, yh, np.ma.masked_array(dbz3, dbz3<0.1), 'dbz', ax[2], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c3 = ax[2].contour(xh, yh, w3, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # cb = plt.colorbar(cf3, ax=ax[2])
+    # cb.set_label("$Z_H$ (dBZ)", fontsize=12)
+    ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
+    ax[2].set_xlabel('x (km)', fontsize=12)
+    ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+
+anim = FuncAnimation(fig, animate_dbz, frames=len(fn), interval=1000, repeat=False, blit=False)
+anim.save(fp2+'dbz_animation_v2.gif')
+
+plt.show()
+
+
+#%% Hourly dbz stills 3-panel
+
+fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+
+
+ds = nc.Dataset(fp1+'cm1out_000037.nc')
+time = ds.variables['time'][:].data[0]
+xh = ds.variables['xh'][:].data
+yh = ds.variables['yh'][:].data
+zh = ds.variables['zh'][:].data
+iz2 = np.where(zh>2.5)[0][0]
+dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+w1 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+ds = nc.Dataset(fp2+'cm1out_000037.nc')
+dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+w2 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+ds = nc.Dataset(fp3+'cm1out_000037.nc')
+dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+w3 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+ds.close()
+
+
+
+fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
+
+cf1 = plot_contourf(xh, yh, np.ma.masked_array(dbz1, dbz1<0.1), 'dbz', ax[0], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+c1 = ax[0].contour(xh, yh, w1, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=0.75)
+ax[0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper left', fontsize=12)
+ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
+ax[0].set_xlabel('x (km)', fontsize=12)
+ax[0].set_ylabel('y (km)', fontsize=12)
+ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+cf2 = plot_contourf(xh, yh, np.ma.masked_array(dbz2, dbz2<0.1), 'dbz', ax[1], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+c2 = ax[1].contour(xh, yh, w2, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
+ax[1].set_xlabel('x (km)', fontsize=12)
+ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+cf3 = plot_contourf(xh, yh, np.ma.masked_array(dbz3, dbz3<0.1), 'dbz', ax[2], levels=np.linspace(0,70,15),
+              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+c3 = ax[2].contour(xh, yh, w3, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+cb = plt.colorbar(cf3, ax=ax[2])
+cb.set_label("$Z_H$ (dBZ)", fontsize=12)
+ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
+ax[2].set_xlabel('x (km)', fontsize=12)
+ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+
+
+if True:
+    fig.savefig(fp2+f"dbz_{time/3600:.0f}h.png", dpi=300)
+
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
