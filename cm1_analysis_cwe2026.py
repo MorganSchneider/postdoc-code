@@ -853,6 +853,9 @@ if figsave:
 
 
 
+
+
+
 #%% Time block statistical significance plot
 
 
@@ -2456,70 +2459,194 @@ fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
 fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
 fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
 
+fn = 21
 
-ds = nc.Dataset(fp1+'cm1out_000037.nc')
+zi = 2
+
+
+ds = nc.Dataset(fp1+f"cm1out_{fn:06.0f}.nc")
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
 zh = ds.variables['zh'][:].data
+iz1 = np.where(zh>1)[0][0]
 iz2 = np.where(zh>2.5)[0][0]
-dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
+# dbz1 = ds.variables['dbz'][:].data[0,0,:,:]
 w1 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+zv1 = np.max(ds.variables['zvort'][:].data[0,:iz1,:,:], axis=0)
+# thp1 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+# u1 = ds.variables['uinterp'][:].data[0,zi,:,:] + ds.variables['umove'][:].data[0]
+# v1 = ds.variables['vinterp'][:].data[0,zi,:,:] + ds.variables['vmove'][:].data[0]
 ds.close()
 
-ds = nc.Dataset(fp2+'cm1out_000037.nc')
-dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
+ds = nc.Dataset(fp2+f"cm1out_{fn:06.0f}.nc")
+# dbz2 = ds.variables['dbz'][:].data[0,0,:,:]
 w2 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+zv2 = np.max(ds.variables['zvort'][:].data[0,:iz1,:,:], axis=0)
+# thp2 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+# u2 = ds.variables['uinterp'][:].data[0,zi,:,:] + ds.variables['umove'][:].data[0]
+# v2 = ds.variables['vinterp'][:].data[0,zi,:,:] + ds.variables['vmove'][:].data[0]
 ds.close()
 
-ds = nc.Dataset(fp3+'cm1out_000037.nc')
-dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
+ds = nc.Dataset(fp3+f"cm1out_{fn:06.0f}.nc")
+# dbz3 = ds.variables['dbz'][:].data[0,0,:,:]
 w3 = np.max(ds.variables['winterp'][:].data[0,:iz2,:,:], axis=0)
+zv3 = np.max(ds.variables['zvort'][:].data[0,:iz1,:,:], axis=0)
+# thp3 = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+# u3 = ds.variables['uinterp'][:].data[0,zi,:,:] + ds.variables['umove'][:].data[0]
+# v3 = ds.variables['vinterp'][:].data[0,zi,:,:] + ds.variables['vmove'][:].data[0]
 ds.close()
 
 
-
-fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
-
-cf1 = plot_contourf(xh, yh, np.ma.masked_array(dbz1, dbz1<0.1), 'dbz', ax[0], levels=np.linspace(0,70,15),
-              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
-c1 = ax[0].contour(xh, yh, w1, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
-l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
-l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=0.75)
-ax[0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s'], loc='upper left', fontsize=12)
-ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
-ax[0].set_xlabel('x (km)', fontsize=12)
-ax[0].set_ylabel('y (km)', fontsize=12)
-ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
-
-
-cf2 = plot_contourf(xh, yh, np.ma.masked_array(dbz2, dbz2<0.1), 'dbz', ax[1], levels=np.linspace(0,70,15),
-              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
-c2 = ax[1].contour(xh, yh, w2, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
-ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
-ax[1].set_xlabel('x (km)', fontsize=12)
-ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
-
-cf3 = plot_contourf(xh, yh, np.ma.masked_array(dbz3, dbz3<0.1), 'dbz', ax[2], levels=np.linspace(0,70,15),
-              datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
-c3 = ax[2].contour(xh, yh, w3, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
-cb = plt.colorbar(cf3, ax=ax[2])
-cb.set_label("$Z_H$ (dBZ)", fontsize=12)
-ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
-ax[2].set_xlabel('x (km)', fontsize=12)
-ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
-
-
-if True:
-    fig.savefig(fp2+f"dbz_{time/3600:.0f}h.png", dpi=300)
-
-plt.show()
-
-
-
+if False:
+    fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
+    
+    cf1 = plot_contourf(xh, yh, np.ma.masked_array(dbz1, dbz1<0.1), 'dbz', ax[0], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c1 = ax[0].contour(xh, yh, w1, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[1,1.5])
+    l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+    l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=2)
+    l3, = ax[0].plot([190,200], [190,200], '-r', linewidth=2)
+    ax[0].legend(handles=[l1,l2], labels=['w=5 m/s','w=10 m/s',""], loc='upper left', fontsize=13, handlelength=1.25)
+    ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
+    ax[0].set_xlabel('x (km)', fontsize=12)
+    ax[0].set_ylabel('y (km)', fontsize=12)
+    ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    cf2 = plot_contourf(xh, yh, np.ma.masked_array(dbz2, dbz2<0.1), 'dbz', ax[1], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c2 = ax[1].contour(xh, yh, w2, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[1,1.5])
+    ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
+    ax[1].set_xlabel('x (km)', fontsize=12)
+    ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    cf3 = plot_contourf(xh, yh, np.ma.masked_array(dbz3, dbz3<0.1), 'dbz', ax[2], levels=np.linspace(0,70,15),
+                  datalims=[0,70], xlims=[-150,150], ylims=[-150,150], cmap='HomeyerRainbow', cbar=False)
+    c3 = ax[2].contour(xh, yh, w3, levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[1,1.5])
+    cb = plt.colorbar(cf3, ax=ax[2])
+    cb.set_label("$Z_H$ (dBZ)", fontsize=12)
+    ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
+    ax[2].set_xlabel('x (km)', fontsize=12)
+    ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    if True:
+        fig.savefig(fp2+f"dbz_{time/3600:.0f}h.png", dpi=300)
+    
+    # plt.show()
 
 
+if False:
+    qix = 64
+    
+    fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
+    
+    c1 = plot_contourf(xh, yh, thp1, 'thpert', ax[0], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=[-150,150], ylims=[-150,150], cbar=False)
+    # cw1 = ax[0].contour(xh, yh, w1, levels=[10], colors=['k'], linestyles='-', linewidths=1.5)
+    cv1 = ax[0].contour(xh, yh, zv1, levels=[0.03], colors='r', linestyles='-', linewidths=2)
+    q1 = ax[0].quiver(xh[::qix], yh[::qix], u1[::qix,::qix], v1[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    
+    # wsp1 = np.sqrt(u1[::qix,::qix]**2 + v1[::qix,::qix]**2)
+    # ax[0].quiver(xh[::qix], yh[::qix], u1[::qix,::qix], v1[::qix,::qix], color='gray', scale=200, width=0.006, pivot='middle')
+    # ax[0].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u1[::qix,::qix], wsp1<20), np.ma.masked_array(v1[::qix,::qix], wsp1<20),
+    #                   color='k', scale=200, width=0.006, pivot='middle')
+    # ax[0].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u1[::qix,::qix], wsp1<25.7), np.ma.masked_array(v1[::qix,::qix], wsp1<25.7),
+    #              color='r', scale=200, width=0.006, pivot='middle')
+    
+    l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=1.5)
+    l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=1.5)
+    l3, = ax[0].plot([190,200], [190,200], '-r', linewidth=1.5)
+    leg = ax[0].legend(handles=[l3], labels=["\u03B6=0.03 1/s"], loc='upper right', fontsize=13, framealpha=0.9, handlelength=1.25)
+    for h in leg.legend_handles:
+        h.set_alpha(1)
+    ax[0].set_title(f"FREESLIP (t={time/3600:.0f} h)", fontsize=14, fontweight='bold')
+    ax[0].set_xlabel('x (km)', fontsize=12)
+    ax[0].set_ylabel('y (km)', fontsize=12)
+    # ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    c2 = plot_contourf(xh, yh, thp2, 'thpert', ax[1], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=[-150,150], ylims=[-150,150], cbar=False)
+    # cw2 = ax[1].contour(xh, yh, w2, levels=[10], colors=['k'], linestyles='-', linewidths=1.5)
+    cv2 = ax[1].contour(xh, yh, zv2, levels=[0.03], colors='r', linestyles='-', linewidths=2)
+    q2 = ax[1].quiver(xh[::qix], yh[::qix], u2[::qix,::qix], v2[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    
+    # wsp2 = np.sqrt(u2[::qix,::qix]**2 + v2[::qix,::qix]**2)
+    # ax[1].quiver(xh[::qix], yh[::qix], u2[::qix,::qix], v2[::qix,::qix], color='gray', scale=200, width=0.006, pivot='middle')
+    # ax[1].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u2[::qix,::qix], wsp2<20), np.ma.masked_array(v2[::qix,::qix], wsp2<20),
+    #                   color='k', scale=200, width=0.006, pivot='middle')
+    # ax[1].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u2[::qix,::qix], wsp2<25.7), np.ma.masked_array(v2[::qix,::qix], wsp2<25.7),
+    #              color='r', scale=200, width=0.006, pivot='middle')
+    
+    ax[1].set_title(f"SEMISLIP (t={time/3600:.0f} h)", fontsize=14, fontweight='bold')
+    ax[1].set_xlabel('x (km)', fontsize=12)
+    
+    c3 = plot_contourf(xh, yh, thp3, 'thpert', ax[2], levels=np.linspace(-12,12,25),
+                  datalims=[-12,12], xlims=[-150,150], ylims=[-150,150], cbar=True, cbfs=14)
+    # cw3 = ax[2].contour(xh, yh, w3, levels=[10], colors=['k'], linestyles='-', linewidths=1.5)
+    cv3 = ax[2].contour(xh, yh, zv3, levels=[0.03], colors='r', linestyles='-', linewidths=2)
+    q3 = ax[2].quiver(xh[::qix], yh[::qix], u3[::qix,::qix], v3[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    ax[2].quiverkey(q3, X=1.08, Y=1.05, U=20, label="20 m/s", labelpos='W', fontproperties=dict(size=12))
+    
+    # wsp3 = np.sqrt(u3[::qix,::qix]**2 + v3[::qix,::qix]**2)
+    # ax[2].quiver(xh[::qix], yh[::qix], u3[::qix,::qix], v3[::qix,::qix], color='gray', scale=200, width=0.006, pivot='middle')
+    # q3 = ax[2].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u3[::qix,::qix], wsp3<20), np.ma.masked_array(v3[::qix,::qix], wsp3<20),
+    #                   color='k', scale=200, width=0.006, pivot='middle')
+    # ax[2].quiver(xh[::qix], yh[::qix], np.ma.masked_array(u3[::qix,::qix], wsp3<25.7), np.ma.masked_array(v3[::qix,::qix], wsp3<25.7),
+    #              color='r', scale=200, width=0.006, pivot='middle')
+    # ax[2].quiverkey(q3, X=1.08, Y=1.05, U=20, label="20 m/s", labelpos='W', fontproperties=dict(size=12))
+    
+    ax[2].set_title(f"NOSLIP (t={time/3600:.0f} h)", fontsize=14, fontweight='bold')
+    ax[2].set_xlabel('x (km)', fontsize=12)
+    # ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    if True:
+        fig.savefig(fp2+f"thpert_{time/3600:.0f}h.png", dpi=300)
+    
+    # plt.show()
 
+
+
+if False:
+    fig,ax = plt.subplots(1, 3, figsize=(12.5,4), sharey=True, subplot_kw=dict(box_aspect=1),  layout='constrained')
+    
+    cf1 = plot_contourf(xh, yh, np.ma.masked_array(w1, w1<1), 'w', ax[0], levels=np.linspace(0,16,17),
+                  datalims=[0,16], xlims=[-150,150], ylims=[-150,150], cmap='Reds', cbar=False)
+    c1 = ax[0].contour(xh, yh, zv1, levels=[0.03], colors=['k'], linestyles='-', linewidths=[2])
+    # q1 = ax[0].quiver(xh[::qix], yh[::qix], u1[::qix,::qix], v1[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    l1, = ax[0].plot([190,200], [190,200], color='dimgray', linewidth=0.75)
+    l2, = ax[0].plot([190,200], [190,200], '-k', linewidth=2)
+    l3, = ax[0].plot([190,200], [190,200], '-r', linewidth=2)
+    ax[0].legend(handles=[l2], labels=["\u03B6=0.03 1/s"], loc='upper left', fontsize=13, handlelength=1.25)
+    ax[0].set_title("FREESLIP", fontsize=14, fontweight='bold')
+    ax[0].set_xlabel('x (km)', fontsize=12)
+    ax[0].set_ylabel('y (km)', fontsize=12)
+    ax[0].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    cf2 = plot_contourf(xh, yh, np.ma.masked_array(w2, w2<1), 'w', ax[1], levels=np.linspace(0,16,17),
+                  datalims=[0,16], xlims=[-150,150], ylims=[-150,150], cmap='Reds', cbar=False)
+    c2 = ax[1].contour(xh, yh, zv2, levels=[0.03], colors=['k'], linestyles='-', linewidths=[2])
+    # q2 = ax[1].quiver(xh[::qix], yh[::qix], u2[::qix,::qix], v2[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    ax[1].set_title("SEMISLIP", fontsize=14, fontweight='bold')
+    ax[1].set_xlabel('x (km)', fontsize=12)
+    ax[1].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    cf3 = plot_contourf(xh, yh, np.ma.masked_array(w3, w3<1), 'w', ax[2], levels=np.linspace(0,16,17),
+                  datalims=[0,16], xlims=[-150,150], ylims=[-150,150], cmap='Reds', cbar=True, cbfs=12)
+    c3 = ax[2].contour(xh, yh, zv3, levels=[0.03], colors=['k'], linestyles='-', linewidths=[2])
+    # q3 = ax[2].quiver(xh[::qix], yh[::qix], u3[::qix,::qix], v3[::qix,::qix], color='k', scale=200, width=0.006, pivot='middle')
+    # ax[2].quiverkey(q3, X=1.08, Y=1.05, U=20, label="20 m/s", labelpos='W', fontproperties=dict(size=12))
+    ax[2].set_title("NOSLIP", fontsize=14, fontweight='bold')
+    ax[2].set_xlabel('x (km)', fontsize=12)
+    ax[2].text(50, -135, f"t = {time/3600:.0f} h", fontsize=17, fontweight='bold')
+    
+    
+    if True:
+        fig.savefig(fp2+f"w_{time/3600:.0f}h.png", dpi=300)
 
 
 
