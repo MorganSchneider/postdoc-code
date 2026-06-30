@@ -892,3 +892,248 @@ ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km
 
 
 plt.show()
+
+
+
+#%% VORTEX2 soundings
+
+
+ftor = 'C:/Users/mschne28/Documents/cm1r21.1/vortex2_soundings/tor_soundings/input_sounding_torV2'
+fnt = 'C:/Users/mschne28/Documents/cm1r21.1/vortex2_soundings/nt_soundings/input_sounding_ntV2'
+
+
+with open(ftor, 'r') as f:
+    lines = f.readlines()
+i0 = np.where([char.isspace() for char in lines[0]])[0]
+i00=i0[0]; i01=i0[1]; i02=i0[2]
+prs0_tor = float(lines[0][0:i00].strip())
+th0_tor = float(lines[0][i00+1:i01].strip())
+qv0_tor = float(lines[0][i01+1:i02].strip())
+z_tor = np.zeros(shape=(len(lines)-1,), dtype=float)
+th_tor = np.zeros(shape=(len(lines)-1,), dtype=float)
+qv_tor = np.zeros(shape=(len(lines)-1,), dtype=float)
+u_tor = np.zeros(shape=(len(lines)-1,), dtype=float)
+v_tor = np.zeros(shape=(len(lines)-1,), dtype=float)
+for i in np.arange(1,len(lines)):
+    j = np.where([char.isspace() for char in lines[i]])[0]
+    j0=j[0]; j1=j[1]; j2=j[2]; j3=j[3]; j4=j[4]
+    z_tor[i-1] = float(lines[i][0:j0].strip())
+    th_tor[i-1] = float(lines[i][j0+1:j1].strip())
+    qv_tor[i-1] = float(lines[i][j1+1:j2].strip())
+    u_tor[i-1] = float(lines[i][j2+1:j3].strip())
+    v_tor[i-1] = float(lines[i][j3+1:j4].strip())
+
+with open(fnt, 'r') as f:
+    lines = f.readlines()
+i0 = np.where([char.isspace() for char in lines[0]])[0]
+i00=i0[0]; i01=i0[1]; i02=i0[2]
+prs0_nt = float(lines[0][0:i00].strip())
+th0_nt = float(lines[0][i00+1:i01].strip())
+qv0_nt = float(lines[0][i01+1:i02].strip())
+z_nt = np.zeros(shape=(len(lines)-1,), dtype=float)
+th_nt = np.zeros(shape=(len(lines)-1,), dtype=float)
+qv_nt = np.zeros(shape=(len(lines)-1,), dtype=float)
+u_nt = np.zeros(shape=(len(lines)-1,), dtype=float)
+v_nt = np.zeros(shape=(len(lines)-1,), dtype=float)
+for i in np.arange(1,len(lines)):
+    j = np.where([char.isspace() for char in lines[i]])[0]
+    j0=j[0]; j1=j[1]; j2=j[2]; j3=j[3]; j4=j[4]
+    z_nt[i-1] = float(lines[i][0:j0].strip())
+    th_nt[i-1] = float(lines[i][j0+1:j1].strip())
+    qv_nt[i-1] = float(lines[i][j1+1:j2].strip())
+    u_nt[i-1] = float(lines[i][j2+1:j3].strip())
+    v_nt[i-1] = float(lines[i][j3+1:j4].strip())
+
+
+
+
+prs_tor = np.zeros(shape=(len(z_tor),), dtype=float)
+# prs_tor[0] = prs0_tor
+for i in range(len(z_tor)):
+    tmp = mc.add_height_to_pressure(prs0_tor*units.hPa, z_tor[i]*units.m)
+    prs_tor[i] = tmp.magnitude
+
+prs_nt = np.zeros(shape=(len(z_nt),), dtype=float)
+# prs_nt[0] = prs0_nt
+for i in range(len(z_nt)):
+    tmp = mc.add_height_to_pressure(prs0_nt*units.hPa, z_nt[i]*units.m)
+    prs_nt[i] = tmp.magnitude
+
+
+
+
+
+T_tor = th_tor * (prs_tor/1000.)**0.286
+e = (qv_tor/1000. * prs_tor) / (0.622+(qv_tor/1000.))
+Td_tor = 243.5 / ((17.67/(np.log(e/6.112)))-1) + 273.15
+Ttor_parcel = mc.parcel_profile(prs_tor*units.hPa, T_tor[0]*units.K, Td_tor[0]*units.K)
+
+T_nt = th_nt * (prs_nt/1000.)**0.286
+e = (qv_nt/1000. * prs_nt) / (0.622+(qv_nt/1000.))
+Td_nt = 243.5 / ((17.67/(np.log(e/6.112)))-1) + 273.15
+Tnt_parcel = mc.parcel_profile(prs_nt*units.hPa, T_nt[0]*units.K, Td_nt[0]*units.K)
+
+
+
+
+
+
+# Calculate sounding parameters
+bwnd = mc.bunkers_storm_motion(prs_tor*units.hPa, u_tor*units('m/s'), v_tor*units('m/s'), z_tor*units.m)
+uBR_tor = bwnd[0].magnitude[0]
+vBR_tor = bwnd[0].magnitude[1]
+uBL_tor = bwnd[1].magnitude[0]
+vBL_tor = bwnd[1].magnitude[1]
+u06_tor = bwnd[2].magnitude[0]
+v06_tor = bwnd[2].magnitude[1]
+smBR_tor = np.sqrt(uBR_tor**2 + vBR_tor**2)
+angBR_tor = 180 + np.arctan2(uBR_tor, vBR_tor)*180/np.pi
+VH06_tor = np.sqrt(u06_tor**2 + v06_tor**2)
+ang06_tor = 180 + np.arctan2(u06_tor, v06_tor)*180/np.pi
+CC = mc.cape_cin(prs_tor*units.hPa, T_tor*units.K, Td_tor*units.K, Ttor_parcel)
+cape_tor = CC[0].magnitude
+cin_tor = CC[1].magnitude
+
+bwnd = mc.bunkers_storm_motion(prs_nt*units.hPa, u_nt*units('m/s'), v_nt*units('m/s'), z_nt*units.m)
+uBR_nt = bwnd[0].magnitude[0]
+vBR_nt = bwnd[0].magnitude[1]
+uBL_nt = bwnd[1].magnitude[0]
+vBL_nt = bwnd[1].magnitude[1]
+u06_nt = bwnd[2].magnitude[0]
+v06_nt = bwnd[2].magnitude[1]
+smBR_nt = np.sqrt(uBR_nt**2 + vBR_nt**2)
+angBR_nt = 180 + np.arctan2(uBR_nt, vBR_nt)*180/np.pi
+VH06_nt = np.sqrt(u06_nt**2 + v06_nt**2)
+ang06_nt = 180 + np.arctan2(u06_nt, v06_nt)*180/np.pi
+CC = mc.cape_cin(prs_nt*units.hPa, T_nt*units.K, Td_nt*units.K, Tnt_parcel)
+cape_nt = CC[0].magnitude
+cin_nt = CC[1].magnitude
+
+
+
+
+
+print("---VORTEX2 composite soundings---")
+print(f"   TORNADIC")
+print(f"Bunkers RM:           {smBR_tor:.1f} m/s at {angBR_tor:.0f} deg (Vector: {uBR_tor:.1f} m/s, {vBR_tor:.1f} m/s)")
+print(f"0-6 km mean wind:     {VH06_tor:.1f} m/s at {ang06_tor:.0f} deg (Vector: {u06_tor:.1f} m/s, {v06_tor:.1f} m/s)")
+print(f"CAPE,CIN:             {cape_tor:.0f} J/kg, {cin_tor:.0f} J/kg")
+print(" ")
+print(f"   NONTORNADIC")
+print(f"Bunkers RM:           {smBR_nt:.1f} m/s at {angBR_nt:.0f} deg (Vector: {uBR_nt:.1f} m/s, {vBR_nt:.1f} m/s)")
+print(f"0-6 km mean wind:     {VH06_nt:.1f} m/s at {ang06_nt:.0f} deg (Vector: {u06_nt:.1f} m/s, {v06_nt:.1f} m/s)")
+print(f"CAPE,CIN:             {cape_nt:.0f} J/kg, {cin_nt:.0f} J/kg")
+
+
+
+i1_tor = np.argmin(abs(z_tor-1000))
+i3_tor = np.argmin(abs(z_tor-3000))
+i6_tor = np.argmin(abs(z_tor-6000))
+i10_tor = np.argmin(abs(z_tor-10000))
+
+i1_nt = np.argmin(abs(z_nt-1000))
+i3_nt = np.argmin(abs(z_nt-3000))
+i6_nt = np.argmin(abs(z_nt-6000))
+i10_nt = np.argmin(abs(z_nt-10000))
+
+
+
+
+
+
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs_tor*units.hPa, (T_tor-273.15)*units.degC, '-r', linewidth=2)
+skew.plot(prs_tor*units.hPa, (Td_tor-273.15)*units.degC, '-g', linewidth=2)
+skew.plot(prs_tor*units.hPa, Ttor_parcel.to('degC'), '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.shade_cin(prs_tor*units.hPa, (T_tor-273.15)*units.degC, Ttor_parcel.to('degC'), (Td_tor-273.15)*units.degC) # Shade areas of CAPE and CIN
+skew.shade_cape(prs_tor*units.hPa, (T_tor-273.15)*units.degC, Ttor_parcel.to('degC'))
+skew.plot_barbs(prs_tor[::3]*units.hPa, u_tor[::3]*units('m/s').to('kts'), v_tor[::3]*units('m/s').to('kts'), xloc=1.1, plot_units=units('kts'))
+
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+skew.ax.set_xlabel('Temperature (C)', fontsize=12)
+skew.ax.set_ylabel('Pressure (hPa)', fontsize=12)
+plt.title('VORTEX2 tornadic composite sounding')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=30.)
+H.add_grid(increment=10)
+# ax_hod.scatter(u06_tor, v06_tor, s=40, marker='x', color='k')
+# ax_hod.scatter(uBL_tor, vBL_tor, s=40, marker='x', color='b')
+ax_hod.scatter(uBR_tor, vBR_tor, s=40, marker='o', facecolor='r', edgecolor=None)
+# ax_hod.text(uBL_tor, vBL_tor, 'LM', fontsize=10, color='k', horizontalalignment='left', verticalalignment='bottom')
+ax_hod.text(uBR_tor, vBR_tor, 'RM', fontsize=11, color='k', horizontalalignment='left', verticalalignment='bottom')
+h1, = H.plot(u_tor[0:i1_tor], v_tor[0:i1_tor], color='r', linewidth=1.5)
+h2, = H.plot(u_tor[i1_tor:i3_tor], v_tor[i1_tor:i3_tor], color='g', linewidth=1.5)
+h3, = H.plot(u_tor[i3_tor:i6_tor], v_tor[i3_tor:i6_tor], color='b', linewidth=1.5)
+h4, = H.plot(u_tor[i6_tor:i10_tor], v_tor[i6_tor:i10_tor], color='k', linewidth=1.5)
+# h5, = H.plot(u_tor[i10_tor:], v_tor[i10_tor:], color='dimgray', linewidth=1.5)
+str1 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape_tor, ),
+    "CIN:              %.0f J/kg" % (cin_tor, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_tor,v06_tor, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_tor,vBR_tor, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km','>10 km'], fontsize=8, ncols=2, loc='lower left')
+
+
+
+
+
+
+
+
+fig = plt.figure(figsize=(8,8))
+
+skew = SkewT(fig=fig)
+skew.plot(prs_nt*units.hPa, (T_nt-273.15)*units.degC, '-r', linewidth=2)
+skew.plot(prs_nt*units.hPa, (Td_nt-273.15)*units.degC, '-g', linewidth=2)
+skew.plot(prs_nt*units.hPa, Tnt_parcel.to('degC'), '-k', linewidth=2)
+skew.plot_dry_adiabats()
+skew.plot_moist_adiabats()
+skew.plot_mixing_lines()
+skew.shade_cin(prs_nt*units.hPa, (T_nt-273.15)*units.degC, Tnt_parcel.to('degC'), (Td_nt-273.15)*units.degC) # Shade areas of CAPE and CIN
+skew.shade_cape(prs_nt*units.hPa, (T_nt-273.15)*units.degC, Tnt_parcel.to('degC'))
+skew.plot_barbs(prs_nt[::3]*units.hPa, u_nt[::3]*units('m/s').to('kts'), v_nt[::3]*units('m/s').to('kts'), xloc=1.1, plot_units=units('kts'))
+
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+skew.ax.set_xlabel('Temperature (C)', fontsize=12)
+skew.ax.set_ylabel('Pressure (hPa)', fontsize=12)
+plt.title('VORTEX2 nontornadic composite sounding')
+ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+H = Hodograph(ax_hod, component_range=30.)
+H.add_grid(increment=10)
+# ax_hod.scatter(u06_nt, v06_nt, s=40, marker='x', color='k')
+# ax_hod.scatter(uBL_nt, vBL_nt, s=40, marker='x', color='b')
+ax_hod.scatter(uBR_nt, vBR_nt, s=40, marker='o', facecolor='r', edgecolor=None)
+# ax_hod.text(uBL_nt, vBL_nt, 'LM', fontsize=10, color='k', horizontalalignment='left', verticalalignment='bottom')
+ax_hod.text(uBR_nt, vBR_nt, 'RM', fontsize=11, color='k', horizontalalignment='left', verticalalignment='bottom')
+h1, = H.plot(u_nt[0:i1_nt], v_nt[0:i1_nt], color='r', linewidth=1.5)
+h2, = H.plot(u_nt[i1_nt:i3_nt], v_nt[i1_nt:i3_nt], color='g', linewidth=1.5)
+h3, = H.plot(u_nt[i3_nt:i6_nt], v_nt[i3_nt:i6_nt], color='b', linewidth=1.5)
+h4, = H.plot(u_nt[i6_nt:i10_nt], v_nt[i6_nt:i10_nt], color='k', linewidth=1.5)
+ax_hod.fill_between([wdir0_nt,wdir1_nt], wspd0_nt, wspd1_nt, color='r', alpha=0.4)
+ax_hod.fill_between([wdir1_nt,wdir3_nt], wspd1_nt, wspd3_nt, color='g', alpha=0.4)
+# h5, = H.plot(u_nt[i10_nt:], v_nt[i10_nt:], color='dimgray', linewidth=1.5)
+str1 = '\n'.join((
+    "CAPE:            %.0f J/kg" % (cape_nt, ),
+    "CIN:              %.0f J/kg" % (cin_nt, ),
+    "0-6km MW:    u=%.1f, v=%.1f" % (u06_nt,v06_nt, ),
+    "Bunkers RM:  u=%.1f, v=%.1f" % (uBR_nt,vBR_nt, )
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=12, bbox=props)
+ax_hod.legend(handles=[h1,h2,h3,h4], labels=['0-1 km','1-3 km','3-6 km','6-10 km','>10 km'], fontsize=8, ncols=2, loc='lower left')
+
+
+plt.show()
+
+
+

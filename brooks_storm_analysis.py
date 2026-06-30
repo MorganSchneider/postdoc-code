@@ -10,10 +10,10 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
-figstr = 'ERA5-1_test5_v2'
+fp = 'D:/brooks/era5-1_125m_final/'
+figstr = 'ERA5-1_final'
 
-ds = nc.Dataset(fp+'cm1out_000049.nc')
+ds = nc.Dataset(fp+'cm1out_000041.nc')
 time = ds.variables['time'][:].data[0]
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -37,7 +37,7 @@ vortmax = np.max(zvort[0:iz,:,:], axis=0)
 # xh = xh + 2*time/1000
 
 
-figsave = True
+figsave = False
 
 
 
@@ -71,7 +71,7 @@ ax.legend(handles=[l1,l2,l4,l5,l7],
                   "\u03B8'=-2 K"],
           ncols=3, fontsize=10, loc='lower right')
 if figsave:
-    plt.savefig(fp+f"dbz_{time/60:.0f}min_{figstr}.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_{time/60:.0f}min.png", dpi=300)
 
 
 plt.show()
@@ -98,7 +98,7 @@ plt.show()
 # ax.legend(handles=[l1,l2], labels=["\u03B6=0.025 s$^{-1}$", "\u03B6=0.05 s$^{-1}$"],
 #           fontsize=10, loc='lower right')
 # if figsave:
-#     plt.savefig(fp+f"wmax_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
+#     plt.savefig(fp+f"figs/wmax_{time/60:.0f}min.png", dpi=300)
 
 
 
@@ -113,31 +113,31 @@ plt.show()
 # ax.set_xlabel('x (km)', fontsize=12)
 # ax.set_ylabel('y (km)', fontsize=12)
 # # if figsave:
-# #     plt.savefig(fp+f"thpert_{time/60:.0f}min_ERA5-1_test4.png", dpi=300)
+# #     plt.savefig(fp+f"figs/thpert_{time/60:.0f}min.png", dpi=300)
 
 
 
 # plt.show()
 
 
-# i_wmax = np.where(wmax == np.max(wmax))
-# i_vmax = np.where(vortmax == np.max(vortmax))
+i_wmax = np.where(wmax == np.max(wmax))
+i_vmax = np.where(vortmax == np.max(vortmax))
 
-# x_mc = np.mean([xh[i_wmax[1][0]], xh[i_vmax[1][0]]])
-# y_mc = np.mean([yh[i_wmax[0][0]], yh[i_vmax[0][0]]])
+x_mc = np.mean([xh[i_wmax[1][0]], xh[i_vmax[1][0]]])
+y_mc = np.mean([yh[i_wmax[0][0]], yh[i_vmax[0][0]]])
 
-# u_trans = x_mc*1000/time
-# v_trans = y_mc*1000/time
+u_trans = x_mc*1000/time
+v_trans = y_mc*1000/time
 
-# umove_new = u_trans + umove
-# vmove_new = v_trans + vmove
+umove_new = u_trans + umove
+vmove_new = v_trans + vmove
 
 
-# print(f"Time = {time/60:.0f} min")
-# # print(f"Old umove = {umove:.1f} m/s || Old vmove = {vmove:.1f} m/s")
-# print(f"New umove = {umove_new:.1f} m/s")
-# print(f"New vmove = {vmove_new:.1f} m/s")
-# print("-----")
+print(f"Time = {time/60:.0f} min")
+# print(f"Old umove = {umove:.1f} m/s || Old vmove = {vmove:.1f} m/s")
+print(f"New umove = {umove_new:.1f} m/s")
+print(f"New vmove = {vmove_new:.1f} m/s")
+print("-----")
 
 
 
@@ -148,7 +148,7 @@ plt.show()
 
 #%% Check stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test8/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 ds = nc.Dataset(fp+'cm1out_stats.nc')
 time = ds.variables['time'][:].data + 120
@@ -185,7 +185,7 @@ ax.set_title("Domain-maximum \u03B6 -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel("\u03B6 (1/s)", fontsize=12)
 if figsave:
-    plt.savefig(fp+'vortmax_timeseries_ERA5-1_test8.png', dpi=300)
+    plt.savefig(fp+f"figs/vortmax_timeseries.png", dpi=300)
 
 
 fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
@@ -205,15 +205,15 @@ ax.set_title("Domain-maximum w -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel('w (m/s)', fontsize=12)
 if figsave:
-    plt.savefig(fp+'wmax_timeseries_ERA5-1_test8.png', dpi=300)
+    plt.savefig(fp+f"figs/wmax_timeseries.png", dpi=300)
 
 plt.show()
 
 
 
-#%% Compare stat time series in test simulations
+#%% Compare stat time series in test simulations (just for testing)
 
-fp = "C:/Users/mschne28/Documents/cm1out/brooks/"
+fp = "D:/brooks/"
 
 ds = nc.Dataset(fp+"era5-1_125m_test2/cm1out_stats.nc")
 time = ds.variables['time'][:].data + 120
@@ -376,7 +376,7 @@ for n in range(len(ax)):
     ax[n].yaxis.set_minor_locator(MultipleLocator(0.02))
     
 if figsave:
-    plt.savefig(fp+'vortmax_timeseries_ERA5-1_compare_1.png', dpi=300)
+    plt.savefig(fp+f"figs/vortmax_timeseries_ERA5-1_compare_1.png", dpi=300)
 
 
 
@@ -424,7 +424,7 @@ for n in range(len(ax)):
     ax[n].yaxis.set_minor_locator(MultipleLocator(1))
     
 if figsave:
-    plt.savefig(fp+'wmax_timeseries_ERA5-1_compare_1.png', dpi=300)
+    plt.savefig(fp+f"figs/wmax_timeseries_ERA5-1_compare_1.png", dpi=300)
 
 
 
@@ -468,7 +468,7 @@ for n in range(len(ax)):
     ax[n].yaxis.set_minor_locator(MultipleLocator(0.02))
     
 if figsave:
-    plt.savefig(fp+'vortmax_timeseries_ERA5-1_compare_2.png', dpi=300)
+    plt.savefig(fp+f"figs/vortmax_timeseries_ERA5-1_compare_2.png", dpi=300)
 
 
 
@@ -506,7 +506,7 @@ for n in range(len(ax)):
     ax[n].yaxis.set_minor_locator(MultipleLocator(1))
     
 if figsave:
-    plt.savefig(fp+'wmax_timeseries_ERA5-1_compare_2.png', dpi=300)
+    plt.savefig(fp+f"figs/wmax_timeseries_ERA5-1_compare_2.png", dpi=300)
 
 
 
@@ -684,7 +684,7 @@ plt.show()
 
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 
 
@@ -786,27 +786,27 @@ dbz10 = ds.variables['dbz'][:].data[0,0,:,:]
 #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove10, axis=0))**2)
 ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000045.nc')
-# umove11 = ds.variables['umove'][:].data[0]
-# vmove11 = ds.variables['vmove'][:].data[0]
-# sws11 = ds.variables['sws2'][:].data[0,:,:]
-# shs11 = ds.variables['shs2'][:].data[0,:,:]
-# hail11 = ds.variables['hail2'][:].data[0,:,:]
-# dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
-# # wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove11, axis=0))**2 + 
-# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove11, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000045.nc')
+umove11 = ds.variables['umove'][:].data[0]
+vmove11 = ds.variables['vmove'][:].data[0]
+sws11 = ds.variables['sws2'][:].data[0,:,:]
+shs11 = ds.variables['shs2'][:].data[0,:,:]
+hail11 = ds.variables['hail2'][:].data[0,:,:]
+dbz11 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp11 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove11, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove11, axis=0))**2)
+ds.close()
 
-# ds = nc.Dataset(fp+'cm1out_000049.nc')
-# umove12 = ds.variables['umove'][:].data[0]
-# vmove12 = ds.variables['vmove'][:].data[0]
-# sws12 = ds.variables['sws2'][:].data[0,:,:]
-# shs12 = ds.variables['shs2'][:].data[0,:,:]
-# hail12 = ds.variables['hail2'][:].data[0,:,:]
-# dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
-# # wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove12, axis=0))**2 + 
-# #                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove12, axis=0))**2)
-# ds.close()
+ds = nc.Dataset(fp+'cm1out_000049.nc')
+umove12 = ds.variables['umove'][:].data[0]
+vmove12 = ds.variables['vmove'][:].data[0]
+sws12 = ds.variables['sws2'][:].data[0,:,:]
+shs12 = ds.variables['shs2'][:].data[0,:,:]
+hail12 = ds.variables['hail2'][:].data[0,:,:]
+dbz12 = ds.variables['dbz'][:].data[0,0,:,:]
+# wsp12 = np.sqrt((np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:]+umove12, axis=0))**2 + 
+#                (np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:]+vmove12, axis=0))**2)
+ds.close()
 
 
 # x_added = umove1*3600/1000
@@ -850,8 +850,8 @@ xh7 = xh6 + umove7*3600/1000
 xh8 = xh7 + umove8*3600/1000
 xh9 = xh8 + umove9*3600/1000
 xh10 = xh9 + umove10*3600/1000
-# xh11 = xh10 + umove11*3600/1000
-# xh12 = xh11 + umove12*3600/1000
+xh11 = xh10 + umove11*3600/1000
+xh12 = xh11 + umove12*3600/1000
 
 yh1 = yh + 100
 yh2 = yh1 + vmove2*3600/1000
@@ -863,8 +863,8 @@ yh7 = yh6 + vmove7*3600/1000
 yh8 = yh7 + vmove8*3600/1000
 yh9 = yh8 + vmove9*3600/1000
 yh10 = yh9 + vmove10*3600/1000
-# yh11 = yh10 + vmove11*3600/1000
-# yh12 = yh11 + vmove12*3600/1000
+yh11 = yh10 + vmove11*3600/1000
+yh12 = yh11 + vmove12*3600/1000
 
 #%% Plot translated swaths
 
@@ -881,35 +881,35 @@ xt = [78, 120, 160, 202, 250, 295, 335, 380]
 yt = [65, 73, 77, 78, 78, 78, 78, 78]
 
 
-if fp[42:-1] == 'era5-1_125m_test1':
+if 'era5-1_125m_test1' in fp:
     tstr = 'ERA5-1_test1'
     xt = [77, 120, 165, 215, 265, 320, 380, 435]
     yt = [73, 78, 80, 83, 89, 96, 102, 104]
-elif fp[42:-1] == 'era5-1_125m_test2':
+elif 'era5-1_125m_test2' in fp:
     tstr = 'ERA5-1_test2'
     xt = [77, 120, 165, 215, 265, 325, 378, 425]
     yt = [70, 74, 77, 82, 87, 93, 94, 96]
-elif fp[42:-1] == 'era5-1_125m_test3':
+elif 'era5-1_125m_test3' in fp:
     tstr = 'ERA5-1_test3'
     xt = [77, 116, 160, 210, 255, 306, 355, 405]
     yt = [71, 75, 79, 79, 80, 81, 82, 86]
-elif fp[42:-1] == 'era5-1_125m_test4':
+elif 'era5-1_125m_test4' in fp:
     tstr = 'ERA5-1_test4'
     xt = [75, 115, 157, 201, 247, 298, 348, 397]
     yt = [74, 83, 85, 85, 85, 85, 85, 85]
-elif fp[42:-1] == 'era5-1_125m_test5':
+elif 'era5-1_125m_test5' in fp:
     tstr = 'ERA5-1_test5'
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [65, 73, 73, 75, 75, 78, 79, 79]
-elif fp[42:-1] == 'era5-1_125m_test6':
+elif 'era5-1_125m_test6' in fp:
     tstr = 'ERA5-1_test6'
     xt = [80, 122, 163, 205, 250, 292, 338, 380]
     yt = [60, 67, 68, 70, 71, 73, 73, 73]
-elif fp[42:-1] == 'era5-1_125m_test7':
+elif 'era5-1_125m_test7' in fp:
     tstr = 'ERA5-1_test7'
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
-elif fp[42:-1] == 'era5-1_125m_test8':
+elif 'era5-1_125m_test8' in fp:
     tstr = 'ERA5-1_test8'
     xt = [78, 120, 160, 202, 
           245, 290, 335, 375, 
@@ -917,8 +917,8 @@ elif fp[42:-1] == 'era5-1_125m_test8':
     yt = [67, 72, 75, 78, 
           78, 79, 79, 80, 
           80, 81, 82, 83]
-elif fp[42:-1] == 'era5-1_125m_test5_v2':
-    tstr = 'ERA5-1_test5_v2'
+elif 'era5-1_125m_final' in fp:
+    tstr = 'ERA5-1_final'
     xt = [78, 120, 160, 202,
           250, 295, 335, 385,
           435, 480, 530, 580]
@@ -932,13 +932,13 @@ yl = [50,200]
 xl = [50,675]
 
 if 'era5-1' in fp:
-    sounding_str = 'ERA5 profile (50.75,-114.0)'
+    sounding_str = 'ERA5 2025-08-20-T21z (50.75,-114.0)'
 elif 'era5-2' in fp:
-    sounding_str = 'ERA5 profile (51.0,-114.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.0,-114.25)'
 elif 'era5-3' in fp:
-    sounding_str = 'ERA5 profile (51.25,-113.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.25,-113.25)'
 elif 'hrdps' in fp:
-    sounding_str = 'HRDPS profile (51.166,-113.135)'
+    sounding_str = 'HRDPS 2025-08-20-T21z (51.166,-113.135)'
 
 
 
@@ -1001,7 +1001,7 @@ ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
 # ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_uh_swath_{tstr}.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_uh_swath.png", dpi=300)
 
 
 
@@ -1067,7 +1067,7 @@ ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
 # ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_hail_swath_{tstr}.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_hail_swath.png", dpi=300)
 
 
 
@@ -1133,13 +1133,13 @@ ax.text(xt[9], yt[9], '10 h', fontsize=9, fontweight='bold')
 # ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_wind_swath_{tstr}.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_wind_swath.png", dpi=300)
 
 
 
 #%% Swath plots but just 6-12 h -- Load data
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 
 
@@ -1257,13 +1257,13 @@ ds.close()
 
 
 
-dbfile = open(fp+'wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
 
 
 crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7}
@@ -1302,7 +1302,7 @@ sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.6]
 
 V_thres = 25.7
 
-tstr = 'ERA5-1_test5_v2'
+tstr = 'ERA5-1_final'
 xt = [46, 86, 136, 186, 231, 281, 331]
 yt = [5, 5, 5, 5, 5, 5, 5]
 
@@ -1357,7 +1357,7 @@ ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_uh_swath_6-12H.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_uh_swath_6-12H.png", dpi=300)
 
 
 
@@ -1403,7 +1403,7 @@ ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_hail_swath_6-12H.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_hail_swath_6-12H.png", dpi=300)
 
 
 
@@ -1449,7 +1449,7 @@ ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+f"dbz_wind_swath_6-12H.png", dpi=300)
+    plt.savefig(fp+f"figs/dbz_wind_swath_6-12H.png", dpi=300)
 
 
 

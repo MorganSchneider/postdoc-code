@@ -9,7 +9,7 @@ from CM1utils import *
 
 #%% Load and save data
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 ds = nc.Dataset(fp+f"cm1out_000049.nc")
 
@@ -53,17 +53,19 @@ dbz = np.mean(ds.variables['dbz'][:].data[0,iz80:iz80+2,:,:], axis=0)
 
 # # MV criteria - Lasher-Trapp et al. 2023
 # zvort80m = np.mean(ds.variables['zvort'][:].data[0,iz80:iz80+2,:,:], axis=0)
-# D1 = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
-# D2 = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
-# D3 = np.gradient(u80m, xh*1000, axis=1) + np.gradient(v80m, yh*1000, axis=0)
-# OW80m = zvort80m**2 - D1**2 - D2**2
-# WK80m = zvort80m / np.sqrt(D1**2 + D2**2 + D3**2) #Kinematic vorticity number - Lisa
-# # u1km = ds.variables['uinterp'][:].data[0,:iz1+1,:,:] + ds.variables['umove'][:].data[0]
-# # v1km = ds.variables['vinterp'][:].data[0,:iz1+1,:,:] + ds.variables['vmove'][:].data[0]
+# DL = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
+# DN = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
+# DH = np.gradient(u80m, xh*1000, axis=1) + np.gradient(v80m, yh*1000, axis=0)
+# OW80m = zvort80m**2 - DL**2 - DN**2
+# WK80m = np.sqrt(zvort80m**2) / np.sqrt(DL**2 + DN**2 + DH**2) #Kinematic vorticity number - Lisa
+# # u1km = ds.variables['uinterp'][:].data[0,iz1+1,:,:] + ds.variables['umove'][:].data[0]
+# # v1km = ds.variables['vinterp'][:].data[0,iz1+1,:,:] + ds.variables['vmove'][:].data[0]
 # # zvort1km = ds.variables['zvort'][:].data[0,iz1+1,:,:]
-# # D1 = np.gradient(u1km, xh*1000, axis=2) - np.gradient(v1km, yh*1000, axis=1)
-# # D2 = np.gradient(v1km, xh*1000, axis=2) + np.gradient(u1km, yh*1000, axis=1)
-# # OW1km = np.min(zvort1km**2-D1**2-D2**2, axis=0)
+# # DL = np.gradient(u1km, xh*1000, axis=1) - np.gradient(v1km, yh*1000, axis=0)
+# # DN = np.gradient(v1km, xh*1000, axis=1) + np.gradient(u1km, yh*1000, axis=0)
+# # DH = np.gradient(u1km, xh*1000, axis=1) + np.gradient(v1km, yh*1000, axis=0)
+# # OW1km = zvort1km**2 - DL**2 - DN**2
+# # WK1km = np.sqrt(zvort1km**2) / np.sqrt(DL**2 + DN**2 + DH**2)
 
 # # DB criteria
 # w1km = ds.variables['winterp'][:].data[0,iz1,:,:]
@@ -90,7 +92,7 @@ w_thres_db = -5 #DB downdraft
 # ******* need to adjust OW threshold to account for higher horizontal resolution :(((( *******
 #***** Killion and Lasher-Trapp used 1-km grid and OW >= 0.0001
 ow_thres_mv = 0.0001 #MV OW
-wk_thres_mv = 1 #Kinematic vorticity number? -- threshold?
+wk_thres_mv = 1.2 #Kinematic vorticity number -- Lisa used 1.2 for vorticity-dominated flow in her CWE poster
 
 is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #2-km wind speed
@@ -146,7 +148,7 @@ for j in range(len(yf)):
         # MV criteria
         if (np.max(svr_flag[idy,idx]) > 0) & (np.max(ow_flag[idy,idx]) > 0):
             is_mv[iyc,ixc] = 1
-        # if (np.max(svr_flag[idy,idx]) > 0) & (np.max(ow_flag[idy,idx]) > 0) & (np.max(ow1_flag[idy,idx]) > 0):
+        # if (np.max(svr_flag[idy,idx]) > 0) & (np.max(wk_flag[idy,idx]) > 0):
         #     is_mv[iyc,ixc] = 1
         
         # DB criteria
@@ -184,13 +186,13 @@ for j in range(len(yf)):
         if (is_mv_rij[iyc,ixc]) | (is_mv_db[iyc,ixc]):
             is_mv[iyc,ixc] = 0
         
-            
-            
+
+
 
 
 
 if False:
-    dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
+    dbfile = open(fp+f"pkls/wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
     data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db, 'V80m':V80m}
     pickle.dump(data, dbfile)
     dbfile.close()
@@ -223,8 +225,8 @@ if False:
 # V_thres = 25.7 #svr
 # Vsig_thres = 33.4 # sig svr
 
-
-# dbfile = open(fp+f"wind_mechanisms_{time/60:.0f}min.pkl", 'rb')
+fp = 'D:/brooks/era5-1_125m_final/'
+# dbfile = open(fp+f"pkls/wind_mechanisms_{time/60:.0f}min.pkl", 'rb')
 # data = pickle.load(dbfile)
 # is_rij = data['is_rij']
 # is_mv = data['is_mv']
@@ -285,7 +287,7 @@ plt.show()
 
 #%% Load translated swaths and wind mechanisms
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 
 
@@ -428,18 +430,18 @@ ds.close()
 
 
 
-dbfile = open(fp+'wind_mechanisms_60min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_120min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_180min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_240min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_300min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_360min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_420min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_480min.pkl', 'rb'); crit8 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_540min.pkl', 'rb'); crit9 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_600min.pkl', 'rb'); crit10 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_60min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_120min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_180min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_240min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_300min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_360min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_420min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_480min.pkl', 'rb'); crit8 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_540min.pkl', 'rb'); crit9 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_600min.pkl', 'rb'); crit10 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
 
 
 crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7, '8':crit8, '9':crit9, '10':crit10, '11':crit11, '12':crit12}
@@ -515,32 +517,32 @@ dbz_lws = [1.25,1.25,1,1]
 V_thres = 25.7
 
 
-if fp[42:-1] == 'era5-1_125m_test1':
+if 'era5-1_125m_test1' in fp:
     xt = [77, 120, 165, 215, 265, 320, 380, 435]
     yt = [73, 78, 80, 83, 89, 96, 102, 104]
-elif fp[42:-1] == 'era5-1_125m_test2':
+elif 'era5-1_125m_test2' in fp:
     xt = [77, 120, 165, 215, 265, 325, 378, 425]
     yt = [70, 74, 77, 82, 87, 93, 94, 96]
-elif fp[42:-1] == 'era5-1_125m_test3':
+elif 'era5-1_125m_test3' in fp:
     xt = [77, 116, 160, 210, 255, 306, 355, 405]
     yt = [71, 75, 79, 79, 80, 81, 82, 86]
-elif fp[42:-1] == 'era5-1_125m_test4':
+elif 'era5-1_125m_test4' in fp:
     xt = [75, 115, 157, 201, 247, 298, 348, 397]
     yt = [74, 83, 85, 85, 85, 85, 85, 85]
-elif fp[42:-1] == 'era5-1_125m_test5':
+elif 'era5-1_125m_test5' in fp:
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [65, 73, 73, 75, 78, 78, 79, 79]
-elif fp[42:-1] == 'era5-1_125m_test6':
+elif 'era5-1_125m_test6' in fp:
     xt = [80, 122, 163, 205, 250, 292, 338, 380]
     yt = [60, 67, 68, 70, 71, 73, 73, 73]
-elif fp[42:-1] == 'era5-1_125m_test7':
+elif 'era5-1_125m_test7' in fp:
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
-elif fp[42:-1] == 'era5-1_125m_test8':
+elif 'era5-1_125m_test8' in fp:
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [67, 72, 75, 78, 78, 78, 79, 79]
-elif fp[42:-1] == 'era5-1_125m_test5_v2':
-    tstr = 'ERA5-1_test5_v2'
+elif 'era5-1_125m_final' in fp:
+    tstr = 'ERA5-1_final'
     xt = [78, 120, 160, 202,
           250, 295, 335, 385,
           435, 480, 530, 580]
@@ -555,13 +557,13 @@ yl = [50,200]
 
 
 if 'era5-1' in fp:
-    sounding_str = 'ERA5 profile (50.75,-114.0)'
+    sounding_str = 'ERA5 2025-08-20-T21z (50.75,-114.0)'
 elif 'era5-2' in fp:
-    sounding_str = 'ERA5 profile (51.0,-114.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.0,-114.25)'
 elif 'era5-3' in fp:
-    sounding_str = 'ERA5 profile (51.25,-113.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.25,-113.25)'
 elif 'hrdps' in fp:
-    sounding_str = 'HRDPS profile (51.166,-113.135)'
+    sounding_str = 'HRDPS 2025-08-20-T21z (51.166,-113.135)'
 
 
 
@@ -706,7 +708,7 @@ ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'wind_mechanism_swath_ERA5-1_test5_v2.png', dpi=300)
+    plt.savefig(fp+'figs/wind_mechanism_swath.png', dpi=300)
 
 
 
@@ -720,32 +722,32 @@ dbz_levs = np.linspace(0,70,15)
 
 
 
-if fp[42:-1] == 'era5-1_125m_test1':
+if 'era5-1_125m_test1' in fp:
     xt = [77, 120, 165, 215, 265, 320, 380, 435]
     yt = [73, 78, 80, 83, 89, 96, 102, 104]
-elif fp[42:-1] == 'era5-1_125m_test2':
+elif 'era5-1_125m_test2' in fp:
     xt = [77, 120, 165, 215, 265, 325, 378, 425]
     yt = [70, 74, 77, 82, 87, 93, 94, 96]
-elif fp[42:-1] == 'era5-1_125m_test3':
+elif 'era5-1_125m_test3' in fp:
     xt = [77, 116, 160, 210, 255, 306, 355, 405]
     yt = [71, 75, 79, 79, 80, 81, 82, 86]
-elif fp[42:-1] == 'era5-1_125m_test4':
+elif 'era5-1_125m_test4' in fp:
     xt = [75, 115, 157, 201, 247, 298, 348, 397]
     yt = [74, 83, 85, 85, 85, 85, 85, 85]
-elif fp[42:-1] == 'era5-1_125m_test5':
+elif 'era5-1_125m_test5' in fp:
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [65, 73, 73, 75, 78, 78, 79, 79]
-elif fp[42:-1] == 'era5-1_125m_test6':
+elif 'era5-1_125m_test6' in fp:
     xt = [80, 122, 163, 205, 250, 292, 338, 380]
     yt = [60, 67, 68, 70, 71, 73, 73, 73]
-elif fp[42:-1] == 'era5-1_125m_test7':
+elif 'era5-1_125m_test7' in fp:
     xt = [78, 120, 165, 208, 255, 300, 342, 383]
     yt = [65, 68, 72, 73, 75, 75, 73, 72]
-elif fp[42:-1] == 'era5-1_125m_test8':
+elif 'era5-1_125m_test8' in fp:
     xt = [78, 120, 160, 202, 250, 295, 335, 380]
     yt = [67, 72, 75, 78, 78, 78, 79, 79]
-elif fp[42:-1] == 'era5-1_125m_test5_v2':
-    tstr = 'ERA5-1_test5_v2'
+elif 'era5-1_125m_final' in fp:
+    tstr = 'ERA5-1_final'
     xt = [78, 120, 160, 202,
           250, 295, 335, 385,
           435, 480, 530, 580]
@@ -760,13 +762,13 @@ yl = [50,200]
 
 
 if 'era5-1' in fp:
-    sounding_str = 'ERA5 profile (50.75,-114.0)'
+    sounding_str = 'ERA5 2025-08-20-T21z (50.75,-114.0)'
 elif 'era5-2' in fp:
-    sounding_str = 'ERA5 profile (51.0,-114.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.0,-114.25)'
 elif 'era5-3' in fp:
-    sounding_str = 'ERA5 profile (51.25,-113.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.25,-113.25)'
 elif 'hrdps' in fp:
-    sounding_str = 'HRDPS profile (51.166,-113.135)'
+    sounding_str = 'HRDPS 2025-08-20-T21z (51.166,-113.135)'
 
 
 
@@ -921,7 +923,7 @@ ax.text(xt[10], yt[10], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[11], yt[11], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'hail_wind_mechanism_swath_ERA5-1_test5_v2.png', dpi=300)
+    plt.savefig(fp+'figs/hail_wind_mechanism_swath.png', dpi=300)
 
 
 
@@ -929,7 +931,7 @@ if figsave:
 #%% Swath plots for CMOS - only 6-12 h
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/brooks/era5-1_125m_test5_v2/'
+fp = 'D:/brooks/era5-1_125m_final/'
 
 
 
@@ -1062,13 +1064,13 @@ ds.close()
 
 
 
-dbfile = open(fp+'wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls/wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
 
 
 crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7}
@@ -1133,7 +1135,7 @@ for i in range(25):
     
     fn = 360 + i*15
     
-    dbfile = open(fp+f"wind_mechanisms_{fn}min.pkl", 'rb')
+    dbfile = open(fp+f"pkls/wind_mechanisms_{fn}min.pkl", 'rb')
     crit = pickle.load(dbfile)
     is_rij = crit['is_rij'][50:850,50:850]
     is_db = crit['is_db'][50:850,50:850]
@@ -1174,7 +1176,7 @@ dmi_levs = [1.0]; dmi_cols = ['k']; dmi_lws = [1]
 
 V_thres = 25.7
 
-tstr = 'ERA5-1_test5_v2'
+tstr = 'ERA5-1_final'
 xt = [46, 86, 136, 186, 231, 281, 331]
 yt = [5, 5, 5, 5, 5, 5, 5]
 
@@ -1184,13 +1186,13 @@ yl = [0,150]
 
 
 if 'era5-1' in fp:
-    sounding_str = 'ERA5 profile (50.75,-114.0)'
+    sounding_str = 'ERA5 2025-08-20-T21z (50.75,-114.0)'
 elif 'era5-2' in fp:
-    sounding_str = 'ERA5 profile (51.0,-114.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.0,-114.25)'
 elif 'era5-3' in fp:
-    sounding_str = 'ERA5 profile (51.25,-113.25)'
+    sounding_str = 'ERA5 2025-08-20-T21z (51.25,-113.25)'
 elif 'hrdps' in fp:
-    sounding_str = 'HRDPS profile (51.166,-113.135)'
+    sounding_str = 'HRDPS 2025-08-20-T21z (51.166,-113.135)'
 
 
 
@@ -1308,7 +1310,7 @@ cb.set_label('Wind speed (m/s)', fontsize=10)
 #     y = y0 + vm0*np.mod(i,4)*900/1000
     
 #     fn = 360 + i*15
-#     dbfile = open(fp+f"wind_mechanisms_{fn}min.pkl", 'rb')
+#     dbfile = open(fp+f"pkls/wind_mechanisms_{fn}min.pkl", 'rb')
 #     crit = pickle.load(dbfile)
 #     is_rij = crit['is_rij'] + crit['is_mv_rij']
 #     is_db = crit['is_db'] + crit['is_mv_db']
@@ -1401,7 +1403,7 @@ ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 figsave = True
 
 if figsave:
-    plt.savefig(fp+'wspd_wind_mechanisms_6-12H_v2.png', dpi=300)
+    plt.savefig(fp+'figs/wspd_wind_mechanisms_6-12H_v2.png', dpi=300)
 
 
 #%%
@@ -1518,7 +1520,7 @@ ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 
 if figsave:
-    plt.savefig(fp+'dbz_hail_wind_mechanisms_6-12H.png', dpi=300)
+    plt.savefig(fp+'figs/dbz_hail_wind_mechanisms_6-12H.png', dpi=300)
 
 
 
@@ -1646,6 +1648,6 @@ ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'wspd_wind_mechanisms_6-12H.png', dpi=300)
+    plt.savefig(fp+'figs/wspd_wind_mechanisms_6-12H.png', dpi=300)
 
 
