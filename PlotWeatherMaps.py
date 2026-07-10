@@ -80,11 +80,11 @@ data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 # Pressure level data
 data = xr.open_dataset(data_preslevs)
-data.head(5)
+# data.head(5)
 
 # Single level data
 datas = xr.open_dataset(data_singlevs)
-datas.head(5)
+# datas.head(5)
 
 
 #%% Make plots

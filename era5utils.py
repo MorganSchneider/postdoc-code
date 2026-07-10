@@ -591,7 +591,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
-            xmin_z = 800; xmax_z = 1800; xint_z = 25     # z interval
+            xmin_z = 900; xmax_z = 1800; xint_z = 30     # z interval
         
         elif (presl == 700):
             # color_vals = [-50,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,\
@@ -602,7 +602,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
-            xmin_z = 2400; xmax_z = 4000; xint_z = 50    # z interval
+            xmin_z = 2100; xmax_z = 3600; xint_z = 30    # z interval
 
         elif (presl == 500):
             # color_vals = [-60,-56,-54,-52,-48,-46,-44,-42,-40,-38,-36,-34,-32,-30,-28,-26,-24,-22,\
@@ -613,7 +613,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
-            xmin_z = 4800; xmax_z = 6500; xint_z = 50    # z interval
+            xmin_z = 4500; xmax_z = 6600; xint_z = 60    # z interval
         
         elif (presl == 300):
             # color_vals = [-90,-82,-80,-78,-76,-74,-72,-70,-68,-66,-64,-62,-60,-58,-56,-54,-52,-48,\
@@ -624,7 +624,7 @@ def PlotPressureMaps(data,lonW,lonE,latS,latN,timt,lont,latt,lontstart,lattstart
                           '#80d15d','#9dd947','#bee341','#deed3b','#f4ec36','#f8d533','#fcbe30','#ffa62c',\
                           '#ff8c1e','#ff7210','#ff5703','#ff3e36','#ff2579','#ff0bbb','#ff17df','#ff41eb',\
                           '#ff6af7','#ff92ff','#ffb7ff','#ffdbff','#ffffff']
-            xmin_z = 8000; xmax_z = 10000; xint_z = 100# z interval
+            xmin_z = 7500; xmax_z = 9900; xint_z = 60# z interval
 
         vmin = np.min(np.min(color_vals))#levels)#-20#np.min(t)
         vmax = np.max(np.max(color_vals)) #-5#np.max(t)
