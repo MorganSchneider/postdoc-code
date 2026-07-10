@@ -773,15 +773,19 @@ colormap.set_over("gray")
 colormap.set_under(alpha=0)
 vmin = 100
 vmax = 3000
+levels = np.arange(vmin,vmax+1,100)
+nlevels = len(levels)
 
-# norm = BoundaryNorm(np.linspace(vmin, vmax, nlevels+1), ncolors=colormap.N)
-cf = ax.contourf(X, Y, cape, levels=np.arange(vmin,vmax+1,100), cmap=colormap)
+norm = BoundaryNorm(np.linspace(vmin, vmax, nlevels+1), ncolors=colormap.N)
+
+# cf = ax.contourf(X, Y, cape, levels=np.arange(vmin,vmax+1,100), cmap=colormap)
+cf = ax.contourf(X, Y, cape, levels=np.arange(vmin,vmax+1,100), cmap=colormap, norm=norm, vmin=vmin, vmax=vmax)
 cbar = plt.colorbar(cf, ax=ax, orientation='vertical', shrink=shrinkscale)
 cbar.set_label('CAPE [J/kg]', fontsize=16)  
 cbar.ax.tick_params(labelsize=12)
 
-cf2 = ax.contourf(X, Y, np.ma.masked_array(cin, cape<vmin), levels=[25,100,200], colors=['w','w','w'], alpha=0.5, hatches=[None,None,'///'], edgecolor='w')
-cc = ax.contour(X, Y, np.ma.masked_array(cin, cape<vmin), levels=[25,100], colors='w', linewidths=[1,1.5], linestyles='-')
+cf2 = ax.contourf(X, Y, cin, levels=[25,100,1000], colors=['w','w','w'], alpha=0.4, hatches=[None,'///','///'], edgecolor='w')
+cc = ax.contour(X, Y, cin, levels=[25,100], colors='w', linewidths=[1,1.5], linestyles='-')
 ax.clabel(cc, inline=True, fontsize=11, fmt='%d')
 
 cs = ax.contour(X, Y, zz, levels=np.arange(4500,6630,60), colors='k', linewidths=2)#'white', linewidths=1)
