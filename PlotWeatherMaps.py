@@ -18,7 +18,7 @@ from era5utils import *
 #Coordinates: (51.6107,-114.198)
 #Time (UTC): 17:45
 
-fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
 case='tornado'
 #case='hail'
@@ -29,9 +29,9 @@ region='GreatLakes'
 # region='Canada'
 
 yyyyt = 2026
-mmt   = 4
-ddt   = 15
-hht   = 8
+mmt   = 6
+ddt   = 30
+hht   = 16
 
 # yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (18-22)
 # yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (19-23, 0-3)
@@ -39,40 +39,58 @@ hht   = 8
 # yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (13-18)
 # yyyyt = 2025; mmt = 7; ddt = 24; bow/db hht = 21-23 (19-23)
 # yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
+# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
+# yyyyt = 2026; mmt = 7; ddt = 3; hht = 22-00 (20-23, 0-2)
 
 timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
 
 
-lattstart = 46.4797  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
-lontstart = -83.6403 #Longitude of tornado/beginning of hail swath (from NTP/NHP database)
+# lattstart = 46.4797  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
+# lontstart = -83.6403 #Longitude of tornado/beginning of hail swath (from NTP/NHP database)
 
 if (yyyyt==2021) & (mmt==8) & (ddt==11):
     lattstart = [46.4797, 46.5449, 46.5724, 46.4657, 46.3870, 46.6557]
     lontstart = [-83.6403, -83.5907, -83.2889, -83.2155, -82.7493, -82.4617]
+    figfolder = fp+"/figs/20210811/"
 elif (yyyyt==2025) & (mmt==6) & ((ddt==23)|(ddt==24)):
     lattstart = [48.3975, 48.4647, 48.2033, 47.9149, 46.7872, 46.7757]
     lontstart = [-75.5880, -75.4900, -73.5234, -73.5056, -70.7827, -70.4072]
+    figfolder = fp+"/figs/20250623/"
 elif (yyyyt==2022) & (mmt==5) & ((ddt==30)|(ddt==31)):
     lattstart = [48.6148, 48.6699, 48.9114, 49.3689, 48.6757]
     lontstart = [-93.5304, -93.5219, -93.5778, -93.0754, -92.2308]
+    figfolder = fp+"/figs/20220530/"
 elif (yyyyt==2022) & (mmt==5) & (ddt==21):
     lattstart = [43.0179, 42.9217, 44.1058, 44.1755]
     lontstart = [-81.2216, -81.1977, -79.1458, -78.7722]
+    figfolder = fp+"/figs/20220521/"
 elif (yyyyt==2025) & (mmt==7) & (ddt==24):
     lattstart = [43.4700, 44.2500, 45.0000]
     lontstart = [-81.1800, -80.5000, -79.2500]
+    figfolder = fp+"/figs/20250724/"
 elif (yyyyt==2026) & (mmt==4) & (ddt==15):
     lattstart = [42.2718, 42.2684, 42.2393, 42.2423]
     lontstart = [-83.7524, -83.2104, -83.0576, -82.8484]
+    figfolder = fp+"/figs/20260415/"
+elif (yyyyt==2026) & (mmt==6) & (ddt==30):
+    lattstart = [44.4640, 44.3021, 44.3303, 45.6315, 44.6890]
+    lontstart = [-76.7289, -76.5386, -76.9268, -77.8432, -76.9664]
+    figfolder = fp+"/figs/20260630/"
+elif (yyyyt==2026) & (mmt==7) & ((ddt==3)|(ddt==4)):
+    lattstart = [42.2393, 42.4226, 42.7505, 42.2766]
+    lontstart = [-83.0576, -82.1339, -81.7004, -83.7341]
+    figfolder = fp+"/figs/20260703/"
 
 
-latt = 46.50       # latitude of sounding
-lont = -83.75     # longitude of sounding #if you do not need this, uncomment the next two lines
+# latt = 46.50       # latitude of sounding
+# lont = -83.75     # longitude of sounding #if you do not need this, uncomment the next two lines
 
 
-figfolder=fp+'figs/'
-data_preslevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
-data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
+
+
+# figfolder = fp+f"figs/"
+data_preslevs = fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
+data_singlevs = fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 
 
@@ -476,17 +494,22 @@ for pres in [500,300]:
 
 #%% Plotting my own upper air/surface/sounding parameter maps
 
-fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
-# region='Alberta'
-#region='SasMan'
-# region='GreatLakes'
-region='Canada'
+# region = 'Alberta'
+# region = 'SasMan'
+# region = 'GreatLakes'
+region = 'Canada'
+# region = None
 
-yyyyt = 2025
-mmt   = 6
-ddt   = 24
-hht   = 1
+yyyyt = 2026
+mmt   = 4
+ddt   = 15
+hht   = 8
+
+
+
+figsave = False
 
 # yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (18-22)
 # yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (19-23, 0-3)
@@ -494,6 +517,8 @@ hht   = 1
 # yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (13-18)
 # yyyyt = 2025; mmt = 7; ddt = 24; bow/db hht = 21-23 (19-23)
 # yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
+# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
+# yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (20-23, 0-2)
 
 timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
 
@@ -504,24 +529,39 @@ timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),s
 if (yyyyt==2021) & (mmt==8) & (ddt==11):
     lattstart = [46.4797, 46.5449, 46.5724, 46.4657, 46.3870, 46.6557]
     lontstart = [-83.6403, -83.5907, -83.2889, -83.2155, -82.7493, -82.4617]
+    figfolder = fp+"/figs/20210811/"
 elif (yyyyt==2025) & (mmt==6) & ((ddt==23)|(ddt==24)):
     lattstart = [48.3975, 48.4647, 48.2033, 47.9149, 46.7872, 46.7757]
     lontstart = [-75.5880, -75.4900, -73.5234, -73.5056, -70.7827, -70.4072]
+    figfolder = fp+"/figs/20250623/"
 elif (yyyyt==2022) & (mmt==5) & ((ddt==30)|(ddt==31)):
     lattstart = [48.6148, 48.6699, 48.9114, 49.3689, 48.6757]
     lontstart = [-93.5304, -93.5219, -93.5778, -93.0754, -92.2308]
+    figfolder = fp+"/figs/20220530/"
 elif (yyyyt==2022) & (mmt==5) & (ddt==21):
     lattstart = [43.0179, 42.9217, 44.1058, 44.1755]
     lontstart = [-81.2216, -81.1977, -79.1458, -78.7722]
+    figfolder = fp+"/figs/20220521/"
 elif (yyyyt==2025) & (mmt==7) & (ddt==24):
     lattstart = [43.4700, 44.2500, 45.0000]
     lontstart = [-81.1800, -80.5000, -79.2500]
+    figfolder = fp+"/figs/20250724/"
 elif (yyyyt==2026) & (mmt==4) & (ddt==15):
     lattstart = [42.2718, 42.2684, 42.2393, 42.2423]
     lontstart = [-83.7524, -83.2104, -83.0576, -82.8484]
+    figfolder = fp+"/figs/20260415/"
+elif (yyyyt==2026) & (mmt==6) & (ddt==30):
+    lattstart = [44.4640, 44.3021, 44.3303, 45.6315, 44.6890]
+    lontstart = [-76.7289, -76.5386, -76.9268, -77.8432, -76.9664]
+    figfolder = fp+"/figs/20260630/"
+elif (yyyyt==2026) & (mmt==7) & ((ddt==3)|(ddt==4)):
+    lattstart = [42.2393, 42.4226, 42.7505, 42.2766]
+    lontstart = [-83.0576, -82.1339, -81.7004, -83.7341]
+    figfolder = fp+"/figs/20260703/"
 
 
 
+[lonW,lonE,latS,latN] = [np.median(lontstart)-13, np.median(lontstart)+13, np.median(lattstart)-7, np.median(lattstart)+7]
 
 if region=='GreatLakes':    
     [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
@@ -540,9 +580,9 @@ elif region=='Canada':
     n=10
     shrinkscale = 0.3
 
-figfolder=fp+'figs/'
-data_preslevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
-data_singlevs=fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
+# figfolder = fp+'figs/'
+data_preslevs = fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
+data_singlevs = fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 data = xr.open_dataset(data_preslevs)
 datas = xr.open_dataset(data_singlevs)
@@ -614,7 +654,7 @@ latt = lat[lati]
 lont = lon[loni]
 
 
-#%% Upper air maps
+#% Upper air maps
 
 colors = ['dodgerblue','lightskyblue','cyan','mediumpurple','blueviolet','mediumvioletred']
 spc_wspd = ListedColormap(colors, name="spc_wspd")
@@ -638,6 +678,8 @@ spc_wspd = ListedColormap(colors, name="spc_wspd")
 # }
 
 
+# figsave = True
+
 
 
 
@@ -654,7 +696,7 @@ for presl in [300,500,700,850]:
     td = 243.5 / ((17.67/(np.log(e/6.112)))-1)
     
     
-    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
     ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.BORDERS, linestyle='-')
     ax.add_feature(cfeature.STATES, linestyle='-')
@@ -671,6 +713,8 @@ for presl in [300,500,700,850]:
         
         cs = ax.contour(X, Y, zz, levels=np.arange(7500,9930,60), colors='black', linewidths=2)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+        ax.set_title(f"300-mb wind speed (shaded), geopotential height\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
     
     # Geopotential height, wind speed and wind barbs (kts)
     if presl == 500:
@@ -683,6 +727,8 @@ for presl in [300,500,700,850]:
         
         cs = ax.contour(X, Y, zz, levels=np.arange(4500,6630,60), colors='black', linewidths=2)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+        ax.set_title(f"500-mb wind speed (shaded), geopotential height\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
     
     # Geopotential height, relative humidity, 700-500 mb lapse rates, wind barbs (kts)
     if presl == 700:
@@ -691,11 +737,11 @@ for presl in [300,500,700,850]:
         z75 = datt.sel(pressure_level=slice(700,500))['z'].values/9.81/1000
         lr = -1*(t75[-1,:,:]-t75[0,:,:])/(z75[-1,:,:]-z75[0,:,:])
         
-        cf = ax.contourf(X, Y, rr, levels=[70,101], colors=['limegreen'], alpha=0.3)
+        cf = ax.contourf(X, Y, rr, levels=[70,101], colors=['mediumaquamarine'], alpha=0.4)
         # cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Rel. humidity [%]', shrink=shrinkscale)
         # cbar.set_label('Rel. humidity [%]', fontsize=16)  
         # cbar.ax.tick_params(labelsize=12)
-        cr = ax.contour(X, Y, rr, levels=np.arange(70,101,10), colors='g', linestyles='-', linewidths=1)
+        cr = ax.contour(X, Y, rr, levels=np.arange(70,101,10), colors='teal', linestyles='-', linewidths=1)
         ax.clabel(cr, inline=True, fontsize=11, fmt='%d')#.1f')
         # ct1 = ax.contour(X, Y, tt, levels=np.arange(2,10,2), colors='r', linestyles='--', linewidths=1.5)
         # ct2 = ax.contour(X, Y, tt, levels=np.arange(10,30,2), colors='r', linestyles='--', linewidths=2.5)
@@ -709,6 +755,8 @@ for presl in [300,500,700,850]:
         
         cs = ax.contour(X, Y, zz, levels=np.arange(2100,3630,30), colors='black', linewidths=2)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+        ax.set_title(f"700-mb RH>70% (green,shaded), geopotential height (black), winds (barbs), 700-500-mb lapse rate (red)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
     
     # Geopotential height, temperature, dewpoint, wind barbs (kts)
     if presl == 850:
@@ -717,11 +765,11 @@ for presl in [300,500,700,850]:
         else:
             dlevs = np.arange(8,30,2); tlevs1 = np.arange(2,20,2); tlevs2 = np.arange(20,40,2); tlevs3 = np.arange(-30,2,2)
         
-        cf = ax.contourf(X, Y, td, levels=dlevs, colors=['limegreen'], alpha=0.3)
+        cf = ax.contourf(X, Y, td, levels=dlevs, colors=['mediumaquamarine'], alpha=0.4)
         # cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Dewpoint [C]', shrink=shrinkscale)
         # cbar.set_label('Dewpoint [C]', fontsize=16)  
         # cbar.ax.tick_params(labelsize=12)
-        cd = ax.contour(X, Y, td, levels=dlevs, colors='g', linestyles='-', linewidths=1)
+        cd = ax.contour(X, Y, td, levels=dlevs, colors='teal', linestyles='-', linewidths=1)
         ct1 = ax.contour(X, Y, tt, levels=tlevs1, colors='r', linestyles='--', linewidths=1.5)
         ct2 = ax.contour(X, Y, tt, levels=tlevs2, colors='r', linestyles='--', linewidths=2)
         ct3 = ax.contour(X, Y, tt, levels=tlevs3, colors='b', linestyles='--', linewidths=1.5)
@@ -732,11 +780,24 @@ for presl in [300,500,700,850]:
         
         cs = ax.contour(X, Y, zz, levels=np.arange(900,1830,30), colors='black', linewidths=2)
         ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+        ax.set_title(f"850-mb temperature (red/blue), dewpoint (green,shaded), geopotential height (black), winds (barbs)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
     
     #Wind barbs are plotted every n gridpoint
     cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n])
     
-    plt.show()
+    s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+    ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+    
+    
+    if region == 'Canada':
+        figname = f"upperair_{presl}mb_{hht:02.0f}Z_Canada.png"
+    else:
+        figname = f"upperair_{presl}mb_{hht:02.0f}Z.png"
+    
+    if figsave:
+        plt.savefig(figfolder+figname, dpi=300)
+    # plt.show()
 
 
 
@@ -744,46 +805,70 @@ for presl in [300,500,700,850]:
 
 
 # 2-m temperature, surface pressure, 10-m wind barbs (kts)
-fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
 ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
 ax.add_feature(cfeature.BORDERS, linestyle='-')
 ax.add_feature(cfeature.STATES, linestyle='-')
 ax.add_feature(cfeature.COASTLINE)
 
-cf = ax.contourf(X, Y, t2m, levels=np.arange(-30,42,2), cmap='LangRainbow12', alpha=0.8)
+cf = ax.contourf(X, Y, t2m, levels=np.arange(-30,42,2), cmap='LangRainbow12')
 cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Temperature [C]', shrink=shrinkscale)
 cbar.set_label('Temperature [C]', fontsize=16)  
 cbar.ax.tick_params(labelsize=12)
 cp = ax.contour(X, Y, mslp, levels=np.arange(900,1040,4), colors='k', linewidths=2, linestyles='-')
 ax.clabel(cp, inline=True, fontsize=11, fmt='%d')#.1f')
 # cuv100 = ax.barbs(X[::n,::n], Y[::n,::n], uu100[::n,::n], vv100[::n,::n], color='r')
-cuv10 = ax.barbs(X[::n,::n], Y[::n,::n], uu10[::n,::n], vv10[::n,::n], color='k')
+cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu10[::n,::n], vv10[::n,::n], color='k')
 
-plt.show()
+s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+
+ax.set_title(f"2-m temperature, MSLP (black), 10-m winds (barbs)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+
+if region == 'Canada':
+    figname = f"sfc_temp_{hht:02.0f}Z_Canada.png"
+else:
+    figname = f"sfc_temp_{hht:02.0f}Z.png"
+    
+if figsave:
+    plt.savefig(figfolder+figname, dpi=300)
+# plt.show()
 
 
 # 2-m dewpoint, surface pressure, 10-m wind barbs
-fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
 ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
 ax.add_feature(cfeature.BORDERS, linestyle='-')
 ax.add_feature(cfeature.STATES, linestyle='-')
 ax.add_feature(cfeature.COASTLINE)
 
-cf = ax.contourf(X, Y, d2m, levels=np.arange(-10,32,2), cmap='terrain_r', alpha=0.7)
+cf = ax.contourf(X, Y, d2m, levels=np.arange(-10,32,2), cmap='gist_earth_r')
 cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Dewpoint [C]', shrink=shrinkscale)
 cbar.set_label('Dewpoint [C]', fontsize=16)  
 cbar.ax.tick_params(labelsize=12)
 cp = ax.contour(X, Y, mslp, levels=np.arange(900,1040,4), colors='k', linewidths=2, linestyles='-')
 ax.clabel(cp, inline=True, fontsize=11, fmt='%d')#.1f')
 # cuv100 = ax.barbs(X[::n,::n], Y[::n,::n], uu100[::n,::n], vv100[::n,::n], color='r')
-cuv10 = ax.barbs(X[::n,::n], Y[::n,::n], uu10[::n,::n], vv10[::n,::n], color='k')
+cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu10[::n,::n], vv10[::n,::n], color='k')
 
-plt.show()
+s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+
+ax.set_title(f"2-m dewpoint, MSLP (black), 10-m winds (barbs)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+
+if region == 'Canada':
+    figname = f"sfc_dewpt_{hht:02.0f}Z_Canada.png"
+else:
+    figname = f"sfc_dewpt_{hht:02.0f}Z.png"
+
+if figsave:
+    plt.savefig(figfolder+figname, dpi=300)
+# plt.show()
 
 
 
 # MSLP, 2-m temperature, 2-m dewpoint, 10-m wind barbs
-fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
 ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
 ax.add_feature(cfeature.BORDERS, linestyle='-')
 ax.add_feature(cfeature.STATES, linestyle='-')
@@ -796,15 +881,29 @@ ct2 = ax.contour(X, Y, t2m, levels=np.arange(5,20,5), colors='r', linewidths=1.5
 ax.clabel(ct2, inline=True, fontsize=11, fmt='%d')#.1f')
 ct3 = ax.contour(X, Y, t2m, levels=np.arange(20,45,5), colors='r', linewidths=1.5, linestyles='-')
 ax.clabel(ct3, inline=True, fontsize=11, fmt='%d')#.1f')
-cd1 = ax.contour(X, Y, d2m, levels=np.arange(5,20,5), colors='g', linewidths=1.5, linestyles='--')
+cd1 = ax.contour(X, Y, d2m, levels=np.arange(5,20,5), colors='teal', linewidths=1.5, linestyles='--')
 ax.clabel(cd1, inline=True, fontsize=11, fmt='%d')#.1f')
-cd2 = ax.contour(X, Y, d2m, levels=np.arange(20,45,5), colors='g', linewidths=1.5, linestyles='-')
+cd2 = ax.contour(X, Y, d2m, levels=np.arange(20,45,5), colors='teal', linewidths=1.5, linestyles='-')
 ax.clabel(cd2, inline=True, fontsize=11, fmt='%d')#.1f')
 cp = ax.contour(X, Y, mslp, levels=np.arange(900,1040,4), colors='k', linewidths=2, linestyles='-')
 ax.clabel(cp, inline=True, fontsize=11, fmt='%d')#.1f')
 cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu10[::n,::n], vv10[::n,::n], color='k')
 
-plt.show()
+s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+
+ax.set_title(f"MSLP (black), 2-m temperature (red/blue), 2-m dewpoint (green), 10-m winds (barbs)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+
+if region == 'Canada':
+    figname = f"sfc_pres_{hht:02.0f}Z_Canada.png"
+else:
+    figname = f"sfc_pres_{hht:02.0f}Z.png"
+
+if figsave:
+    plt.savefig(figfolder+figname, dpi=300)
+# plt.show()
+
+
 
 
 #% Composite parameter maps
@@ -820,8 +919,9 @@ t75 = datt.sel(pressure_level=slice(700,500))['t'].values-273.15
 z75 = datt.sel(pressure_level=slice(700,500))['z'].values/9.81/1000
 lr = -1*(t75[-1,:,:]-t75[0,:,:])/(z75[-1,:,:]-z75[0,:,:])
 
+
 # CAPE, CIN>100 J/kg, 500 mb gph, 10-6000 m wind difference (barbs, kts)
-fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
 ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
 ax.add_feature(cfeature.BORDERS, linestyle='-')
 ax.add_feature(cfeature.STATES, linestyle='-')
@@ -855,7 +955,19 @@ ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
 
 cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu6000[::n,::n]-uu10[::n,::n], vv6000[::n,::n]-vv10[::n,::n], color="k")
 
-plt.show()
+s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+
+ax.set_title(f"CAPE, CIN (white), 0-6 km shear (barbs), 500-mb geopotential height (black), 700-500 mb lapse (red)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+
+if region == 'Canada':
+    figname = f"cape_cin_{hht:02.0f}Z_Canada.png"
+else:
+    figname = f"cape_cin_{hht:02.0f}Z.png"
+
+if figsave:
+    plt.savefig(figfolder+figname, dpi=300)
+# plt.show()
 
 
 
@@ -869,7 +981,8 @@ for zdep in [1000,3000]:
     [srhpos,srhneg,srhtot] = getSRH(z, orog, u, v, zdep, u10, v10, storm_vector='rightmover')
     srh = srhtot.magnitude
     
-    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()})
+    
+    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
     ax.set_extent([lonW,lonE,latS,latN], crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.BORDERS, linestyle='-')
     ax.add_feature(cfeature.STATES, linestyle='-')
@@ -910,7 +1023,7 @@ for zdep in [1000,3000]:
     ax.clabel(cs, inline=True, fontsize=11, fmt='%d')
     
     cc = ax.contour(X, Y, cape, levels=[200,1000], colors='b', linewidths=1.5, linestyles=['--','-'])
-    # ax.clabel(cc, inline=True, fontsize=11, fmt='%d')
+    ax.clabel(cc, inline=True, fontsize=11, fmt='%d')
     
     #Wind barbs are plotted every n gridpoint
     # cuv = ax.quiver(X[::n,::n], Y[::n,::n], u2[::n,::n], v2[::n,::n], angles='xy', scale_units='xy', scale=scale)
@@ -918,10 +1031,390 @@ for zdep in [1000,3000]:
     
     cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu2[::n,::n]-uu10[::n,::n], vv2[::n,::n]-vv10[::n,::n], color="k")
     
-    plt.show()
+    s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+    ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+    
+    ax.set_title(f"0-{zdep/1000:.0f} km SRH, CAPE>200,1000 J/kg (blue), 0-{zdep/1000:.0f} km shear (barbs), 500-mb geopotential height (black)\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+    
+    if region == 'Canada':
+        figname = f"srh_0-{zdep/1000:.0f}km_{hht:02.0f}Z_Canada.png"
+    else:
+        figname = f"srh_0-{zdep/1000:.0f}km_{hht:02.0f}Z.png"
+    
+    if figsave:
+        plt.savefig(figfolder+figname, dpi=300)
+    # plt.show()
+
+
+
+#%% 3-h height falls, vorticity
+
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+
+# region = 'Alberta'
+# region = 'SasMan'
+# region = 'GreatLakes'
+region = 'Canada'
+# region = None
+
+yyyy = 2026
+mm   = 4
+dd   = 15
+# hht   = 8
+
+
+dbfile = open(fp+'tornado_locs.pkl', 'rb')
+locs = pickle.load(dbfile)
+tor1 = locs[f"{yyyy}{mm:02.0f}{dd:02.0f}"]['loc1']
+dbfile.close
+
+timestr = tor1['time_utc']
+[yyyyt,mmt,ddt] = tor1['date_ymd']
+hht = int(timestr[:2])
+
+
+figsave = False
+
+# yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (17-22)
+# yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (17-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 30-31; tor hht = 0,1,2 (21-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (12-18)
+# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
+# yyyyt = 2025; mmt = 7; ddt = 24-25; bow/db hht = 21-23 (19-23, 0-1)
+# yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (19-23, 0-2)
+# yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
+
+
+
+
+# lattstart = 46.4797  #Latitude of tornado/beginning of hail swath (from NTP/NHP database)
+# lontstart = -83.6403 #Longitude of tornado/beginning of hail swath (from NTP/NHP database)
+
+if (yyyyt==2021) & (mmt==8) & (ddt==11):
+    lattstart = [46.4797, 46.5449, 46.5724, 46.4657, 46.3870, 46.6557]
+    lontstart = [-83.6403, -83.5907, -83.2889, -83.2155, -82.7493, -82.4617]
+    figfolder = fp+"/figs/20210811/"
+elif (yyyyt==2025) & (mmt==6) & ((ddt==23)|(ddt==24)):
+    lattstart = [48.3975, 48.4647, 48.2033, 47.9149, 46.7872, 46.7757]
+    lontstart = [-75.5880, -75.4900, -73.5234, -73.5056, -70.7827, -70.4072]
+    figfolder = fp+"/figs/20250623/"
+elif (yyyyt==2022) & (mmt==5) & ((ddt==30)|(ddt==31)):
+    lattstart = [48.6148, 48.6699, 48.9114, 49.3689, 48.6757]
+    lontstart = [-93.5304, -93.5219, -93.5778, -93.0754, -92.2308]
+    figfolder = fp+"/figs/20220530/"
+elif (yyyyt==2022) & (mmt==5) & (ddt==21):
+    lattstart = [43.0179, 42.9217, 44.1058, 44.1755]
+    lontstart = [-81.2216, -81.1977, -79.1458, -78.7722]
+    figfolder = fp+"/figs/20220521/"
+elif (yyyyt==2025) & (mmt==7) & (ddt==24):
+    lattstart = [43.4700, 44.2500, 45.0000]
+    lontstart = [-81.1800, -80.5000, -79.2500]
+    figfolder = fp+"/figs/20250724/"
+elif (yyyyt==2026) & (mmt==4) & (ddt==15):
+    lattstart = [42.2718, 42.2684, 42.2393, 42.2423]
+    lontstart = [-83.7524, -83.2104, -83.0576, -82.8484]
+    figfolder = fp+"/figs/20260415/"
+elif (yyyyt==2026) & (mmt==6) & (ddt==30):
+    lattstart = [44.4640, 44.3021, 44.3303, 45.6315, 44.6890]
+    lontstart = [-76.7289, -76.5386, -76.9268, -77.8432, -76.9664]
+    figfolder = fp+"/figs/20260630/"
+elif (yyyyt==2026) & (mmt==7) & ((ddt==3)|(ddt==4)):
+    lattstart = [42.2393, 42.4226, 42.7505, 42.2766]
+    lontstart = [-83.0576, -82.1339, -81.7004, -83.7341]
+    figfolder = fp+"/figs/20260703/"
+
+
+
+[lonW,lonE,latS,latN] = [np.median(lontstart)-13, np.median(lontstart)+13, np.median(lattstart)-7, np.median(lattstart)+7]
+
+if region=='GreatLakes':    
+    [lonW,lonE,latS,latN] = [-93.0,-70.0,39.5,52.0]
+    n=5
+    shrinkscale = 0.6
+elif region=='SasMan':
+    [lonW,lonE,latS,latN] = [-114.0,-88.0,46.5,60.5]
+    n=5
+    shrinkscale = 0.6
+elif region=='Alberta':      
+    [lonW,lonE,latS,latN] = [-128.0,-102.0,46.5,60.5]
+    n=5
+    shrinkscale = 0.6
+elif region=='Canada':
+    [lonW,lonE,latS,latN] = [-132.0,-58.0,35.0,75.0]
+    n=10
+    shrinkscale = 0.3
+
+
+
+timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
+
+data = xr.open_dataset(fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc")
+datas = xr.open_dataset(fp+f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc")
+
+dat = data.sel(valid_time=timt)
+dats = datas.sel(valid_time=timt)
+
+prs = dat.pressure_level.values * units.hPa
+lat = dat['latitude'].values
+lon = dat['longitude'].values
+X,Y = np.meshgrid(lon,lat)
+
+data.close()
+datas.close()
+
+if hht >= 3:
+    tim0="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht-3).zfill(2))
+    dat0 = data.sel(valid_time=tim0)
+    dats0 = datas.sel(valid_time=tim0)
+else:
+    tim0="%d-%s-%sT%s:00:00.000000000" %(yyyy,str(mm).zfill(2),str(dd).zfill(2),str(hht+21).zfill(2))
+    data0 = xr.open_dataset(fp+f"era5_{yyyy}{mm:02.0f}{dd:02.0f}_preslevs.nc")
+    datas0 = xr.open_dataset(fp+f"era5_{yyyy}{mm:02.0f}{dd:02.0f}_singlevs.nc")
+    dat0 = data0.sel(valid_time=tim0)
+    dats0 = datas0.sel(valid_time=tim0)
+    data0.close()
+    datas0.close()
 
 
 
 
 
+
+for presl in [300,500,700,850]:
+    
+    zz = dat.sel(pressure_level=presl)['z'].values/9.81
+    uu = dat.sel(pressure_level=presl)['u'].values*1.94384449
+    vv = dat.sel(pressure_level=presl)['v'].values*1.94384449
+    # t = dat.sel(pressure_level=presl)['t'].values-273.15
+    # q = dat.sel(pressure_level=presl)['q'].values
+    # omega = dat.sel(pressure_level=presl)['w'].values*units('Pa/s')
+    # w = mc.vertical_velocity(omega*units('Pa/s'), np.moveaxis(np.tile(prs, (len(lat),len(lon),1)), -1, 0), t*units.degC, q*units('kg/kg'))
+    
+    z0 = dat0.sel(pressure_level=presl)['z'].values/9.81
+    dz = zz - z0
+    
+    # print(f"{presl} mb")
+    # print(f"           max rise: {np.max(dz):.0f} m")
+    # print(f"           max fall: {np.min(dz):.0f} m")
+    # print(f"           90% rise: {np.percentile(dz,90):.0f} m")
+    # print(f"           10% fall: {np.percentile(dz,10):.0f} m")
+    
+    
+    
+    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
+    ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
+    ax.add_feature(cfeature.BORDERS, linestyle='-')
+    ax.add_feature(cfeature.STATES, linestyle='-')
+    ax.add_feature(cfeature.COASTLINE)
+    
+    
+    colormap = pyart.graph.cmweather.cm_colorblind.balance.copy()
+    colormap.set_over("maroon")
+    colormap.set_under("navy")
+    
+    
+    if presl == 300:
+        levs = np.linspace(-100,100,41)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, dz, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.8, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Height change [m]', shrink=shrinkscale)
+        cbar.set_label('Height change [m]', fontsize=16)  
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(7500,9930,60), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    
+    if presl == 500:
+        levs = np.linspace(-60,60,25)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, dz, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.8, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Height change [m]', shrink=shrinkscale)
+        cbar.set_label('Height change [m]', fontsize=16)  
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(4500,6630,60), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    
+    if presl == 700:
+        levs = np.linspace(-40,40,17)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, dz, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.8, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Height change [m]', shrink=shrinkscale)
+        cbar.set_label('Height change [m]', fontsize=16)  
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(2100,3630,30), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    if presl == 850:
+        levs = np.linspace(-40,40,17)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, dz, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.8, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Height change [m]', shrink=shrinkscale)
+        cbar.set_label('Height change [m]', fontsize=16)  
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(900,1830,30), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+    
+    #Wind barbs are plotted every n gridpoint
+    cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n])
+    
+    # cw = ax.contour(X, Y, omega, levels=[-0.5,0.5], colors=['b','r'], linestyles='-', linewidths=1.5)
+    # ax.clabel(cw, inline=True, fontsize=11, fmt='%.1f')#.1f')
+    # cw2 = ax.contour(X, Y, omega, levels=[0.5,1], colors='r', linestyles='-', linewidths=1.5)
+    # ax.clabel(cw2, inline=True, fontsize=11, fmt='%d')#.1f')
+    
+    s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+    ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+    
+    ax.set_title(f"{presl} mb 3-h height falls, geopotential height\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+    
+    if region == 'Canada':
+        figname = f"heightfalls_{presl}mb_{hht:02.0f}Z_Canada.png"
+    else:
+        figname = f"heightfalls_{presl}mb_{hht:02.0f}Z.png"
+    
+    if figsave:
+        plt.savefig(figfolder+figname, dpi=300)
+    # plt.show()
+
+
+
+
+
+for presl in [300,500,700,850]:
+    
+    zz = dat.sel(pressure_level=presl)['z'].values/9.81
+    uu = dat.sel(pressure_level=presl)['u'].values*1.94384449
+    vv = dat.sel(pressure_level=presl)['v'].values*1.94384449
+    # t = dat.sel(pressure_level=presl)['t'].values-273.15
+    # q = dat.sel(pressure_level=presl)['q'].values
+    # omega = dat.sel(pressure_level=presl)['w'].values
+    # w = mc.vertical_velocity(omega*units('Pa/s'), presl*100*np.ones((len(lat),len(lon)))*units.Pa, t*units.degC, q*units('kg/kg')).magnitude
+    vort = dat.sel(pressure_level=presl)['vo'].values
+    
+    vo0 = dat0.sel(pressure_level=presl)['vo'].values
+    dvort = vort - vo0
+    
+    # print(f"{presl} mb")
+    # print(f"           max vort rise: {np.max(dvort):.7f} 1/s")
+    # print(f"           min vort fall: {np.min(dvort):.7f} 1/s")
+    # print(f"                max vort: {np.max(vort):.7f} 1/s")
+    # print(f"                min vort: {np.min(vort):.7f} 1/s")
+    # print(f"                   max w: {np.max(w):.2f} m/s")
+    # print(f"                   min w: {np.min(w):.2f} m/s")
+    
+    
+    # colormap = pyart.graph.cmweather.cm_colorblind.balance.copy()
+    # colormap.set_over("maroon")
+    # colormap.set_under("navy")
+    colormap = cm.PuOr_r.copy()
+    colormap.set_over("darkorange")
+    colormap.set_under("indigo")
+    
+    
+    fig,ax = plt.subplots(figsize=(20,15), subplot_kw={'projection':ccrs.PlateCarree()}, layout='tight')
+    ax.set_extent([lonW, lonE, latS, latN], crs=ccrs.PlateCarree())
+    ax.add_feature(cfeature.BORDERS, linestyle='-')
+    ax.add_feature(cfeature.STATES, linestyle='-')
+    ax.add_feature(cfeature.COASTLINE)
+    
+    
+    if presl == 300:
+        levs = np.linspace(-6e-4,6e-4,25)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, vort, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.9, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Vorticity [1/s]', shrink=shrinkscale)
+        cbar.set_label('Vorticity [1/s]', fontsize=16)
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(7500,9930,60), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    
+    if presl == 500:
+        levs = np.linspace(-4e-4,4e-4,17)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, vort, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.9, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Vorticity [1/s]', shrink=shrinkscale)
+        cbar.set_label('Vorticity [1/s]', fontsize=16)
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(4500,6630,60), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    
+    if presl == 700:
+        levs = np.linspace(-3e-4,3e-4,13)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, vort, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.9, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Vorticity [1/s]', shrink=shrinkscale)
+        cbar.set_label('Vorticity [1/s]', fontsize=16)
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(2100,3630,30), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    if presl == 850:
+        levs = np.linspace(-3e-4,3e-4,13)
+        vmin = levs[0]
+        vmax = levs[-1]
+        
+        cf = ax.contourf(X, Y, vort, levels=levs, cmap=colormap, vmin=vmin, vmax=vmax, alpha=0.9, extend='both')
+        cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Vorticity [1/s]', shrink=shrinkscale)
+        cbar.set_label('Vorticity [1/s]', fontsize=16)
+        cbar.ax.tick_params(labelsize=12)
+        
+        cs = ax.contour(X, Y, zz, levels=np.arange(900,1830,30), colors='black', linewidths=2)
+        ax.clabel(cs, inline=True, fontsize=11, fmt='%d')#.1f')
+        
+    cv1 = ax.contour(X, Y, dvort*1e4, levels=np.arange(-5,0), colors='b', linewidths=1.25, linestyles='-')
+    ax.clabel(cv1, inline=True, fontsize=11, fmt='%d')#.1f')
+    cv2 = ax.contour(X, Y, dvort*1e4, levels=np.arange(1,6), colors='r', linewidths=1.25, linestyles='-')
+    ax.clabel(cv2, inline=True, fontsize=11, fmt='%d')#.1f')
+    
+    #Wind barbs are plotted every n gridpoint
+    cuv = ax.barbs(X[::n,::n], Y[::n,::n], uu[::n,::n], vv[::n,::n])
+    
+    s = ax.scatter(lontstart, lattstart, s=250, marker="v", edgecolors='k', color='yellow', linewidth=2, zorder=10)
+    ax.legend(handles=[s], labels=['Tornado'], loc='upper right', fontsize=20, bbox_to_anchor=(1,1.07), frameon=False)
+    
+    ax.set_title(f"{presl} mb vorticity, 3-H d(vorticity), geopotential height\n {timt[:10]} {timt[11:13]}Z ", fontsize=20)
+    
+    if region == 'Canada':
+        figname = f"vorticity_{presl}mb_{hht:02.0f}Z_Canada.png"
+    else:
+        figname = f"vorticity_{presl}mb_{hht:02.0f}Z.png"
+    
+    if figsave:
+        plt.savefig(figfolder+figname, dpi=300)
+    # plt.show()
+
+
+
+# data.close()
+# datas.close()
+# data0.close()
+# datas0.close()
+dat.close()
+dats.close()
+dat0.close()
+dats0.close()
 

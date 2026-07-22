@@ -137,7 +137,7 @@ print(f"CAPE,CIN:             {cape:.0f} J/kg, {cin:.0f} J/kg")
 import pandas as pd
 
 
-fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/brooks_storm/'
 save_flag = False
 
 
@@ -297,7 +297,7 @@ del lines
 #%% Get ERA5 sounding parameters
 
 
-fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/brooks_storm/'
 fn1 = 'input_sounding_era5_50.75_114.0'
 fn2 = 'input_sounding_era5_51.0_114.25'
 fn3 = 'input_sounding_era5_51.25_113.25'
@@ -628,7 +628,7 @@ from metpy.units import units
 
 
 
-fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/brooks_storm/'
 
 # Edmonton, Ab, 20250820-18Z
 fn1 = fp+'soundings/2025082018-71119-EdmontonAB.csv'
@@ -708,7 +708,7 @@ if False:
 
 #%% Plot Edmonton and Great Falls soundings
 
-fp = 'C:/Users/mschne28/Documents/brooks_storm/'
+fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/brooks_storm/'
 
 
 # Edmonton, Ab, 20250820-18Z
@@ -898,8 +898,8 @@ plt.show()
 #%% VORTEX2 soundings
 
 
-ftor = 'C:/Users/mschne28/Documents/cm1r21.1/vortex2_soundings/tor_soundings/input_sounding_torV2'
-fnt = 'C:/Users/mschne28/Documents/cm1r21.1/vortex2_soundings/nt_soundings/input_sounding_ntV2'
+ftor = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/cm1r21.1/vortex2_soundings/tor_soundings/input_sounding_torV2'
+fnt = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/cm1r21.1/vortex2_soundings/nt_soundings/input_sounding_ntV2'
 
 
 with open(ftor, 'r') as f:

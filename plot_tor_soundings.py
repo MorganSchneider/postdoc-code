@@ -25,14 +25,14 @@ from metpy.units import units
 # from metpy.calc import potential_temperature,temperature_from_potential_temperature
 # from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
 
-from era5utils import extract_data, plot_with_hodograph, plot_skewT
+from era5utils import *
 
 
 
 #%% Load data and plot one sounding
 
 
-fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
 yyyy = 2021
 mm = 8
@@ -98,7 +98,7 @@ data = extract_data(latt, lont, timt, dsp, dss)
 # lcl_pressure = data['lcl_pressure']
 # lcl_temperature = data['lcl_temperature']
 # parcel_prof = data['parcel_prof']
-figfolder = fp+"figs/"
+figfolder = fp+f"figs/{yyyy}{mm:02.0f}{dd:02.0f}/"
 
 # dsp.close()
 # dss.close()
@@ -192,21 +192,25 @@ figfolder = fp+"figs/"
 
 #%% Load data and plot all soundings per event
 
-fp = "C:/Users/mschne28/Documents/era5/tor_outbreaks/"
-figfolder = fp+"figs/"
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+# figfolder = fp+f"figs/"
 
-# yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
+yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
 # yyyy = 2025; mm = 6; dd = 23; ntors = 6; casetype = "Tornado outbreak"
 # yyyy = 2022; mm = 5; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
 # yyyy = 2022; mm = 5; dd = 21; ntors = 4; casetype = "Tornado sub-outbreak"
+# yyyy = 2026; mm = 6; dd = 30; ntors = 5; casetype = "Tornado sub-outbreak"
 # yyyy = 2025; mm = 7; dd = 24; ntors = 3; casetype = "Null event"
-yyyy = 2026; mm = 4; dd = 15; ntors = 2; casetype = "Null event"
-
-leadtime = 0 #hours before hit
-
+# yyyy = 2026; mm = 7; dd = 3; ntors = 4; casetype = "Null event"
+# yyyy = 2026; mm = 4; dd = 15; ntors = 4; casetype = "Null event"
 
 
-ntors = 1
+figfolder = fp+f"figs/{yyyy}{mm:02.0f}{dd:02.0f}/"
+
+leadtime = 1 #hours before hit
+
+
+# ntors = 1
 
 
 
@@ -251,12 +255,12 @@ shear03 = np.zeros((ntors,))
 shear06 = np.zeros((ntors,))
 srh01 = np.zeros((ntors,))
 srh03 = np.zeros((ntors,))
+lapse_rate = np.zeros((ntors,))
+
 
 
 for i in range(ntors):
     tloc = locs[f"loc{i+1}"]
-    if yyyy == 2026:
-        tloc = locs[f"loc{i+3}"]
     
     # tloc = locs[f"loc{i+3}"]
     
@@ -280,22 +284,22 @@ for i in range(ntors):
     timt = f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000"
 
 
-    dsp = xr.open_dataset(fp+fn_preslev)
-    dss = xr.open_dataset(fp+fn_singlev)
+    datap = xr.open_dataset(fp+fn_preslev)
+    datas = xr.open_dataset(fp+fn_singlev)
 
-    latitude = dsp['latitude'][:].values
-    longitude = dsp['longitude'][:].values
+    latitude = datap['latitude'][:].values
+    longitude = datap['longitude'][:].values
 
     lati = np.argmin(np.abs(latitude-lattstart))
     loni = np.argmin(np.abs(longitude-lontstart))
-
-    latt = latitude[lati]
-    lont = longitude[loni]
     
+    # latt = latitude[lati]
+    # lont = longitude[loni]
+    latt = latitude[lati-4:lati+4]
+    lont = longitude[loni-4:loni+4]
     
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
-
-    data = extract_data(latt, lont, timt, dsp, dss)
+    data = extract_data(latt, lont, timt, datap, datas)
     
     z[:,i] = data['z']
     orog[i] = data['orog']
@@ -323,35 +327,24 @@ for i in range(ntors):
     t2m[i] = data['t2m'].magnitude
     td2m[i] = data['td2m'].magnitude
     theta2m[i] = data['theta2m'].magnitude
-    
-    
-    zh = z[:,i] - orog[i]
-    shear6 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=6000*units.m)
-    shear06[i] = np.sqrt(shear6[0].magnitude**2 + shear6[1].magnitude**2)
-    shear3 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=3000*units.m)
-    shear03[i] = np.sqrt(shear3[0].magnitude**2 + shear3[1].magnitude**2)
-    shear1 = mc.bulk_shear(p, u[:,i]*units('m/s'), v[:,i]*units('m/s'), height=zh*units.m, bottom=10*units.m, depth=1000*units.m)
-    shear01[i] = np.sqrt(shear1[0].magnitude**2 + shear1[1].magnitude**2)
-    
-    srh1 = mc.storm_relative_helicity(zh*units.m, u[:,i]*units('m/s'), v[:,i]*units('m/s'), depth=1000*units.m,
-                                      storm_u=rightmover[0,i]*units('m/s'), storm_v=rightmover[1,i]*units('m/s'))
-    srh01[i] = srh1[2].magnitude
-
-    srh3 = mc.storm_relative_helicity(zh*units.m, u[:,i]*units('m/s'), v[:,i]*units('m/s'), depth=3000*units.m,
-                                      storm_u=rightmover[0,i]*units('m/s'), storm_v=rightmover[1,i]*units('m/s'))
-    srh03[i] = srh3[2].magnitude
+    shear06[i] = data['shear06'].magnitude
+    shear03[i] = data['shear03'].magnitude
+    shear01[i] = data['shear01'].magnitude
+    srh03[i] = data['srh03'].magnitude
+    srh01[i] = data['srh01'].magnitude
+    lapse_rate[i] = data['lapse_rate']
     
 
-    dsp.close()
-    dss.close()
+    datap.close()
+    datas.close()
     
     
     
-    fig = plot_skewT(timt, latt, lont, data, tloc, figfolder=figfolder, figsave=figsave)
+    # fig = plot_skewT(timt, latitude[lati], longitude[loni], data, tloc, figfolder=figfolder, figsave=figsave)
 
 
 
-meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
+composite_data = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.mean(q,axis=1), 'theta':np.mean(theta,axis=1)*units.K, 'Td':np.mean(Td,axis=1)*units.degC,
             'u':np.mean(u,axis=1)*units("m/s"), 'v':np.mean(v,axis=1)*units("m/s"), 'u10':np.mean(u10)*units("m/s"), 'v10':np.mean(v10)*units("m/s"),
             'speed':np.mean(speed,axis=1)*units("m/s"), 'direc':np.mean(direc,axis=1)*units.degree,
             'cape':np.mean(cape), 'cin':np.mean(cin), 'sfcp':np.mean(sfcp), 'orog':np.mean(orog),
@@ -359,45 +352,149 @@ meandata = {'p':p, 'z':np.mean(z,axis=1), 'T':np.mean(T,axis=1)*units.K, 'q':np.
             'leftm':np.mean(leftmover,axis=1)*units("m/s"), 'meanm':np.mean(meanwind,axis=1)*units("m/s"), 'rightm':np.mean(rightmover,axis=1)*units("m/s"),
             'parcel_prof':np.nanmean(parcel_prof,axis=1)*units.degC, 'lcl_pressure':np.mean(lcl_pressure)*units.hPa, 'lcl_temperature':np.mean(lcl_temperature)*units.K,
             'shear01':np.nanmean(shear01)*units('m/s'), 'shear03':np.nanmean(shear03)*units('m/s'), 'shear06':np.nanmean(shear06)*units('m/s'),
-            'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2')}
+            'srh01':np.nanmean(srh01)*units('m**2 / s**2'), 'srh03':np.nanmean(srh03)*units('m**2 / s**2'), 'lapse_rate':np.nanmean(lapse_rate)}
+
+
+
 
 figsave = False
 
-# titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding: T-{leadtime}H"
-# figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
-# fig = plot_skewT(timt, latt, lont, meandata, tloc, titlestr=titlestr, figname=figname, figfolder=figfolder, figsave=figsave)
+titlestr = f"{yyyy}-{mm:02.0f}-{dd:02.0f} {casetype} \n Composite ERA5 sounding, lead time T-{leadtime}H"
+figname = f"composite_sounding_{yyyy}-{mm:02.0f}-{dd:02.0f}T-{leadtime}H"
+fig = plot_skewT(timt, latitude[lati], longitude[loni], composite_data, tloc, titlestr=titlestr, figname=figname, figfolder=figfolder, figsave=figsave)
+
+#%% skew t
+z = composite_data['z']
+orog = composite_data['orog']
+p = composite_data['p']
+T = composite_data['T']
+Td = composite_data['Td']
+parcel_prof = composite_data['parcel_prof']
+u = composite_data['u']
+v = composite_data['v']
+u10 = composite_data['u10']
+v10 = composite_data['v10']
+lcl_pressure = composite_data['lcl_pressure']
+lcl_temperature = composite_data['lcl_temperature']
+cape = composite_data['cape']
+cin = composite_data['cin']
+shear01 = composite_data['shear01']
+shear03 = composite_data['shear03']
+shear06 = composite_data['shear06']
+srh01 = composite_data['srh01']
+srh03 = composite_data['srh03']
+leftmover = composite_data['leftm']
+rightmover = composite_data['rightm']
+meanwind = composite_data['meanm']
+lm_speed = mc.wind_speed(leftmover[0], leftmover[1])
+rm_speed = mc.wind_speed(rightmover[0], rightmover[1])
+mw_speed = mc.wind_speed(meanwind[0], meanwind[1])
 
 
 
-z_mean = meandata['z'] - meandata['orog']
-u_mean = meandata['u']
-v_mean = meandata['v']
+fig = plt.figure(figsize=(9,9))
+skew = SkewT(fig)
 
-cape_mean = meandata['cape']
-cin_mean = meandata['cin']
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 40)
 
-rm_mean = meandata['rightm']
-mw_mean = meandata['meanm']
+# Plot special lines
+skew.plot(lcl_pressure, lcl_temperature, 'ko', markerfacecolor='black') # Plot LCL as black dot
+# skew.ax.axvline(0, color='c', linestyle='--', linewidth=1.25) # Plot a zero degree isotherm
+skew.plot_dry_adiabats(linewidth=1.25)
+skew.plot_moist_adiabats(linewidth=1.25)
+skew.plot_mixing_lines(linewidth=1.25)
 
-lcl_mean = meandata['lcl_pressure']
+# Plot the data using normal plotting functions, in this case using
+# log scaling in Y, as dictated by the typical meteorological plot
+skew.plot(p[z>orog], T[z>orog], 'r', linewidth=2)
+skew.plot(p[z>orog], Td[z>orog], 'g', linewidth=2)
+skew.plot(p[z>orog], parcel_prof[z>orog], 'k', linewidth=2) # Plot the parcel profile as a black line
+skew.shade_cin(p[z>orog], T[z>orog], parcel_prof[z>orog], Td[z>orog]) # Shade areas of CAPE and CIN
+skew.shade_cape(p[z>orog], T[z>orog], parcel_prof[z>orog])
+skew.plot_barbs(p[z>orog], u[z>orog], v[z>orog], xloc=1.1, plot_units=units('kts'))
 
-shear01_mean = meandata['shear01']
-shear03_mean = meandata['shear03']
-shear06_mean = meandata['shear06']
-srh01_mean = meandata['srh01']
-srh03_mean = meandata['srh03']
+
+skew.ax.set_xlabel("Temperature (C)", fontsize=12)
+skew.ax.set_ylabel("Pressure (hPa)", fontsize=12)
+# skew.ax.set_title(f"{name} , {timt[:13]} UTC \n lat,lon = {latt:.2f}, {lont:.2f} ", fontsize=12)
+skew.ax.set_title(titlestr, fontsize=12)
+
+# Create a hodograph
+ax_hod = inset_axes(skew.ax, '40%', '40%', loc=1)
+h = Hodograph(ax_hod, component_range=40.)
+h.add_grid(increment=10)
+
+cmap = plt.get_cmap('tab20') # Get the tab20 colormap from matplotlib
+colors = [cmap(i) for i in range(7)] # Extract the first 7 colors from it
+my_cmap = ListedColormap(colors, name="my_cmap")
+my_cmap_r = my_cmap.reversed()
+
+unew = np.zeros((len(u)+1))
+vnew = np.zeros((len(v)+1))
+znew = np.zeros((len(z)+1))
+for k in range(0,len(unew)):
+    if k == 0:
+        unew[k] = u10.magnitude
+        vnew[k] = v10.magnitude
+        znew[k] = 10
+    else:
+        unew[k] = u[k-1].magnitude
+        vnew[k] = v[k-1].magnitude
+        znew[k] = z[k-1] - orog
+
+hplot = h.plot_colormapped(unew[znew>orog]*units("m/s"), vnew[znew>orog]*units("m/s"), znew[znew>orog]/1000, intervals=[0,1,3,5,7.5,10,12.5], colors=colors)
+
+cax = ax_hod.inset_axes([0.06, 0.1, 0.88, 0.04])    
+fig.colorbar(hplot, cax=cax, orientation='horizontal',ticks=[0,1,3,5,7.5,10,12.5])
+
+ax_hod.scatter(leftmover.magnitude[0], leftmover.magnitude[1], s=10, color='k')
+ax_hod.scatter(rightmover.magnitude[0], rightmover.magnitude[1], s=10, color='k')
+ax_hod.scatter(meanwind.magnitude[0], meanwind.magnitude[1], s=10, color='k')
+# ax_hod.scatter(u10.magnitude, v10.magnitude, s=25, color='k')
+
+ax_hod.text(leftmover.magnitude[0], leftmover.magnitude[1], 'LM ', ha='right', va='center_baseline', fontsize=8, fontweight='bold')
+ax_hod.text(rightmover.magnitude[0], rightmover.magnitude[1], 'RM ', ha='right', va='center_baseline', fontsize=8, fontweight='bold')
+ax_hod.text(meanwind.magnitude[0], meanwind.magnitude[1], 'MW ', ha='right', va='center_baseline', fontsize=8, fontweight='bold')
+
+ax_hod.xaxis.set_major_locator(MultipleLocator(20))
+ax_hod.xaxis.set_minor_locator(MultipleLocator(10))
+ax_hod.yaxis.set_major_locator(MultipleLocator(20))
+ax_hod.yaxis.set_minor_locator(MultipleLocator(10))
 
 
-print(f"---{mm:02.0f}-{dd:02.0f}-{yyyy}---")
-print(f"   Lead time: {leadtime} h")
-print(f"CAPE = {cape_mean:.1f} J/kg")
-print(f"CIN = -{cin_mean:.1f} J/kg")
-print(f"Shear 0-1km = {shear01_mean.magnitude:.1f} m/s")
-print(f"Shear 0-3km = {shear03_mean.magnitude:.1f} m/s")
-print(f"Shear 0-6km = {shear06_mean.magnitude:.1f} m/s")
-print(f"SRH 0-3km = {srh03_mean.magnitude:.1f} m2/s2")
-print(f"SRH 0-1km = {srh01_mean.magnitude:.1f} m2/s2")
-print(f"LCL pres = {lcl_mean.magnitude:.1f} hPa")
+str1 = '\n'.join((
+    "CAPE:               %.0f J/kg" % (cape, ),
+    "CIN:                 -%.0f J/kg" % (cin, ),
+    "0-6km MW:       %.1f m/s" % (mw_speed.magnitude,),
+    "Bunkers RM:     %.1f m/s" % (rm_speed.magnitude,),
+    "Shear 0-1 km:   %.1f m/s" % (shear01.magnitude,),
+    "Shear 0-3 km:   %.1f m/s" % (shear03.magnitude,),
+    "Shear 0-6 km:   %.1f m/s" % (shear06.magnitude,),
+    "SRH 0-1 km:     %.0f m2/s2" % (srh01.magnitude,),
+    "SRH 0-3 km:     %.0f m2/s2" % (srh03.magnitude,),
+    "LCL pressure:   %.0f hPa" % (lcl_pressure.magnitude,)
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=11, bbox=props)
+
+
+if figsave:
+    plt.savefig(figfolder+figname+'.png', facecolor='white', transparent=False, dpi=300)
+
+plt.show()
+
+
+# print(f"---{mm:02.0f}-{dd:02.0f}-{yyyy}---")
+# print(f"   Lead time: {leadtime} h")
+# print(f"CAPE = {cape:.1f} J/kg")
+# print(f"CIN = -{cin:.1f} J/kg")
+# print(f"Shear 0-1km = {shear01.magnitude:.1f} m/s")
+# print(f"Shear 0-3km = {shear03.magnitude:.1f} m/s")
+# print(f"Shear 0-6km = {shear06.magnitude:.1f} m/s")
+# print(f"SRH 0-3km = {srh03.magnitude:.1f} m2/s2")
+# print(f"SRH 0-1km = {srh01.magnitude:.1f} m2/s2")
+# print(f"LCL pres = {lcl_pressure.magnitude:.1f} hPa")
 
 
 
@@ -478,30 +575,245 @@ lcls6_2 = {'-1h':938.6, '0h':942.3, '1h':939.7, '2h':935.6}
 
 #%% First tornado only
 
-# cape_1 = {'Aug11':1469.8, 'Jun23':998.0, 'May30':1096.9, 'May21':1061.2, 'Jul24':1583.5, 'Apr15':880.6}
-# cape_0 = {'Aug11':1184.5, 'Jun23':958.8, 'May30':671.8,  'May21':840.9,  'Jul24':1526.0, 'Apr15':476.9}
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
-# cin_1 = {'Aug11':-3.9,   'Jun23':-40.7, 'May30':-38.0, 'May21':-121.4, 'Jul24':-178.6, 'Apr15':-70.2}
-# cin_0 = {'Aug11':-115.5, 'Jun23':-6.2,  'May30':-87.4, 'May21':-115.4, 'Jul24':-13.4,  'Apr15':-23.5}
 
-# shear1_1 = {'Aug11':11.2, 'Jun23':11.2, 'May30':14.9, 'May21':13.2, 'Jul24':8.3, 'Apr15':18.7}
-# shear1_0 = {'Aug11':13.9, 'Jun23':10.7, 'May30':13.7, 'May21':13.6, 'Jul24':9.4, 'Apr15':22.4}
+dbfile = open(fp+"tornado_locs.pkl", 'rb')
+locs = pickle.load(dbfile)
+# locs = locs_all[f"{yyyy}{mm:02.0f}{dd:02.0f}"]
+dbfile.close()
 
-# shear3_1 = {'Aug11':16.6, 'Jun23':16.0, 'May30':20.7, 'May21':16.3, 'Jul24':9.2,  'Apr15':15.1}
-# shear3_0 = {'Aug11':21.8, 'Jun23':15.7, 'May30':21.2, 'May21':16.6, 'Jul24':11.7, 'Apr15':22.1}
+events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
 
-# shear6_1 = {'Aug11':23.7, 'Jun23':16.6, 'May30':31.2, 'May21':24.0, 'Jul24':15.5, 'Apr15':25.1}
-# shear6_0 = {'Aug11':29.5, 'Jun23':16.2, 'May30':36.8, 'May21':24.8, 'Jul24':15.8, 'Apr15':26.5}
+t2m = np.zeros((len(events),))
+td2m = np.zeros((len(events),))
+cape = np.zeros((len(events),))
+cin = np.zeros((len(events),))
+shear01 = np.zeros((len(events),))
+shear03 = np.zeros((len(events),))
+shear06 = np.zeros((len(events),))
+srh01 = np.zeros((len(events),))
+srh03 = np.zeros((len(events),))
+lclp = np.zeros((len(events),))
+lr = np.zeros((len(events),))
 
-# srh1_1 = {'Aug11':144.2, 'Jun23':137.5, 'May30':177.1, 'May21':107.8, 'Jul24':82.8, 'Apr15':210.6}
-# srh1_0 = {'Aug11':227.0, 'Jun23':142.0, 'May30':239.7, 'May21':66.1,  'Jul24':13.9, 'Apr15':347.8}
 
-# srh3_1 = {'Aug11':216.5, 'Jun23':235.7, 'May30':380.6, 'May21':124.4, 'Jul24':100.9, 'Apr15':215.5}
-# srh3_0 = {'Aug11':324.6, 'Jun23':194.6, 'May30':404.8, 'May21':90.7,  'Jul24':33.3,  'Apr15':422.6}
+leadtime = 1
+from era5utils import *
 
-# lcl_1 = {'Aug11':928.5, 'Jun23':878.7, 'May30':912.4, 'May21':925.5, 'Jul24':841.6, 'Apr15':940.2}
-# lcl_0 = {'Aug11':946.5, 'Jun23':890.2, 'May30':873.7, 'May21':928.1, 'Jul24':897.9, 'Apr15':941.6}
+for i in range(len(events)):
+    tor1 = locs[events[i]]['loc1']
+    
+    name = tor1['name']
+    yyyyt = tor1["date_ymd"][0]
+    mmt = tor1["date_ymd"][1]
+    ddt = tor1["date_ymd"][2]
+    timestr = tor1["time_utc"]
+    lattstart = tor1["lat"]
+    lontstart = tor1["lon"]
+    hht = float(timestr) // 100 - leadtime
+    
+    fn_preslev = f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
+    fn_singlev = f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
+    # timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
+    timt = f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000"
+    
+    datap = xr.open_dataset(fp+fn_preslev)
+    datas = xr.open_dataset(fp+fn_singlev)
+    
+    latitude = datap['latitude'][:].values
+    longitude = datap['longitude'][:].values
+    
+    lati = np.argmin(np.abs(latitude-lattstart))
+    loni = np.argmin(np.abs(longitude-lontstart))
+    
+    latt = latitude[lati-4:lati+4]
+    lont = longitude[loni-4:loni+4]
+    
+    # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
+    data = extract_data(latt, lont, timt, datap, datas)
+    
+    t2m[i] = data['t2m'].magnitude
+    td2m[i] = data['td2m'].magnitude
+    cape[i] = data['cape']
+    cin[i] = data['cin']
+    lclp[i] = data['lcl_pressure'].magnitude
+    shear06[i] = data['shear06'].magnitude
+    shear03[i] = data['shear03'].magnitude
+    shear01[i] = data['shear01'].magnitude
+    srh03[i] = data['srh03'].magnitude
+    srh01[i] = data['srh01'].magnitude
+    lr[i] = data['lapse_rate']
+
+#%%
+
+figsave = True
+
+wid1 = 0.25
+wid2 = 0.2
+
+x1 = np.arange(len(cape))
+x2 = [x + wid1 for x in x1]
+x3 = [x + wid1 for x in x2]
+
+
+# Bulk shear
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, shear01, color='salmon', width=wid2, edgecolor='k', label='0-1 km')
+ax.bar(x2, shear03, color='gold', width=wid2, edgecolor='k', label='0-3 km')
+ax.bar(x3, shear06, color='skyblue', width=wid2, edgecolor='k', label='0-6 km')
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('Bulk wind shear (m/s)', fontsize=12)
+ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], shear01[i], f"{shear01[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x2[i], shear03[i], f"{shear03[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x3[i], shear06[i], f"{shear06[i]:.0f}", fontsize=10, ha='center', va='bottom')
+ax.set_title('Bulk Wind Shear 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper right')
+if figsave:
+    plt.savefig(fp+'figs/barplot_shear.png', dpi=300)
+
+
+
+wid1 = 0.2
+wid2 = 0.15
+
+x1 = np.arange(len(cape))*1.1
+# x2 = [x + wid1 for x in x1]
+x2 = [x + wid1+0.05 for x in x1]
+# x4 = [x + wid1 for x in x3]
+
+
+# SRH
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, srh01, color='salmon', width=wid1, edgecolor='k', label='0-1 km')
+ax.bar(x2, srh03, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km')
+
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('SRH (m2/s2)', fontsize=12)
+ax.set_xticks((x1+x2)/2,
+              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+               '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+               '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], srh01[i], f"{srh01[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x2[i], srh03[i], f"{srh03[i]:.0f}", fontsize=10, ha='center', va='bottom')
+ax.set_title('Storm-Relative Helicity 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=11, loc='upper left')
+if figsave:
+    plt.savefig(fp+'figs/barplot_srh.png', dpi=300)
+
+
+
+# CAPE
+wid1 = 0.25
+x1 = np.arange(len(cape))
+x2 = [x + wid1+0.05 for x in x1]
+
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+ax.bar(x1, cape, color='lightskyblue', width=wid1, edgecolor='k', label='CAPE')
+ax.bar(x1, -1*cin, color='b', width=wid1, edgecolor='k', label='CIN')
+ax.axhline(0, c='k', linewidth=1, linestyle='--')
+
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('CAPE/CIN (J/kg)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], cape[i], f"{cape[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x1[i], -1*cin[i], f"{-1*cin[i]:.0f}", fontsize=10, ha='center', va='top')
+ax.set_title('CAPE/CIN 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+if figsave:
+    plt.savefig(fp+'figs/barplot_cape.png', dpi=300)
+
+
+
+# LCL
+wid1 = 0.25
+x1 = np.arange(len(cape))
+x2 = [x + wid1+0.05 for x in x1]
+
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+bars = ax.bar(x1, 1000-lclp, color='lightskyblue', width=wid1, edgecolor='k', label='LCL pressure', bottom=lclp)
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('Pressure (hPa)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], lclp[i], f"{lclp[i]:.0f}", fontsize=10, ha='center', va='bottom')
+ax.set_title('LCL Pressure 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+
+ax.invert_yaxis()
+for b in bars:
+    b.sticky_edges.y[:] = [1000]
+ax.set_ylim([1000,800])
+if figsave:
+    plt.savefig(fp+'figs/barplot_lcl.png', dpi=300)
+
+
+
+# Lapse rate 700-500 mb
+wid1 = 0.25
+x1 = np.arange(len(cape))
+x2 = [x + wid1+0.05 for x in x1]
+
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+bars = ax.bar(x1, lr, color='lightskyblue', width=wid1, edgecolor='k', label='Lapse rate')
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('Lapse rate (K/km)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], lr[i], f"{lr[i]:.1f}", fontsize=10, ha='center', va='bottom')
+ax.set_title('700-500 mb lapse rate 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+ax.set_ylim([5,8])
+if figsave:
+    plt.savefig(fp+'figs/barplot_lapserate.png', dpi=300)
+
+
+
+# 2-m dewpoint depression
+wid1 = 0.25
+x1 = np.arange(len(cape))
+x2 = [x + wid1+0.05 for x in x1]
+
+fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+
+bars = ax.bar(x1, t2m-td2m, color='lightskyblue', width=wid1, edgecolor='k', label='T - Td')
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('T - Td (C)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f}", fontsize=10, ha='center', va='bottom')
+ax.set_title('2-m Dewpoint Depression 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+if figsave:
+    plt.savefig(fp+'figs/barplot_dewpt_depression.png', dpi=300)
+
+
+plt.show()
+
+
+#%%
 
 
 cape_1 = [1469.8, 998.0, 1096.9, 1061.2, 1583.5, 880.6]

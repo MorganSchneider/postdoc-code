@@ -13,9 +13,9 @@ from CM1utils import *
 fn = np.linspace(5,37,5)
 
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 
 # if 'semislip' in fp:
 #     bbc = 'Semi-slip'
@@ -452,7 +452,7 @@ if plot_del2:
 from scipy import stats
 
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
 ds = nc.Dataset(fp1+f"cm1out_stats.nc")
 time = ds.variables['mtime'][:].data/3600
 wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
@@ -487,7 +487,7 @@ var_fs = {'wmax500':np.var(wmax500_fs), 'wmax1000':np.var(wmax1000_fs), 'wmax250
           'swspmax':np.var(swspmax_fs), 'sthpmin':np.var(sthpmin_fs), 'pratemax':np.var(pratemax_fs), 'sratemax':np.var(sratemax_fs)}
 
 
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
 ds = nc.Dataset(fp2+f"cm1out_stats.nc")
 wmax500_ss = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_ss = ds.variables['wmax1000'][:].data #max w at 1000 m
@@ -521,7 +521,7 @@ var_ss = {'wmax500':np.var(wmax500_ss), 'wmax1000':np.var(wmax1000_ss), 'wmax250
           'swspmax':np.var(swspmax_ss), 'sthpmin':np.var(sthpmin_ss), 'pratemax':np.var(pratemax_ss), 'sratemax':np.var(sratemax_ss)}
 
 
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 ds = nc.Dataset(fp3+f"cm1out_stats.nc")
 wmax500_ns = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_ns = ds.variables['wmax1000'][:].data #max w at 1000 m
@@ -1024,7 +1024,7 @@ if figsave:
 #%% Swaths?
 
 # Freeslip
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
 ds = nc.Dataset(fp1+'cm1out_000037.nc')
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
@@ -1036,7 +1036,7 @@ ds.close()
 
 
 # Semislip
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
 ds = nc.Dataset(fp2+'cm1out_000037.nc')
 sws_ss = ds.variables['sws'][:].data[0,:,:]
 svs_ss = ds.variables['svs'][:].data[0,:,:]
@@ -1045,7 +1045,7 @@ shs_ss = ds.variables['shs'][:].data[0,:,:]
 ds.close()
 
 # Noslip
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 ds = nc.Dataset(fp3+'cm1out_000037.nc')
 sws_ns = ds.variables['sws'][:].data[0,:,:]
 svs_ns = ds.variables['svs'][:].data[0,:,:]
@@ -1160,9 +1160,9 @@ plt.show()
 
 
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 
 fn = np.linspace(5,37,9)
 
@@ -1446,19 +1446,19 @@ plt.show()
 
 #%% Comparison between P3 and NSSL (and Morrison if it ever runs)
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_500m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_nssl_500m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
+fp1 = 'D:/cwe/semislip_wk_500m/'
+fp2 = 'D:/cwe/semislip_nssl_500m/'
+# fp3 = 'D:/cwe/semislip_morr_500m/'
 
 fn = np.linspace(5,37,5)
 
 
 figsave = False
 
-# fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-# fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-fig1,ax1 = plt.subplots(3, 5, figsize=(11.75,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
-fig2,ax2 = plt.subplots(3, 5, figsize=(12,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig1,ax1 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+fig2,ax2 = plt.subplots(2, 5, figsize=(12.5,5), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig1,ax1 = plt.subplots(3, 5, figsize=(11.75,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
+# fig2,ax2 = plt.subplots(3, 5, figsize=(12,7), sharex=True, sharey=True, subplot_kw=dict(box_aspect=1), layout='constrained')
 
 
 for f in fn:
@@ -1576,49 +1576,49 @@ for f in fn:
     ax2[1,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
     # ax2[1,n].set_title(f"t = {time:.0f} s")
     # fig2.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
-    # if (n==len(fn)-1) & (figsave):
-    #     fig2.savefig(fp1+f"figs/thrpert_compare.png", dpi=300)
+    if (n==len(fn)-1) & (figsave):
+        fig2.savefig(fp1+f"figs/thrpert_compare.png", dpi=300)
     
     
     
     
     ### Morrison scheme
-    ds = nc.Dataset(fp3+f"cm1out_{f:06.0f}.nc")
-    dbz = ds.variables['dbz'][:].data[0,0,:,:]
-    winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
-    zvort = ds.variables['zvort'][:].data[0,iz1:iz2,:,:]
-    thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
-    uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
-    vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
-    u_gr = uinterp + ds.variables['umove'][:].data[0]
-    v_gr = vinterp + ds.variables['vmove'][:].data[0]
-    ds.close()
+    # ds = nc.Dataset(fp3+f"cm1out_{f:06.0f}.nc")
+    # dbz = ds.variables['dbz'][:].data[0,0,:,:]
+    # winterp = ds.variables['winterp'][:].data[0,0:iz2,:,:]
+    # zvort = ds.variables['zvort'][:].data[0,iz1:iz2,:,:]
+    # thrpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
+    # uinterp = ds.variables['uinterp'][:].data[0,0,:,:]
+    # vinterp = ds.variables['vinterp'][:].data[0,0,:,:]
+    # u_gr = uinterp + ds.variables['umove'][:].data[0]
+    # v_gr = vinterp + ds.variables['vmove'][:].data[0]
+    # ds.close()
     
     
-    plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax1[2,n], levels=np.linspace(0,70,15),
-                  datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag, cbfs=10)
-    ax1[2,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
-    # ax1[2,n].set_title(f"t = {time:.0f} s")
-    # fig1.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
-    if (n==len(fn)-1) & (figsave):
-        fig1.savefig(fp1+f"figs/dbz_compare_v2.png", dpi=300)
+    # plot_contourf(xh, yh, np.ma.masked_array(dbz, dbz<0.1), 'dbz', ax1[2,n], levels=np.linspace(0,70,15),
+    #               datalims=[0,70], xlims=xl, ylims=yl, cmap='HomeyerRainbow', cbar=cb_flag, cbfs=10)
+    # ax1[2,n].contour(xh, yh, np.max(winterp, axis=0), levels=[5,10], colors=['dimgray','k'], linestyles='-', linewidths=[0.75,0.75])
+    # # ax1[2,n].set_title(f"t = {time:.0f} s")
+    # # fig1.suptitle(f"Sfc dbz + max 0-2 km w ({titlestr})")
+    # if (n==len(fn)-1) & (figsave):
+    #     fig1.savefig(fp1+f"figs/dbz_compare_v2.png", dpi=300)
     
     
     
-    plot_contourf(xh, yh, thrpert, 'thpert', ax2[2,n], levels=np.linspace(-12,12,25),
-                  datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag, cbfs=10)
-    ax2[2,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.015], colors='r', linestyles='-', linewidths=1)
-    ax2[2,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
-    # ax2[2,n].set_title(f"t = {time:.0f} s")
-    # fig2.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
-    if (n==len(fn)-1) & (figsave):
-        fig2.savefig(fp1+f"figs/thrpert_compare_v2.png", dpi=300)
+    # plot_contourf(xh, yh, thrpert, 'thpert', ax2[2,n], levels=np.linspace(-12,12,25),
+    #               datalims=[-12,12], xlims=xl, ylims=yl, cmap='balance', cbar=cb_flag, cbfs=10)
+    # ax2[2,n].contour(xh, yh, np.max(zvort, axis=0), levels=[0.015], colors='r', linestyles='-', linewidths=1)
+    # ax2[2,n].quiver(xh[::qix], yh[::qix], u_gr[::qix,::qix], v_gr[::qix,::qix], color='k', scale=150, width=0.005, pivot='middle')
+    # # ax2[2,n].set_title(f"t = {time:.0f} s")
+    # # fig2.suptitle(f"Sfc thrpert + sfc wind + max 0-1 km zeta=0.025 s$^{{-1}}$ ({titlestr})")
+    # if (n==len(fn)-1) & (figsave):
+    #     fig2.savefig(fp1+f"figs/thrpert_compare_v2.png", dpi=300)
     
 
 #%% Get maxima and locations - DONE
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp = 'D:/cwe/noslip_wk_250m/'
 
 
 vortmax_50m = np.zeros(shape=(37,), dtype=float)
@@ -1769,9 +1769,9 @@ dbfile.close()
 
 #%% Plot new time series and max locations
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 
 
 xf = {'wmax1000':[], 'wmax2500':[], 'wmax5000':[],
@@ -2257,7 +2257,7 @@ plt.show()
 #%% Profiles of boundary condition winds? Recreate Dave's AI plot lmao
 
 
-# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/cm1out_000001.nc')
+# ds = nc.Dataset('D:/cwe/semislip_wk_250m/cm1out_000001.nc')
 # usfc_s = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
 # vsfc_s = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
 # wsfc_s = np.sqrt(usfc_s**2 + vsfc_s**2)
@@ -2266,7 +2266,7 @@ plt.show()
 # wg_s = np.sqrt(ug_s**2 + vg_s**2)
 # ds.close()
 
-# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/cm1out_000001.nc')
+# ds = nc.Dataset('D:/cwe/freeslip_wk_250m/cm1out_000001.nc')
 # usfc_f = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
 # vsfc_f = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
 # wsfc_f = np.sqrt(usfc_f**2 + vsfc_f**2)
@@ -2275,7 +2275,7 @@ plt.show()
 # wg_f = np.sqrt(ug_f**2 + vg_f**2)
 # ds.close()
 
-# ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/cm1out_000001.nc')
+# ds = nc.Dataset('D:/cwe/noslip_wk_250m/cm1out_000001.nc')
 # usfc_n = ds.variables['u0'][:].data[0,0,10,10] + ds.variables['umove'][:].data[0]
 # vsfc_n = ds.variables['v0'][:].data[0,0,10,10] + ds.variables['vmove'][:].data[0]
 # wsfc_n = np.sqrt(usfc_n**2 + vsfc_n**2)
@@ -2335,9 +2335,9 @@ from matplotlib.animation import FuncAnimation
 fn = [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 37]
 
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 
 
 ds = nc.Dataset(fp1+'cm1out_000001.nc')
@@ -2455,9 +2455,9 @@ plt.show()
 
 #%% Hourly dbz stills 3-panel
 
-fp1 = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
-fp2 = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
-fp3 = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp1 = 'D:/cwe/freeslip_wk_250m/'
+fp2 = 'D:/cwe/semislip_wk_250m/'
+fp3 = 'D:/cwe/noslip_wk_250m/'
 
 fn = 21
 

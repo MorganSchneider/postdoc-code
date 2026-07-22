@@ -97,12 +97,43 @@ t4 = {'name':"Essex (Windsor) mesovortex",
 d6 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
 
 
-locs = {'20210811':d1, '20250623':d2, '20220530':d3, '20220521':d4, '20250724':d5, '20260415':d6}
+
+
+t1 = {'name':"Verona EF1",
+      'date_ymd':[2026,6,30], 'time_utc':'1635', 'lat':44.4640, 'lon':-76.7289}
+t2 = {'name':"Kingston EF0",
+      'date_ymd':[2026,6,30], 'time_utc':'1650', 'lat':44.3021, 'lon':-76.5386}
+t3 = {'name':"Newburgh mesovortex",
+      'date_ymd':[2026,6,30], 'time_utc':'1642', 'lat':44.3303, 'lon':-76.9268}
+t4 = {'name':"Aylen Lake mesovortex",
+      'date_ymd':[2026,6,30], 'time_utc':'1506', 'lat':45.6315, 'lon':-77.8432}
+t5 = {'name':"Bull Lake mesovortex",
+      'date_ymd':[2026,6,30], 'time_utc':'1600', 'lat':44.6890, 'lon':-76.9664}
+
+d7 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5}
+
+
+
+t1 = {'name':"Windsor null",
+      'date_ymd':[2026,7,3], 'time_utc':'2230', 'lat':42.2393, 'lon':-83.0576}
+t2 = {'name':"Chatham null",
+      'date_ymd':[2026,7,3], 'time_utc':'2330', 'lat':42.4226, 'lon':-82.1339}
+t3 = {'name':"Middlesex null",
+      'date_ymd':[2026,7,4], 'time_utc':'0030', 'lat':42.7505, 'lon':-81.7004}
+t4 = {'name':"Ann Arbor null",
+      'date_ymd':[2026,7,3], 'time_utc':'2130', 'lat':42.2766, 'lon':-83.7341}
+
+d8 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
+
+
+
+
+locs = {'20210811':d1, '20250623':d2, '20220530':d3, '20220521':d4, '20250724':d5, '20260415':d6, '20260630':d7, '20260703':d8}
 
 
 import pickle
 
-dbfile = open("C:/Users/mschne28/Documents/era5/tor_outbreaks/tornado_locs.pkl", 'wb')
+dbfile = open("C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/tornado_locs.pkl", 'wb')
 pickle.dump(locs, dbfile)
 dbfile.close()
 

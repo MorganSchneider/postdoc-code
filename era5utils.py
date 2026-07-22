@@ -41,38 +41,150 @@ import cmocean
 
 #%% Function definitions
 
+# SPC upper air wind speed colormap
+colors = ['dodgerblue','lightskyblue','cyan','mediumpurple','blueviolet','mediumvioletred']
+spc_wspd = ListedColormap(colors, name="spc_wspd")
+
+
+
 # Extract data at location/time
 def extract_data(latt,lont,timt,data,datas):
-    data01 = data.sel(latitude=latt, longitude=lont, valid_time=timt)
-    data02 = datas.sel(latitude=latt, longitude=lont, valid_time=timt)
-
+    if (np.ndim(latt) == 0) & (np.ndim(lont) == 0):
+        data01 = data.sel(latitude=latt, longitude=lont, valid_time=timt)
+        data02 = datas.sel(latitude=latt, longitude=lont, valid_time=timt)
+    else:
+        data01 = data.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+        data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+    
+    
     p = data01.pressure_level.values * units.hPa
     z = data01['z'].values/9.81
     T = data01['t'].values*units.K
-    q = data01['q'].values 
-    theta = mc.potential_temperature(p, T)
-    Td = mc.dewpoint_from_relative_humidity(T, data01['r']*units.percent)
+    q = data01['q'].values
     u = data01['u'].values*units('m/s')
     v = data01['v'].values*units('m/s')
-    speed = mc.wind_speed(u,v)
-    direc = mc.wind_direction(u,v)
 
     cape = data02['cape'].values
     cin  = data02['cin'].values
     sfcp = data02['sp'].values
     orog = data02['z'].values/9.81
-    q2m  = mc.specific_humidity_from_dewpoint(sfcp*units.Pa, data02['d2m'].values*units.K)
-    theta2m = mc.potential_temperature(sfcp*units.Pa, data02['t2m'].values*units.K)
     td2m = data02['d2m'].values * units.K
     t2m  = data02['t2m'].values * units.K
     u10 = data02['u10'].values * units('m/s')
     v10 = data02['v10'].values * units('m/s')
     
-    # Calculate Bunkers Storm Motion:
-    [rightm,leftm,meanm] = mc.bunkers_storm_motion(p[z>orog], u[z>orog], v[z>orog], z[z>orog]*units.m)
+    Td = mc.dewpoint_from_relative_humidity(T, data01['r']*units.percent)
+    speed = mc.wind_speed(u,v)
+    direc = mc.wind_direction(u,v)
+    q2m  = mc.specific_humidity_from_dewpoint(sfcp*units.Pa, data02['d2m'].values*units.K)
+    theta2m = mc.potential_temperature(sfcp*units.Pa, data02['t2m'].values*units.K)
     
-    # Calculate the LCL
-    lcl_pressure,lcl_temperature = mc.lcl(p[z>orog][0], T[z>orog][0], Td[z>orog][0])
+    if (np.ndim(latt) == 0) & (np.ndim(lont) == 0):
+        theta = mc.potential_temperature(p, T)
+        # Calculate Bunkers Storm Motion:
+        [rightm,leftm,meanm] = mc.bunkers_storm_motion(p[z>orog], u[z>orog], v[z>orog], z[z>orog]*units.m)
+        # Calculate the LCL
+        lcl_pressure,lcl_temperature = mc.lcl(p[z>orog][0], T[z>orog][0], Td[z>orog][0])
+        parcel_prof = np.zeros((len(p),))
+        parcel_prof[z>orog] = mc.parcel_profile(p[z>orog], T[z>orog][0], Td[z>orog][0]).to('degC')
+        parcel_prof[z<=orog] = np.nan
+        
+        dt75 = T[(p.magnitude==700)].magnitude - T[(p.magnitude==500)].magnitude
+        dz75 = (z[(p.magnitude==700)] - z[(p.magnitude==500)])/1000
+        lapse_rate = -1 * dt75/dz75
+        
+        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=6000*units.m)
+        shear06 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=3000*units.m)
+        shear03 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=1000*units.m)
+        shear01 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u, v, depth=1000*units.m, storm_u=rightm[0]*units('m/s'), storm_v=rightm[1]*units('m/s'))
+        srh01 = srh[2].magnitude
+        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u, v, depth=3000*units.m, storm_u=rightm[0]*units('m/s'), storm_v=rightm[1]*units('m/s'))
+        srh03 = srh[2].magnitude
+        
+        
+    else:
+        theta = np.zeros(shape=z.shape)
+        rightm = np.zeros(shape=(2,len(latt),len(lont)))
+        leftm = np.zeros(shape=(2,len(latt),len(lont)))
+        meanm = np.zeros(shape=(2,len(latt),len(lont)))
+        lcl_pressure = np.zeros(shape=sfcp.shape)
+        lcl_temperature = np.zeros(shape=sfcp.shape)
+        parcel_prof = np.zeros(shape=z.shape)
+        shear06 = np.zeros(shape=sfcp.shape)
+        shear03 = np.zeros(shape=sfcp.shape)
+        shear01 = np.zeros(shape=sfcp.shape)
+        srh01 = np.zeros(shape=sfcp.shape)
+        srh03 = np.zeros(shape=sfcp.shape)
+        
+        dt75 = T[(p.magnitude==700),:,:].magnitude - T[(p.magnitude==500),:,:].magnitude
+        dz75 = (z[(p.magnitude==700),:,:] - z[(p.magnitude==500),:,:])/1000
+        lapse_rate = -1 * dt75/dz75
+        
+        for j in range(len(latt)):
+            for i in range(len(lont)):
+                theta[:,j,i] = mc.potential_temperature(p, T[:,j,i])
+                [rm,lm,mm] = mc.bunkers_storm_motion(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], z[:,j,i][z[:,j,i]>orog[j,i]]*units.m)
+                [lp,lt] = mc.lcl(p[z[:,j,i]>orog[j,i]][0], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0])
+                parcel_prof[:,j,i][z[:,j,i]>orog[j,i]] = mc.parcel_profile(p[z[:,j,i]>orog[j,i]], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0]).to('degC')
+                parcel_prof[:,j,i][z[:,j,i]<=orog[j,i]] = np.nan
+                
+                rightm[:,j,i] = rm.magnitude
+                leftm[:,j,i] = lm.magnitude
+                meanm[:,j,i] = mm.magnitude
+                lcl_pressure[j,i] = lp.magnitude
+                lcl_temperature[j,i] = lt.magnitude
+                
+                # zh = z[:,j,i]
+                # print(np.min(zh))
+                # print(np.max(zh))
+                # return
+                # zh = z[:,i]
+                shear = mc.bulk_shear(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], height=z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, depth=6000*units.m)
+                shear06[j,i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+                shear = mc.bulk_shear(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], height=z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, depth=3000*units.m)
+                shear03[j,i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+                shear = mc.bulk_shear(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], height=z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, depth=1000*units.m)
+                shear01[j,i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
+                srh = mc.storm_relative_helicity(z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], depth=1000*units.m, storm_u=rm[0], storm_v=rm[1])
+                srh01[j,i] = srh[2].magnitude
+                srh = mc.storm_relative_helicity(z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], depth=3000*units.m, storm_u=rm[0], storm_v=rm[1])
+                srh03[j,i] = srh[2].magnitude
+    
+        z = np.nanmean(z, axis=(1,2))
+        T = np.nanmean(T, axis=(1,2))
+        q = np.nanmean(q, axis=(1,2))
+        u = np.nanmean(u, axis=(1,2))
+        v = np.nanmean(v, axis=(1,2))
+        Td = np.nanmean(Td, axis=(1,2))
+        theta = np.nanmean(theta, axis=(1,2))
+        speed = np.nanmean(speed, axis=(1,2))
+        direc = np.nanmean(direc, axis=(1,2))
+        parcel_prof = np.nanmean(parcel_prof, axis=(1,2))
+        rightm = np.nanmean(rightm, axis=(1,2))
+        leftm = np.nanmean(leftm, axis=(1,2))
+        meanm = np.nanmean(meanm, axis=(1,2))
+        
+        orog = np.nanmean(orog)
+        cape = np.nanmean(cape)
+        cin = np.nanmean(cin)
+        sfcp = np.nanmean(sfcp)
+        t2m = np.nanmean(t2m)
+        td2m = np.nanmean(td2m)
+        u10 = np.nanmean(u10)
+        v10 = np.nanmean(v10)
+        q2m = np.nanmean(q2m)
+        theta2m = np.nanmean(theta2m)
+        lcl_pressure = np.nanmean(lcl_pressure)
+        lcl_temperature = np.nanmean(lcl_temperature)
+        shear06 = np.nanmean(shear06)
+        shear03 = np.nanmean(shear03)
+        shear01 = np.nanmean(shear01)
+        srh03 = np.nanmean(srh03)
+        srh01 = np.nanmean(srh01)
+        lapse_rate = np.nanmean(lapse_rate)
     
     # Calculate the parcel profile.
     # calclow = 0
@@ -83,17 +195,34 @@ def extract_data(latt,lont,timt,data,datas):
     #             #parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
     #             calclow = 1
     #             parcelstart = i
-    parcel_prof = np.zeros((len(p),))
-    parcel_prof[z>orog] = mc.parcel_profile(p[z>orog], T[z>orog][0], Td[z>orog][0]).to('degC')
-    parcel_prof[z<=orog] = np.nan
+    # parcel_prof = np.zeros((len(p),))
+    # parcel_prof[z>orog] = mc.parcel_profile(p[z>orog], T[z>orog][0], Td[z>orog][0]).to('degC')
+    # parcel_prof[z<=orog] = np.nan
     # parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
     
     data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
                 'cape':cape, 'cin':cin, 'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m,
-                'leftm':leftm, 'meanm':meanm, 'rightm':rightm, 'parcel_prof':parcel_prof*units.degC, 'lcl_pressure':lcl_pressure, 'lcl_temperature':lcl_temperature}
+                'leftm':leftm*units('m/s'), 'meanm':meanm*units('m/s'), 'rightm':rightm*units('m/s'), 'parcel_prof':parcel_prof*units.degC,
+                'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lapse_rate':lapse_rate,
+                'shear06':shear06*units('m/s'), 'shear03':shear03*units('m/s'), 'shear01':shear01*units('m/s'),
+                'srh03':srh03*units('m**2/s**2'), 'srh01':srh01*units('m**2/s**2')}
     return data_out
     # return p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature
 
+
+
+def extract_data_areal(latt,lont,timt,data,datas):
+    data01 = data.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+    data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+    
+    p = data01.pressure_level.values * units.hPa
+    z = data01['z'].values/9.81
+    T = data01['t'].values*units.K
+    q = data01['q'].values
+    u = data01['u'].values*units('m/s')
+    v = data01['v'].values*units('m/s')
+    
+    
 
 
 # Plot skew-T with hodograph -- Mine
@@ -128,14 +257,14 @@ def plot_skewT(timt,latt,lont,data,tloc,titlestr=None,figname=None,figfolder=Non
     skew = SkewT(fig)
 
     skew.ax.set_ylim(1000, 100)
-    skew.ax.set_xlim(-50, 40)
+    skew.ax.set_xlim(-40, 40)
 
     # Plot special lines
     skew.plot(lcl_pressure, lcl_temperature, 'ko', markerfacecolor='black') # Plot LCL as black dot
-    skew.ax.axvline(0, color='c', linestyle='--', linewidth=2) # Plot a zero degree isotherm
-    skew.plot_dry_adiabats()
-    skew.plot_moist_adiabats()
-    skew.plot_mixing_lines()
+    # skew.ax.axvline(0, color='c', linestyle='--', linewidth=1.25) # Plot a zero degree isotherm
+    skew.plot_dry_adiabats(linewidth=1.25)
+    skew.plot_moist_adiabats(linewidth=1.25)
+    skew.plot_mixing_lines(linewidth=1.25)
 
     # Plot the data using normal plotting functions, in this case using
     # log scaling in Y, as dictated by the typical meteorological plot
@@ -1145,8 +1274,9 @@ def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
 # Get distance of a point from an ECCC radar in km
 def getDistanceFromRadar(lat, lon, radar_id='CASET', filepath=None):
     if filepath is None:
-        filepath = 'C:/Users/mschne28/Documents/'
-    if filepath[-1] is not '/':
+        # filepath = 'C:/Users/mschne28/Documents/'
+        filepath = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/'
+    if filepath[-1] != '/':
         filepath = filepath+'/'
     
     df = pd.read_csv(filepath+"ECCC_radar_locations.csv", header=0, usecols=['Call sign', 'Latitude', 'Longitude'], index_col='Call sign')

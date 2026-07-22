@@ -11,7 +11,7 @@ from metpy.units import units
 
 #%% Overview plotting - dbz and thpert
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_morr_500m/'
+fp = 'D:/cwe/semislip_nssl_500m/'
 
 fn = np.linspace(1,17,5)
 ncols = 5
@@ -30,7 +30,7 @@ elif 'noslip' in fp:
     sim = 'NOSLIP'
     iz0 = 1
 
-titlestr = f"{bbc}, Morrison 2mom, dx=500m"
+titlestr = f"{bbc}, NSSL 3mom, dx=500m"
 
 
 figsave = False
@@ -160,7 +160,7 @@ for f in fn:
 
 #%% Plot swaths
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp = 'D:/cwe/semislip_wk_250m/'
 
 if 'semislip' in fp:
     bbc = 'Semi-slip'
@@ -300,7 +300,7 @@ plt.show()
 #%% Multi-panel swaths for CWE?
 
 # Freeslip
-ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/cm1out_000029.nc')
+ds = nc.Dataset('D:/cwe/freeslip_wk_250m/cm1out_000029.nc')
 xh = ds.variables['xh'][:].data
 yh = ds.variables['yh'][:].data
 sws_fs = ds.variables['sws'][:].data[0,:,:] #max sfc wind
@@ -311,7 +311,7 @@ ds.close()
 
 
 # Semislip
-ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/cm1out_000029.nc')
+ds = nc.Dataset('D:/cwe/semislip_wk_250m/cm1out_000029.nc')
 sws_ss = ds.variables['sws'][:].data[0,:,:]
 svs_ss = ds.variables['svs'][:].data[0,:,:]
 sus_ss = ds.variables['sus'][:].data[0,:,:]
@@ -319,7 +319,7 @@ shs_ss = ds.variables['shs'][:].data[0,:,:]
 ds.close()
 
 # Noslip
-ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/cm1out_000029.nc')
+ds = nc.Dataset('D:/cwe/noslip_wk_250m/cm1out_000029.nc')
 sws_ns = ds.variables['sws'][:].data[0,:,:]
 svs_ns = ds.variables['svs'][:].data[0,:,:]
 sus_ns = ds.variables['sus'][:].data[0,:,:]
@@ -423,7 +423,7 @@ plt.show()
 
 #%% plot cm1 stats time series
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp = 'D:/cwe/noslip_wk_250m/'
 
 
 if 'semislip' in fp:
@@ -616,7 +616,7 @@ plt.show()
 
 #%% Plots for CWE 2026 extended abstract
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/'
+fp = 'D:/cwe/semislip_wk_250m/'
 
 # ds = nc.Dataset(fp+'cm1out_000001.nc')
 # prs0 = ds.variables['prs0'][:].data[0,0,0,0]
@@ -636,7 +636,7 @@ vort3km = ds.variables['vort3km'][:].data #max 3km vort
 ds.close()
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/freeslip_wk_250m/'
+fp = 'D:/cwe/freeslip_wk_250m/'
 ds = nc.Dataset(fp+f"cm1out_stats.nc")
 wmax500_fs = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_fs = ds.variables['wmax1000'][:].data #max w at 1000 m
@@ -650,7 +650,7 @@ vort3km_fs = ds.variables['vort3km'][:].data #max 3km vort
 ds.close()
 
 
-fp = 'C:/Users/mschne28/Documents/cm1out/cwe/noslip_wk_250m/'
+fp = 'D:/cwe/noslip_wk_250m/'
 ds = nc.Dataset(fp+f"cm1out_stats.nc")
 wmax500_ns = ds.variables['wmax500'][:].data #max w at 500 m
 wmax1000_ns = ds.variables['wmax1000'][:].data #max w at 1000 m
@@ -728,7 +728,7 @@ ax[2].yaxis.set_minor_locator(MultipleLocator(0.025))
 #              loc='upper left', fontsize=14)
 
 if figsave:
-    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/figs/zeta_all_timeseries.png', dpi=300)
+    plt.savefig('D:/cwe/semislip_wk_250m/figs/zeta_all_timeseries.png', dpi=300)
 # plt.show()
 
 #%%
@@ -792,7 +792,7 @@ ax[2].yaxis.set_minor_locator(MultipleLocator(2.5))
 
 
 if figsave:
-    plt.savefig('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/figs/w_all_timeseries.png', dpi=300)
+    plt.savefig('D:/cwe/semislip_wk_250m/figs/w_all_timeseries.png', dpi=300)
 
 # plt.show()
 
@@ -800,7 +800,7 @@ if figsave:
 
 #%% Zooming into the TLV in freeslip? (OLD P3 SCHEME)
 
-fp = 'C:/Users/mschne28/Documents/cm1out/freeslip_wk_250m/'
+fp = 'D:/cwe/freeslip_wk_250m/'
 # fp = 'C:/Users/mschne28/Documents/cm1r21.1/run/'
 fn = 25
 
@@ -1096,7 +1096,7 @@ def effective_layer(p, T, Td, h, height_layer=False):
         return pbot, ptop
 
 
-ds = nc.Dataset('C:/Users/mschne28/Documents/cm1out/cwe/semislip_wk_250m/cm1out_000001.nc')
+ds = nc.Dataset('D:/cwe/semislip_wk_250m/cm1out_000001.nc')
 zh = ds.variables['zh'][:].data # km
 umove = ds.variables['umove'][:].data
 vmove = ds.variables['vmove'][:].data

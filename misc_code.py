@@ -462,35 +462,6 @@ plt.show()
 
 
 
-#%%
-
-from era5utils import *
-
-lat1 = 44.3020799
-lon1 = -76.5385274
-lat2 = 44.2346720
-lon2 = -76.4394228
-
-x,y = latlon2xy(lat1,lon1,lat2,lon2)
-
-dist = np.sqrt(x**2 + y**2)
-
-
-lat1 = 44.4639982
-lon1 = -76.7289287
-lat2 = 44.3446985
-lon2 = -76.5822973
-
-x,y = latlon2xy(lat1,lon1,lat2,lon2)
-dist = np.sqrt(x**2 + y**2)
-
-
-
-
-
-
-
-
 
 
 
