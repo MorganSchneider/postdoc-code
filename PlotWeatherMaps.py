@@ -660,7 +660,7 @@ datas.close()
 datt.close()
 dats.close()
 
-#% Upper air maps
+#%% Upper air maps
 
 colors = ['dodgerblue','lightskyblue','cyan','mediumpurple','blueviolet','mediumvioletred']
 spc_wspd = ListedColormap(colors, name="spc_wspd")
@@ -689,7 +689,7 @@ spc_wspd = ListedColormap(colors, name="spc_wspd")
 
 
 
-#%%## Upper air maps ###
+### Upper air maps ###
 for presl in [300,500,700,850]:
     
     zz = datt.sel(pressure_level=presl)['z'].values/9.81

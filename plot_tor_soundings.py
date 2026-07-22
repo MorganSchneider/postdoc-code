@@ -610,6 +610,7 @@ lr = np.zeros((len(events),))
 sfcp = np.zeros((len(events),))
 lclz = np.zeros((len(events),))
 dcape = np.zeros((len(events),))
+downT = np.zeros((len(events),)) #surface temperature of downdraft parcel - cold pool temperature
 
 
 leadtime = 1
@@ -648,6 +649,7 @@ for i in range(len(events)):
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
     data = extract_data(latt, lont, timt, datap, datas)
     
+    p = data['p'].magnitude
     t2m[i] = data['t2m'].magnitude
     td2m[i] = data['td2m'].magnitude
     cape[i] = data['cape']
@@ -663,8 +665,13 @@ for i in range(len(events)):
     
     lclz[i] = mc.thickness_hydrostatic(data['p'], data['T'], data['q']*units('kg/kg'), bottom=sfcp[i]*units.hPa, depth=(sfcp[i]-lclp[i])*units.hPa).magnitude
     
-    dc = mc.downdraft_cape(data['p'], data['T'], data['Td'].to('K'))
+    pp = np.array([sfcp[i]] + list(p[p<sfcp[i]]))*units.hPa
+    tt = np.array([t2m[i]] + list(data['T'][p<sfcp[i]].magnitude))*units.K
+    dd = np.array([td2m[i]] + list(data['Td'][p<sfcp[i]].magnitude+273.15))*units.K
+    dc = mc.downdraft_cape(pp, tt, dd)
     dcape[i] = dc[0].magnitude
+    # downp = dc[1].magnitude[0]
+    downT[i] = dc[2].magnitude[0]
     
     
     datap.close()
@@ -775,7 +782,7 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], cape[i], f"{cape[i]:.0f}", fontsize=12, ha='center', va='bottom')
-    ax.text(x1[i], -1*cin[i], f"{-1*cin[i]:.0f}", fontsize=12, ha='center', va='top')
+    ax.text(x1[i], -1*cin[i]-10, f"{-1*cin[i]:.0f}", fontsize=12, ha='center', va='top')
     # ax.text(x2[i], dcape[i], f"{dcape[i]:.0f}", fontsize=10, ha='center', va='bottom')
 ax.set_title('CAPE/CIN 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
@@ -795,6 +802,7 @@ if figsave:
 # LCL pressure and height
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
+# inverted axis - plot bars=bar(x, anchor-data, ... bottom=data) -> invert_yaxis() -> for b in bars, b.sticky_edges.y[:] = [anchor]
 
 fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
@@ -940,6 +948,41 @@ ax.set_xlim([0,7])
 ax.set_ylim([0,1500])
 if figsave:
     plt.savefig(fp+'figs/barplot_dcape.png', dpi=300)
+
+
+
+
+# Predicted cold pool temperature deficit
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+
+bars = ax.bar(x1, t2m-downT, color='lightskyblue', width=wid1, edgecolor='k', label='2-m temperature deficit', bottom=downT-t2m)
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('T(downdraft) - T(env)  (C)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], downT[i]-t2m[i], f"{downT[i]-t2m[i]:.1f}", fontsize=12, ha='center', va='bottom')
+ax.set_title('Predicted Cold Pool Strength 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(2))
+ax.set_xlim([0,7])
+
+ax.invert_yaxis()
+for b in bars:
+    b.sticky_edges.y[:] = [0]
+ax.set_ylim([0,-16])
+if figsave:
+    plt.savefig(fp+'figs/barplot_coldpool.png', dpi=300)
+
 
 
 
