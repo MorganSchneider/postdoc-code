@@ -503,22 +503,22 @@ region = 'Canada'
 # region = None
 
 yyyyt = 2026
-mmt   = 4
-ddt   = 15
-hht   = 8
+mmt   = 7
+ddt   = 3
+hht   = 22
 
 
 
 figsave = False
 
-# yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (18-22)
-# yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (19-23, 0-3)
-# yyyyt = 2022; mmt = 5; ddt = 30-31; tor hht = 0,1,2 (22-23, 0-3)
-# yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (13-18)
-# yyyyt = 2025; mmt = 7; ddt = 24; bow/db hht = 21-23 (19-23)
-# yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
+# yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (17-22)
+# yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (17-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 30-31; tor hht = 0,1,2 (21-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (12-18)
 # yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
-# yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (20-23, 0-2)
+# yyyyt = 2025; mmt = 7; ddt = 24-25; bow/db hht = 21-23 (19-23, 0-1)
+# yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (19-23, 0-2)
+# yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
 
 timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
 
@@ -628,7 +628,8 @@ t2m = dats['t2m'].values-273.15 #2-m temperature (C)
 psfc = dats['sp'].values/100 #Surface pressure (hPa)
 cape = dats['cape'].values #CAPE
 cin = dats['cin'].values #CIN
-mslp = psfc * (1 - (0.0065*orog)/(t2m+273.15))**(-1*(9.81*0.0289644)/(8.31447*0.0065)) # from https://absolutepressurecalculator.com/how-to-calculate-mean-sea-level-pressure.php
+# mslp = psfc * (1 - (0.0065*orog)/(t2m+273.15))**(-1*(9.81*0.0289644)/(8.31447*0.0065)) # from https://absolutepressurecalculator.com/how-to-calculate-mean-sea-level-pressure.php
+mslp = dats['msl'].values/100 #MSLP (hPa)
 
 
 datt = data.sel(valid_time=timt)
@@ -653,6 +654,11 @@ loni = np.argmin(np.abs(lon-np.mean(lontstart)))
 latt = lat[lati]
 lont = lon[loni]
 
+
+data.close()
+datas.close()
+datt.close()
+dats.close()
 
 #% Upper air maps
 
@@ -683,7 +689,7 @@ spc_wspd = ListedColormap(colors, name="spc_wspd")
 
 
 
-### Upper air maps ###
+#%%## Upper air maps ###
 for presl in [300,500,700,850]:
     
     zz = datt.sel(pressure_level=presl)['z'].values/9.81
@@ -801,7 +807,7 @@ for presl in [300,500,700,850]:
 
 
 
-#% Surface maps
+#%% Surface maps
 
 
 # 2-m temperature, surface pressure, 10-m wind barbs (kts)
@@ -842,7 +848,7 @@ ax.add_feature(cfeature.BORDERS, linestyle='-')
 ax.add_feature(cfeature.STATES, linestyle='-')
 ax.add_feature(cfeature.COASTLINE)
 
-cf = ax.contourf(X, Y, d2m, levels=np.arange(-10,32,2), cmap='gist_earth_r')
+cf = ax.contourf(X, Y, d2m, levels=np.arange(-10,32,2), cmap='terrain_r')
 cbar = plt.colorbar(cf, ax=ax, orientation='vertical', label='Dewpoint [C]', shrink=shrinkscale)
 cbar.set_label('Dewpoint [C]', fontsize=16)  
 cbar.ax.tick_params(labelsize=12)
@@ -906,7 +912,7 @@ if figsave:
 
 
 
-#% Composite parameter maps
+#%% Composite parameter maps
 
 zz = datt.sel(pressure_level=500)['z'].values/9.81
 uu = u*1.94384449 #U wind to kts

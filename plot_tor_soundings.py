@@ -205,6 +205,17 @@ yyyy = 2021; mm = 8; dd = 11; ntors = 6; casetype = "Tornado outbreak"
 # yyyy = 2026; mm = 4; dd = 15; ntors = 4; casetype = "Null event"
 
 
+# yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (17-22)
+# yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (17-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 30-31; tor hht = 0,1,2 (21-23, 0-3)
+# yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (12-18)
+# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
+# yyyyt = 2025; mmt = 7; ddt = 24-25; bow/db hht = 21-23 (19-23, 0-1)
+# yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (19-23, 0-2)
+# yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
+
+
+
 figfolder = fp+f"figs/{yyyy}{mm:02.0f}{dd:02.0f}/"
 
 leadtime = 1 #hours before hit
@@ -596,6 +607,9 @@ srh01 = np.zeros((len(events),))
 srh03 = np.zeros((len(events),))
 lclp = np.zeros((len(events),))
 lr = np.zeros((len(events),))
+sfcp = np.zeros((len(events),))
+lclz = np.zeros((len(events),))
+dcape = np.zeros((len(events),))
 
 
 leadtime = 1
@@ -645,21 +659,32 @@ for i in range(len(events)):
     srh03[i] = data['srh03'].magnitude
     srh01[i] = data['srh01'].magnitude
     lr[i] = data['lapse_rate']
+    sfcp[i] = data['sfcp']/100
+    
+    lclz[i] = mc.thickness_hydrostatic(data['p'], data['T'], data['q']*units('kg/kg'), bottom=sfcp[i]*units.hPa, depth=(sfcp[i]-lclp[i])*units.hPa).magnitude
+    
+    dc = mc.downdraft_cape(data['p'], data['T'], data['Td'].to('K'))
+    dcape[i] = dc[0].magnitude
+    
+    
+    datap.close()
+    datas.close()
 
 #%%
 
-figsave = True
+figsave = False
 
 wid1 = 0.25
 wid2 = 0.2
 
-x1 = np.arange(len(cape))
+x0 = np.arange(len(cape))
+x1 = [x + wid1 for x in x0]
 x2 = [x + wid1 for x in x1]
 x3 = [x + wid1 for x in x2]
 
 
 # Bulk shear
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
 ax.bar(x1, shear01, color='salmon', width=wid2, edgecolor='k', label='0-1 km')
 ax.bar(x2, shear03, color='gold', width=wid2, edgecolor='k', label='0-3 km')
@@ -671,27 +696,38 @@ ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], shear01[i], f"{shear01[i]:.0f}", fontsize=10, ha='center', va='bottom')
-    ax.text(x2[i], shear03[i], f"{shear03[i]:.0f}", fontsize=10, ha='center', va='bottom')
-    ax.text(x3[i], shear06[i], f"{shear06[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x1[i], shear01[i], f"{shear01[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x2[i], shear03[i], f"{shear03[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x3[i], shear06[i], f"{shear06[i]:.0f}", fontsize=12, ha='center', va='bottom')
 ax.set_title('Bulk Wind Shear 1 H Prior to First Tornado/Severe Report', fontsize=16)
-ax.legend(fontsize=12, loc='upper right')
+ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(5))
+ax.set_xlim([0,7])
+ax.set_ylim([0,35])
 if figsave:
     plt.savefig(fp+'figs/barplot_shear.png', dpi=300)
 
 
 
-wid1 = 0.2
+
+wid1 = 0.25
 wid2 = 0.15
 
-x1 = np.arange(len(cape))*1.1
+x1 = np.arange(len(cape))
 # x2 = [x + wid1 for x in x1]
-x2 = [x + wid1+0.05 for x in x1]
+x1 = [x + 0.5-wid2 for x in x0]
+x2 = [x + 0.5+wid2 for x in x0]
+# x3 = 
 # x4 = [x + wid1 for x in x3]
 
 
 # SRH
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
 ax.bar(x1, srh01, color='salmon', width=wid1, edgecolor='k', label='0-1 km')
 ax.bar(x2, srh03, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km')
@@ -699,29 +735,37 @@ ax.bar(x2, srh03, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km
 
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('SRH (m2/s2)', fontsize=12)
-ax.set_xticks((x1+x2)/2,
+ax.set_xticks([x + 0.5 for x in x0],
               ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], srh01[i], f"{srh01[i]:.0f}", fontsize=10, ha='center', va='bottom')
-    ax.text(x2[i], srh03[i], f"{srh03[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x1[i], srh01[i], f"{srh01[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x2[i], srh03[i], f"{srh03[i]:.0f}", fontsize=12, ha='center', va='bottom')
 ax.set_title('Storm-Relative Helicity 1 H Prior to First Tornado/Severe Report', fontsize=16)
-ax.legend(fontsize=11, loc='upper left')
+ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(50))
+ax.set_xlim([0,7])
+ax.set_ylim([0,300])
 if figsave:
     plt.savefig(fp+'figs/barplot_srh.png', dpi=300)
 
 
 
 # CAPE
-wid1 = 0.25
-x1 = np.arange(len(cape))
-x2 = [x + wid1+0.05 for x in x1]
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
 ax.bar(x1, cape, color='lightskyblue', width=wid1, edgecolor='k', label='CAPE')
 ax.bar(x1, -1*cin, color='b', width=wid1, edgecolor='k', label='CIN')
+# ax.bar(x2, dcape, color='lightskyblue', width=wid1, edgecolor='k', label='DCAPE')
 ax.axhline(0, c='k', linewidth=1, linestyle='--')
 
 # ax.set_xlabel('Event date', fontsize=12)
@@ -730,48 +774,91 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], cape[i], f"{cape[i]:.0f}", fontsize=10, ha='center', va='bottom')
-    ax.text(x1[i], -1*cin[i], f"{-1*cin[i]:.0f}", fontsize=10, ha='center', va='top')
+    ax.text(x1[i], cape[i], f"{cape[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x1[i], -1*cin[i], f"{-1*cin[i]:.0f}", fontsize=12, ha='center', va='top')
+    # ax.text(x2[i], dcape[i], f"{dcape[i]:.0f}", fontsize=10, ha='center', va='bottom')
 ax.set_title('CAPE/CIN 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(250))
+ax.set_xlim([0,7])
+ax.set_ylim([-350,2000])
 if figsave:
     plt.savefig(fp+'figs/barplot_cape.png', dpi=300)
 
 
 
-# LCL
-wid1 = 0.25
-x1 = np.arange(len(cape))
-x2 = [x + wid1+0.05 for x in x1]
+# LCL pressure and height
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
-bars = ax.bar(x1, 1000-lclp, color='lightskyblue', width=wid1, edgecolor='k', label='LCL pressure', bottom=lclp)
+b1 = ax.bar(x1, 1000-lclp, color='tan', width=wid1, edgecolor='gray', bottom=lclp)
+bars = ax.bar(x1, sfcp-lclp, color='lightskyblue', width=wid1, edgecolor='k', label='LCL pressure', bottom=lclp)
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('Pressure (hPa)', fontsize=12)
 ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], lclp[i], f"{lclp[i]:.0f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x1[i], lclp[i], f"{lclp[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x1[i], sfcp[i], f"{sfcp[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    # ax.plot([x1[i]-wid1, x1[i]+wid1], [sfcp[i], sfcp[i]], 'gray', linewidth=1)
 ax.set_title('LCL Pressure 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
 
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(25))
+ax.set_xlim([0,7])
 ax.invert_yaxis()
 for b in bars:
+    b.sticky_edges.y[:] = [sfcp]
+for b in b1:
     b.sticky_edges.y[:] = [1000]
 ax.set_ylim([1000,800])
 if figsave:
-    plt.savefig(fp+'figs/barplot_lcl.png', dpi=300)
+    plt.savefig(fp+'figs/barplot_lcl_pressure.png', dpi=300)
+
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+
+bars = ax.bar(x1, lclz, color='lightskyblue', width=wid1, edgecolor='k', label='LCL height')
+# ax.set_xlabel('Event date', fontsize=12)
+ax.set_ylabel('Height (m)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], lclz[i], f"{lclz[i]:.0f}", fontsize=12, ha='center', va='bottom')
+ax.set_title('LCL Height 1 H Prior to First Tornado/Severe Report', fontsize=16)
+ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(250))
+ax.set_xlim([0,7])
+ax.set_ylim([0,2000])
+if figsave:
+    plt.savefig(fp+'figs/barplot_lcl_height.png', dpi=300)
 
 
 
 # Lapse rate 700-500 mb
-wid1 = 0.25
-x1 = np.arange(len(cape))
-x2 = [x + wid1+0.05 for x in x1]
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
 bars = ax.bar(x1, lr, color='lightskyblue', width=wid1, edgecolor='k', label='Lapse rate')
 # ax.set_xlabel('Event date', fontsize=12)
@@ -780,9 +867,16 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], lr[i], f"{lr[i]:.1f}", fontsize=10, ha='center', va='bottom')
-ax.set_title('700-500 mb lapse rate 1 H Prior to First Tornado/Severe Report', fontsize=16)
+    ax.text(x1[i], lr[i], f"{lr[i]:.1f}", fontsize=12, ha='center', va='bottom')
+ax.set_title('700-500 mb Lapse Rate 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(0.5))
+ax.set_xlim([0,7])
 ax.set_ylim([5,8])
 if figsave:
     plt.savefig(fp+'figs/barplot_lapserate.png', dpi=300)
@@ -790,11 +884,10 @@ if figsave:
 
 
 # 2-m dewpoint depression
-wid1 = 0.25
-x1 = np.arange(len(cape))
-x2 = [x + wid1+0.05 for x in x1]
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
 bars = ax.bar(x1, t2m-td2m, color='lightskyblue', width=wid1, edgecolor='k', label='T - Td')
 # ax.set_xlabel('Event date', fontsize=12)
@@ -803,127 +896,55 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f}", fontsize=10, ha='center', va='bottom')
+    ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f}", fontsize=12, ha='center', va='bottom')
 ax.set_title('2-m Dewpoint Depression 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
+
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(2))
+ax.set_xlim([0,7])
+ax.set_ylim([0,12])
 if figsave:
     plt.savefig(fp+'figs/barplot_dewpt_depression.png', dpi=300)
 
 
-plt.show()
 
+# DCAPE
+wid1 = 0.35
+x1 = np.arange(len(cape)) + 0.5
 
-#%%
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
 
-
-cape_1 = [1469.8, 998.0, 1096.9, 1061.2, 1583.5, 880.6]
-cape_0 = [1184.5, 958.8, 671.8, 840.9, 1526.0, 476.9]
-
-cin_1 = [3.9, 40.7, 38.0, 121.4, 178.6, 70.2]
-cin_0 = [115.5, 6.2, 87.4, 115.4, 13.4, 23.5]
-
-shear1_1 = [11.2, 11.2, 14.9, 13.2, 8.3, 18.7]
-shear1_0 = [13.9, 10.7, 13.7, 13.6, 9.4, 22.4]
-
-shear3_1 = [16.6, 16.0, 20.7, 16.3, 9.2, 15.1]
-shear3_0 = [21.8, 15.7, 21.2, 16.6, 11.7, 22.1]
-
-shear6_1 = [23.7, 16.6, 31.2, 24.0, 15.5, 25.1]
-shear6_0 = [29.5, 16.2, 36.8, 24.8, 15.8, 26.5]
-
-srh1_1 = [144.2, 137.4, 177.1, 107.8, 82.8, 210.6]
-srh1_0 = [227.0, 142.0, 238.7, 66.1, 13.9, 347.8]
-
-srh3_1 = [216.5, 235.7, 380.6, 124.4, 100.9, 215.5]
-srh3_0 = [324.6, 194.6, 404.8, 90.7, 33.3, 422.6]
-
-lcl_1 = [928.5, 878.7, 912.4, 925.5, 841.6, 940.2]
-lcl_0 = [946.5, 890.2, 873.7, 928.1, 897.9, 941.6]
-
-
-
-wid1 = 0.25
-wid2 = 0.2
-
-x1 = np.arange(len(cape_1))
-x2 = [x + wid1 for x in x1]
-x3 = [x + wid1 for x in x2]
-
-
-# Bulk shear
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
-
-ax.bar(x1, shear1_0, color='r', width=wid2, edgecolor='k', label='0-1 km')
-ax.bar(x2, shear3_0, color='gold', width=wid2, edgecolor='k', label='0-3 km')
-ax.bar(x3, shear6_0, color='b', width=wid2, edgecolor='k', label='0-6 km')
+ax.bar(x1, dcape, color='lightskyblue', width=wid1, edgecolor='k', label='DCAPE')
+# ax.axhline(0, c='k', linewidth=1, linestyle='--')
 
 # ax.set_xlabel('Event date', fontsize=12)
-ax.set_ylabel('Bulk wind shear (m/s)', fontsize=12)
-ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
-                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
-ax.set_title('Bulk Wind Shear Prior to First Tornado/Severe Report', fontsize=16)
+ax.set_ylabel('DCAPE (J/kg)', fontsize=12)
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+                   '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
+                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+for i in range(len(x1)):
+    ax.text(x1[i], dcape[i], f"{dcape[i]:.0f}", fontsize=12, ha='center', va='bottom')
+ax.set_title('Downdraft CAPE 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
 
+ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
+ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75, linestyle='--')
+ax.set_axisbelow(True)
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.yaxis.set_major_locator(MultipleLocator(250))
+ax.set_xlim([0,7])
+ax.set_ylim([0,1500])
+if figsave:
+    plt.savefig(fp+'figs/barplot_dcape.png', dpi=300)
 
-
-
-wid1 = 0.2
-wid2 = 0.15
-
-x1 = np.arange(len(cape_1))*1.1
-x2 = [x + wid1 for x in x1]
-x3 = [x + wid1+0.05 for x in x2]
-x4 = [x + wid1 for x in x3]
-
-
-# SRH
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
-
-ax.bar(x1, srh1_1, color='pink', width=wid1, edgecolor='k', label='0-1 km (T-1H)')
-ax.bar(x2, srh3_1, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km (T-1H)')
-ax.bar(x3, srh1_0, color='r', width=wid1, edgecolor='k', label='0-1 km (T-0H)')
-ax.bar(x4, srh3_0, color='b', width=wid1, edgecolor='k', label='0-3 km (T-0H)')
-
-ax.plot([x1, x3], [srh1_1, srh1_0], '--k')
-ax.plot([x2, x4], [srh3_1, srh3_0], '--k')
-
-# ax.set_xlabel('Event date', fontsize=12)
-ax.set_ylabel('SRH (m2/s2)', fontsize=12)
-ax.set_xticks([x + wid2/2+0.05 for x in x2], 
-              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
-               '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
-               '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
-ax.set_title('Storm-Relative Helicity Prior to First Tornado/Severe Report', fontsize=16)
-ax.legend(fontsize=11, loc='upper left')
-
-
-
-# CAPE
-wid1 = 0.25
-x1 = np.arange(len(cape_1))
-x2 = [x + wid1+0.05 for x in x1]
-
-fig,ax = plt.subplots(figsize=(8,5), layout='constrained')
-
-ax.bar(x1, cape_1, color='lightskyblue', width=wid1, edgecolor='k', label='T-1H')
-ax.bar(x2, cape_0, color='b', width=wid1, edgecolor='k', label='T-0H')
-
-# ax.set_xlabel('Event date', fontsize=12)
-ax.set_ylabel('CAPE (J/kg)', fontsize=12)
-ax.set_xticks([x + wid1/2 for x in x1], 
-              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
-               '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ',
-               '24 Jul 2025\n Null event ', '15 Apr 2026\n Null event '], fontsize=11)
-ax.set_title('CAPE Prior to First Tornado/Severe Report', fontsize=16)
-ax.legend(fontsize=12, loc='upper right')
 
 
 
 plt.show()
-
-
-
 
 
 
