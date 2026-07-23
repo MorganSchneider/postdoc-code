@@ -19,8 +19,7 @@ t5 = {'name':"Elliott Lake EF2",
       'date_ymd':[2021,8,11], 'time_utc':'2110', 'lat':46.3870, 'lon':-82.7493}
 t6 = {'name':"Campover Lake EF1",
       'date_ymd':[2021,8,11], 'time_utc':'2131', 'lat':46.6557, 'lon':-82.4617}
-
-d1 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6}
+aug11_21 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6}
 
 
 
@@ -37,8 +36,7 @@ t5 = {'name':"Saint-Raphael EF0",
       'date_ymd':[2025,6,24], 'time_utc':'0110', 'lat':46.7872, 'lon':-70.7827}
 t6 = {'name':"Notre-Dame-du-Rosaire EF1",
       'date_ymd':[2025,6,24], 'time_utc':'0135', 'lat':46.7757, 'lon':-70.4072}
-
-d2 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6}
+jun23_25 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6}
 
 
 
@@ -53,8 +51,7 @@ t4 = {'name':"Kaoskauta Lake EF2",
       'date_ymd':[2022,5,31], 'time_utc':'0148', 'lat':49.3689, 'lon':-93.0754}
 t5 = {'name':"Harnett Lake EF1",
       'date_ymd':[2022,5,31], 'time_utc':'0200', 'lat':48.6757, 'lon':-92.2308}
-
-d3 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5}
+may30_22 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5}
 
 
 
@@ -67,34 +64,7 @@ t3 = {'name':"Uxbridge EF2",
       'date_ymd':[2022,5,21], 'time_utc':'1715', 'lat':44.1058, 'lon':-79.1458}
 t4 = {'name':"St. Christopher EF2",
       'date_ymd':[2022,5,21], 'time_utc':'1735', 'lat':44.1755, 'lon':-78.7722}
-
-d4 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
-
-
-
-
-t1 = {'name':"Mitchell EF1 (downburst)",
-      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':43.47, 'lon':-81.18}
-t2 = {'name':"Saugeen null",
-      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':44.25, 'lon':-80.50}
-t3 = {'name':"Bracebridge null",
-      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':45.00, 'lon':-79.25}
-
-d5 = {'loc1':t1, 'loc2':t2, 'loc3':t3}
-
-
-
-
-t1 = {'name':"Ann Arbor EF1",
-      'date_ymd':[2026,4,15], 'time_utc':'0545', 'lat':42.2718, 'lon':-83.7524}
-t2 = {'name':"Allen Park (Detroit) EF1",
-      'date_ymd':[2026,4,15], 'time_utc':'0615', 'lat':42.2684, 'lon':-83.2104}
-t3 = {'name':"LaSalle (Windsor) mesovortex",
-      'date_ymd':[2026,4,15], 'time_utc':'0622', 'lat':42.2393, 'lon':-83.0576}
-t4 = {'name':"Essex (Windsor) mesovortex",
-      'date_ymd':[2026,4,15], 'time_utc':'0630', 'lat':42.2423, 'lon':-82.8484}
-
-d6 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
+may21_22 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
 
 
 
@@ -109,8 +79,19 @@ t4 = {'name':"Aylen Lake mesovortex",
       'date_ymd':[2026,6,30], 'time_utc':'1506', 'lat':45.6315, 'lon':-77.8432}
 t5 = {'name':"Bull Lake mesovortex",
       'date_ymd':[2026,6,30], 'time_utc':'1600', 'lat':44.6890, 'lon':-76.9664}
+jun30_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5}
 
-d7 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5}
+
+
+
+t1 = {'name':"Mitchell EF1 (downburst)",
+      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':43.47, 'lon':-81.18}
+t2 = {'name':"Saugeen null",
+      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':44.25, 'lon':-80.50}
+t3 = {'name':"Bracebridge null",
+      'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':45.00, 'lon':-79.25}
+jul24_25 = {'loc1':t1, 'loc2':t2, 'loc3':t3}
+
 
 
 
@@ -122,13 +103,27 @@ t3 = {'name':"Middlesex null",
       'date_ymd':[2026,7,4], 'time_utc':'0030', 'lat':42.7505, 'lon':-81.7004}
 t4 = {'name':"Ann Arbor null",
       'date_ymd':[2026,7,3], 'time_utc':'2130', 'lat':42.2766, 'lon':-83.7341}
-
-d8 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
-
+jul03_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
 
 
 
-locs = {'20210811':d1, '20250623':d2, '20220530':d3, '20220521':d4, '20250724':d5, '20260415':d6, '20260630':d7, '20260703':d8}
+
+t1 = {'name':"Ann Arbor EF1",
+      'date_ymd':[2026,4,15], 'time_utc':'0545', 'lat':42.2718, 'lon':-83.7524}
+t2 = {'name':"Allen Park (Detroit) EF1",
+      'date_ymd':[2026,4,15], 'time_utc':'0615', 'lat':42.2684, 'lon':-83.2104}
+t3 = {'name':"LaSalle (Windsor) mesovortex",
+      'date_ymd':[2026,4,15], 'time_utc':'0622', 'lat':42.2393, 'lon':-83.0576}
+t4 = {'name':"Essex (Windsor) mesovortex",
+      'date_ymd':[2026,4,15], 'time_utc':'0630', 'lat':42.2423, 'lon':-82.8484}
+
+apr15_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
+
+
+
+
+locs = {'20210811':aug11_21, '20250623':jun23_25, '20220530':may30_22, '20220521':may21_22, '20260630':jun30_26,
+        '20250724':jul24_25, '20260703':jul03_26, '20260415':apr15_26}
 
 
 import pickle

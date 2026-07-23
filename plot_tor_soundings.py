@@ -509,82 +509,11 @@ plt.show()
 
 
 
-#%% 
-
-capes1 = {'0h':1111.8, '1h':1076.5, '2h':544.8}
-cins1 = {'0h':-167.3, '1h':-52.1, '2h':-414.3}
-shear1s1 = {'0h':12.6, '1h':10.3, '2h':10.1}
-shear3s1 = {'0h':20.1, '1h':16.5, '2h':15.6}
-shear6s1 = {'0h':26.3, '1h':22.4, '2h':22.0}
-srh3s1 = {'0h':281.2, '1h':198.5, '2h':150.2}
-srh1s1 = {'0h':162.5, '1h':111.9, '2h':69.5}
-lcls1 = {'0h':933.3, '1h':904.5, '2h':877.8}
-
-
-capes2 = {'0h':1177.3, '1h':1131.4, '2h':1158.6}
-cins2 = {'0h':-73.6, '1h':-114.9, '2h':-108.0}
-shear1s2 = {'0h':12.8, '1h':12.4, '2h':11.6}
-shear3s2 = {'0h':14.2, '1h':14.9, '2h':15.1}
-shear6s2 = {'0h':15.9, '1h':17.1, '2h':16.5}
-srh3s2 = {'0h':165.1, '1h':221.3, '2h':208.6}
-srh1s2 = {'0h':136.7, '1h':141.4, '2h':117.3}
-lcls2 = {'0h':901.8, '1h':889.4, '2h':871.0}
-
-
-capes3 = {'0h':725.2, '1h':762.6, '2h':904.6}
-cins3 = {'0h':-51.0, '1h':-49.1, '2h':-54.6}
-shear1s3 = {'0h':14.1, '1h':13.9, '2h':14.6}
-shear3s3 = {'0h':18.6, '1h':19.4, '2h':21.5}
-shear6s3 = {'0h':32.4, '1h':30.8, '2h':29.4}
-srh3s3 = {'0h':359.6, '1h':362.2, '2h':317.5}
-srh1s3 = {'0h':243.8, '1h':219.2, '2h':182.8}
-lcls3 = {'0h':879.1, '1h':879.3, '2h':903.5}
-
-
-capes4 = {'0h':1044.0, '1h':1286.7, '2h':1149.3}
-cins4 = {'0h':-125.3, '1h':-121.1, '2h':-183.0}
-shear1s4 = {'0h':10.5, '1h':9.7, '2h':9.1}
-shear3s4 = {'0h':17.4, '1h':15.9, '2h':16.9}
-shear6s4 = {'0h':25.1, '1h':23.2, '2h':24.2}
-srh3s4 = {'0h':110.1, '1h':114.8, '2h':123.2}
-srh1s4 = {'0h':52.5, '1h':76.3, '2h':78.7}
-lcls4 = {'0h':915.3, '1h':903.9, '2h':903.0}
-
-
-capes5 = {'0h':1561.8, '1h':1473.4, '2h':1238.1}
-cins5 = {'0h':-103.2, '1h':-263.0, '2h':-304.0}
-shear1s5 = {'0h':11.6, '1h':9.8, '2h':8.5}
-shear3s5 = {'0h':13.3, '1h':11.9, '2h':13.1}
-shear6s5 = {'0h':17.2, '1h':18.5, '2h':17.5}
-srh3s5 = {'0h':92.3, '1h':112.6, '2h':117.6}
-srh1s5 = {'0h':73.2, '1h':89.9, '2h':82.6}
-lcls5 = {'0h':908.3, '1h':870.3, '2h':842.1}
-
-
-capes6 = {'-1h':505.3, '0h':530.6, '1h':995.1, '2h':1432.5}
-cins6 = {'-1h':-74.7, '0h':-31.2, '1h':-63.8, '2h':-75.0}
-shear1s6 = {'-1h':20.3, '0h':22.3, '1h':17.4, '2h':13.4}
-shear3s6 = {'-1h':20.3, '0h':21.8, '1h':13.8, '2h':8.1}
-shear6s6 = {'-1h':25.1, '0h':26.5, '1h':24.5, '2h':18.9}
-srh3s6 = {'-1h':337.5, '0h':385.7, '1h':175.5, '2h':12.6}
-srh1s6 = {'-1h':275.5, '0h':325.5, '1h':183.6, '2h':88.4}
-lcls6 = {'-1h':938.6, '0h':942.0, '1h':941.4, '2h':935.5}
 
 
 
-# April 15 with Michigan tors
-capes6_2 = {'-1h':482.1, '0h':497.2, '1h':959.8, '2h':1280.4}
-cins6_2 = {'-1h':-62.3, '0h':-34.1, '1h':-80.6, '2h':-118.6}
-shear1s6_2 = {'-1h':20.6, '0h':22.5, '1h':19.0, '2h':14.7}
-shear3s6_2 = {'-1h':20.5, '0h':22.0, '1h':15.8, '2h':10.1}
-shears6_2 = {'-1h':24.7, '0h':26.6, '1h':25.3, '2h':19.8}
-srh3s6_2 = {'-1h':364.6, '0h':448.7, '1h':244.1, '2h':30.9}
-srh1s6_2 = {'-1h':286.3, '0h':352.5, '1h':224.3, '2h':94.4}
-lcls6_2 = {'-1h':938.6, '0h':942.3, '1h':939.7, '2h':935.6}
 
-
-
-#%% First tornado only
+#%% Get sounding parameters - first tornado only
 
 fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
@@ -643,8 +572,8 @@ for i in range(len(events)):
     lati = np.argmin(np.abs(latitude-lattstart))
     loni = np.argmin(np.abs(longitude-lontstart))
     
-    latt = latitude[lati-4:lati+4]
-    lont = longitude[loni-4:loni+4]
+    latt = latitude[lati-2:lati+3]
+    lont = longitude[loni-2:loni+3]
     
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
     data = extract_data(latt, lont, timt, datap, datas)
@@ -661,23 +590,26 @@ for i in range(len(events)):
     srh03[i] = data['srh03'].magnitude
     srh01[i] = data['srh01'].magnitude
     lr[i] = data['lapse_rate']
-    sfcp[i] = data['sfcp']/100
+    sfcp[i] = data['sfcp']
+    lclz[i] = data['lcl_height'].magnitude
+    dcape[i] = data['dcape']
+    downT[i] = data['downT'].magnitude
+        
+    # lclz[i] = mc.thickness_hydrostatic(data['p'], data['T'], data['q']*units('kg/kg'), bottom=sfcp[i]*units.hPa, depth=(sfcp[i]-lclp[i])*units.hPa).magnitude
     
-    lclz[i] = mc.thickness_hydrostatic(data['p'], data['T'], data['q']*units('kg/kg'), bottom=sfcp[i]*units.hPa, depth=(sfcp[i]-lclp[i])*units.hPa).magnitude
-    
-    pp = np.array([sfcp[i]] + list(p[p<sfcp[i]]))*units.hPa
-    tt = np.array([t2m[i]] + list(data['T'][p<sfcp[i]].magnitude))*units.K
-    dd = np.array([td2m[i]] + list(data['Td'][p<sfcp[i]].magnitude+273.15))*units.K
-    dc = mc.downdraft_cape(pp, tt, dd)
-    dcape[i] = dc[0].magnitude
-    # downp = dc[1].magnitude[0]
-    downT[i] = dc[2].magnitude[0]
+    # pp = np.array([sfcp[i]] + list(p[p<sfcp[i]]))*units.hPa
+    # tt = np.array([t2m[i]] + list(data['T'][p<sfcp[i]].magnitude))*units.K
+    # dd = np.array([td2m[i]] + list(data['Td'][p<sfcp[i]].magnitude+273.15))*units.K
+    # dc = mc.downdraft_cape(pp, tt, dd)
+    # dcape[i] = dc[0].magnitude
+    # # downp = dc[1].magnitude[0]
+    # downT[i] = dc[2].magnitude[0]
     
     
     datap.close()
     datas.close()
 
-#%%
+#%% Plot bar charts of sounding parameters
 
 figsave = False
 
@@ -988,6 +920,304 @@ if figsave:
 
 
 plt.show()
+
+
+#%% Box plots of sounding variable distributions along storm path
+
+from era5utils import *
+
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+
+# yyyy = 2025
+# mm = 6
+# dd = 23
+
+leadtime = 1
+
+dbfile = open(fp+"tornado_locs.pkl", 'rb')
+locs = pickle.load(dbfile)
+dbfile.close()
+
+events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
+
+# lats = []
+# lons = []
+# timt = []
+# yyyyt = []
+# mmt = []
+# ddt = []
+# hht = []
+
+data_all = dict()
+
+for i in range(len(events)):
+    tors = locs[events[i]]
+    
+    lats = []
+    lons = []
+    timt = []
+
+    for k in range(len(tors)):
+        tor = tors[f"loc{k+1}"]
+        lats.append(tors[f"loc{k+1}"]['lat'])
+        lons.append(tors[f"loc{k+1}"]['lon'])
+        [yyyyt,mmt,ddt] = tors[f"loc{k+1}"]['date_ymd']
+        minute = float(tors[f"loc{k+1}"]['time_utc'][2:])
+        if minute <= 30:
+            hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime
+        else:
+            hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime + 1
+        
+        if (hht < 0) or (hht > 23):
+            yyyyt,mmt,ddt,hht = correct_datetime(yyyyt,mmt,ddt,hht)
+        
+        timt.append(f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000")
+    
+    
+    n = np.arange(len(tors))
+    
+    t2m = np.zeros((len(tors),))
+    td2m = np.zeros((len(tors),))
+    cape = np.zeros((len(tors),))
+    cin = np.zeros((len(tors),))
+    shear01 = np.zeros((len(tors),))
+    shear03 = np.zeros((len(tors),))
+    shear06 = np.zeros((len(tors),))
+    srh01 = np.zeros((len(tors),))
+    srh03 = np.zeros((len(tors),))
+    lclp = np.zeros((len(tors),))
+    lr = np.zeros((len(tors),))
+    sfcp = np.zeros((len(tors),))
+    lclz = np.zeros((len(tors),))
+    dcape = np.zeros((len(tors),))
+    downT = np.zeros((len(tors),))
+    
+    
+    for lat,lon,tim,k in zip(lats,lons,timt,n):
+        yyyyt = tim[:4]
+        mmt = tim[5:7]
+        ddt = tim[8:10]
+        hht = tim[12:14]
+        
+        fn_preslev = f"era5_{yyyyt}{mmt}{ddt}_preslevs.nc"
+        fn_singlev = f"era5_{yyyyt}{mmt}{ddt}_singlevs.nc"
+        
+        datap = xr.open_dataset(fp+fn_preslev)
+        datas = xr.open_dataset(fp+fn_singlev)
+        
+        latitude = datap['latitude'][:].values
+        longitude = datap['longitude'][:].values
+        
+        lati = np.argmin(np.abs(latitude-lat))
+        loni = np.argmin(np.abs(longitude-lon))
+        latt = latitude[lati-1:lati+2]
+        lont = longitude[loni-1:loni+2]
+        
+        # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
+        data = extract_data(latt,lont,tim,datap,datas)
+        
+        datap.close()
+        datas.close()
+        
+        p = data['p'].magnitude
+        t2m[k] = data['t2m'].magnitude
+        td2m[k] = data['td2m'].magnitude
+        cape[k] = data['cape']
+        cin[k] = data['cin']
+        lclp[k] = data['lcl_pressure'].magnitude
+        shear06[k] = data['shear06'].magnitude
+        shear03[k] = data['shear03'].magnitude
+        shear01[k] = data['shear01'].magnitude
+        srh03[k] = data['srh03'].magnitude
+        srh01[k] = data['srh01'].magnitude
+        lr[k] = data['lapse_rate']
+        sfcp[k] = data['sfcp']
+        lclz[k] = data['lcl_height'].magnitude
+        dcape[k] = data['dcape']
+        downT[k] = data['downT'].magnitude
+        
+    dat = dict(p=p, sfcp=sfcp, t2m=t2m, td2m=td2m, cape=cape, cin=cin, lclp=lclp, lclz=lclz, lr=lr,
+               shear01=shear01, shear03=shear03, shear06=shear06, srh01=srh01, srh03=srh03, dcape=dcape, downT=downT)
+    
+    data_all[events[i]] = dat
+
+
+
+#%%
+
+labels = ['11 Aug 2021\n Outbreak ',
+          '23 Jun 2025\n Outbreak ',
+          '30 May 2022\n Sub-outbreak ',
+          '21 May 2022\n Sub-outbreak ',
+          '30 Jun 2026\n Sub-outbreak ',
+          '24 Jul 2025\n Null event ',
+          '3 July 2026\n Null event ']
+
+labels_none = ['', '', '', '', '', '', '']
+bw = 0.25
+# colors = ['lightpink', 'salmon', 'crimson']
+
+# colors = 
+
+
+# fig,ax = plt.subplots(figsize=(8,6), layout='constrained')
+
+# b = ax.boxplot([shear01, shear03, shear06], tick_labels=['0-1 km shear', '0-3 km shear', '0-6 km shear'], patch_artist=True, positions=[0,1,4])
+
+# for patch,c in zip(b['boxes'],colors):
+#     patch.set_facecolor(c)
+
+# ax.set_ylabel('Shear [m/s]')
+# ax.set_title('Bulk wind difference')
+# ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+
+shear01_all = [data_all[events[i]]['shear01'] for i in range(len(events))]
+shear03_all = [data_all[events[i]]['shear03'] for i in range(len(events))]
+shear06_all = [data_all[events[i]]['shear06'] for i in range(len(events))]
+cape_all = [data_all[events[i]]['cape'] for i in range(len(events))]
+cin_all = [-1*data_all[events[i]]['cin'] for i in range(len(events))]
+lclz_all = [data_all[events[i]]['lclz'] for i in range(len(events))]
+srh01_all = [data_all[events[i]]['srh01'] for i in range(len(events))]
+srh03_all = [data_all[events[i]]['srh03'] for i in range(len(events))]
+t2m_all = [data_all[events[i]]['t2m'] for i in range(len(events))]
+td2m_all = [data_all[events[i]]['td2m'] for i in range(len(events))]
+downT_all = [data_all[events[i]]['downT'] for i in range(len(events))]
+tdepr_all = [data_all[events[i]]['t2m'] - data_all[events[i]]['td2m'] for i in range(len(events))]
+cpt_all = [data_all[events[i]]['downT'] - data_all[events[i]]['t2m'] for i in range(len(events))]
+dcape_all = [data_all[events[i]]['dcape'] for i in range(len(events))]
+lr_all = [data_all[events[i]]['lr'] for i in range(len(events))]
+
+
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(shear01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+# b3 = ax.boxplot(shear03_all, tick_labels=labels_none, patch_artist=True, positions=np.arange(len(events))+0.2, widths=bw)
+# for patch in b3['boxes']:
+#     patch.set_facecolor('blue')
+# b6 = ax.boxplot(shear06_all, tick_labels=labels_none, patch_artist=True, positions=np.arange(len(events))+0.4, widths=bw)
+# for patch in b6['boxes']:
+#     patch.set_facecolor('indigo')
+# ax.legend([b1['boxes'][0], b3['boxes'][0], b6['boxes'][0]], ['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-1 km bulk wind difference')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(shear03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-3 km bulk wind difference')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(shear06_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-6 km bulk wind difference')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(cape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('CAPE [J/kg]')
+ax.set_title('CAPE')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(cin_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('CIN [J/kg]')
+ax.set_title('CIN')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(dcape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('DCAPE [J/kg]')
+ax.set_title('Downdraft CAPE')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+b = ax.boxplot(lr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Lapse rate [K/km]')
+ax.set_title('Mid-level lapse rate (700-500 mb)')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(srh01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('0-1 km SRH')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(srh03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('0-3 km SRH')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(lclz_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Height [m]')
+ax.set_title('LCL height')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(tdepr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Temperature [C]')
+ax.set_title('Dewpoint depression')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+b = ax.boxplot(cpt_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
+for patch in b['boxes']:
+    patch.set_facecolor('lightskyblue')
+ax.set_ylabel('Temperature [C]')
+ax.set_title('Predicted cold pool temperature deficit')
+ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+
+
+
+
+plt.show()
+
+
 
 
 

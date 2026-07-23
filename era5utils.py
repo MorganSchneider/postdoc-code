@@ -58,39 +58,53 @@ def extract_data(latt,lont,timt,data,datas):
     
     
     p = data01.pressure_level.values * units.hPa
+    prs = data01.pressure_level.values
     z = data01['z'].values/9.81
     T = data01['t'].values*units.K
     q = data01['q'].values
     u = data01['u'].values*units('m/s')
     v = data01['v'].values*units('m/s')
+    r = data01['r'].values*units.percent
 
     cape = data02['cape'].values
     cin  = data02['cin'].values
-    sfcp = data02['sp'].values
+    sfcp = data02['sp'].values/100
     orog = data02['z'].values/9.81
     td2m = data02['d2m'].values * units.K
     t2m  = data02['t2m'].values * units.K
     u10 = data02['u10'].values * units('m/s')
     v10 = data02['v10'].values * units('m/s')
     
-    Td = mc.dewpoint_from_relative_humidity(T, data01['r']*units.percent)
+    data01.close()
+    data02.close()
+    
+    Td = mc.dewpoint_from_relative_humidity(T, r)
     speed = mc.wind_speed(u,v)
     direc = mc.wind_direction(u,v)
-    q2m  = mc.specific_humidity_from_dewpoint(sfcp*units.Pa, data02['d2m'].values*units.K)
-    theta2m = mc.potential_temperature(sfcp*units.Pa, data02['t2m'].values*units.K)
+    q2m  = mc.specific_humidity_from_dewpoint(sfcp*units.hPa, td2m)
+    theta2m = mc.potential_temperature(sfcp*units.hPa, t2m)
     
     if (np.ndim(latt) == 0) & (np.ndim(lont) == 0):
         theta = mc.potential_temperature(p, T)
         # Calculate Bunkers Storm Motion:
         [rightm,leftm,meanm] = mc.bunkers_storm_motion(p[z>orog], u[z>orog], v[z>orog], z[z>orog]*units.m)
+        
         # Calculate the LCL
         lcl_pressure,lcl_temperature = mc.lcl(p[z>orog][0], T[z>orog][0], Td[z>orog][0])
+        if sfcp > 1000:
+            pp = np.array([sfcp] + list(prs[prs<sfcp]))*units.hPa
+            tt = np.array([t2m.magnitude] + list(T[prs<sfcp].magnitude))*units.K
+            qq = np.array([q2m.magnitude] + list(q[prs<sfcp]))
+            lcl_height = mc.thickness_hydrostatic(pp, tt, qq*units('kg/kg'), bottom=sfcp*units.hPa, depth=(sfcp-lcl_pressure.magnitude)*units.hPa).magnitude
+        else:
+            lcl_height = mc.thickness_hydrostatic(p, T, q*units('kg/kg'), bottom=sfcp*units.hPa, depth=(sfcp-lcl_pressure.magnitude)*units.hPa).magnitude
+        
         parcel_prof = np.zeros((len(p),))
         parcel_prof[z>orog] = mc.parcel_profile(p[z>orog], T[z>orog][0], Td[z>orog][0]).to('degC')
         parcel_prof[z<=orog] = np.nan
         
-        dt75 = T[(p.magnitude==700)].magnitude - T[(p.magnitude==500)].magnitude
-        dz75 = (z[(p.magnitude==700)] - z[(p.magnitude==500)])/1000
+        dt75 = T[(prs==700)].magnitude - T[(prs==500)].magnitude
+        dz75 = (z[(prs==700)] - z[(prs==500)])/1000
         lapse_rate = -1 * dt75/dz75
         
         shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=6000*units.m)
@@ -104,44 +118,57 @@ def extract_data(latt,lont,timt,data,datas):
         srh = mc.storm_relative_helicity(z[z>orog]*units.m, u, v, depth=3000*units.m, storm_u=rightm[0]*units('m/s'), storm_v=rightm[1]*units('m/s'))
         srh03 = srh[2].magnitude
         
+        pp = np.array([sfcp] + list(prs[prs<sfcp]))*units.hPa
+        tt = np.array([t2m.magnitude] + list(T[prs<sfcp].magnitude))*units.K
+        dd = np.array([td2m.magnitude] + list(Td[prs<sfcp].magnitude+273.15))*units.K
+        dc = mc.downdraft_cape(pp, tt, dd)
+        dcape = dc[0].magnitude
+        # downp = dc[1].magnitude[0]
+        downT = dc[2].magnitude[0]
         
     else:
         theta = np.zeros(shape=z.shape)
         rightm = np.zeros(shape=(2,len(latt),len(lont)))
         leftm = np.zeros(shape=(2,len(latt),len(lont)))
         meanm = np.zeros(shape=(2,len(latt),len(lont)))
-        lcl_pressure = np.zeros(shape=sfcp.shape)
-        lcl_temperature = np.zeros(shape=sfcp.shape)
+        lcl_pressure = np.zeros(shape=cape.shape)
+        lcl_temperature = np.zeros(shape=cape.shape)
+        lcl_height = np.zeros(shape=cape.shape)
         parcel_prof = np.zeros(shape=z.shape)
-        shear06 = np.zeros(shape=sfcp.shape)
-        shear03 = np.zeros(shape=sfcp.shape)
-        shear01 = np.zeros(shape=sfcp.shape)
-        srh01 = np.zeros(shape=sfcp.shape)
-        srh03 = np.zeros(shape=sfcp.shape)
+        shear06 = np.zeros(shape=cape.shape)
+        shear03 = np.zeros(shape=cape.shape)
+        shear01 = np.zeros(shape=cape.shape)
+        srh01 = np.zeros(shape=cape.shape)
+        srh03 = np.zeros(shape=cape.shape)
+        dcape = np.zeros(shape=cape.shape)
+        downT = np.zeros(shape=cape.shape)
         
-        dt75 = T[(p.magnitude==700),:,:].magnitude - T[(p.magnitude==500),:,:].magnitude
-        dz75 = (z[(p.magnitude==700),:,:] - z[(p.magnitude==500),:,:])/1000
+        dt75 = T[(prs==700),:,:].magnitude - T[(prs==500),:,:].magnitude
+        dz75 = (z[(prs==700),:,:] - z[(prs==500),:,:])/1000
         lapse_rate = -1 * dt75/dz75
         
         for j in range(len(latt)):
             for i in range(len(lont)):
                 theta[:,j,i] = mc.potential_temperature(p, T[:,j,i])
                 [rm,lm,mm] = mc.bunkers_storm_motion(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], z[:,j,i][z[:,j,i]>orog[j,i]]*units.m)
-                [lp,lt] = mc.lcl(p[z[:,j,i]>orog[j,i]][0], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0])
-                parcel_prof[:,j,i][z[:,j,i]>orog[j,i]] = mc.parcel_profile(p[z[:,j,i]>orog[j,i]], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0]).to('degC')
-                parcel_prof[:,j,i][z[:,j,i]<=orog[j,i]] = np.nan
-                
                 rightm[:,j,i] = rm.magnitude
                 leftm[:,j,i] = lm.magnitude
                 meanm[:,j,i] = mm.magnitude
+                
+                [lp,lt] = mc.lcl(p[z[:,j,i]>orog[j,i]][0], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0])
                 lcl_pressure[j,i] = lp.magnitude
                 lcl_temperature[j,i] = lt.magnitude
+                if sfcp[j,i] > 1000:
+                    pp = np.array([sfcp[j,i]] + list(prs[prs<sfcp[j,i]]))*units.hPa
+                    tt = np.array([t2m[j,i].magnitude] + list(T[:,j,i][prs<sfcp[j,i]].magnitude))*units.K
+                    qq = np.array([q2m[j,i].magnitude] + list(q[:,j,i][prs<sfcp[j,i]]))
+                    lcl_height[j,i] = mc.thickness_hydrostatic(pp, tt, qq*units('kg/kg'), bottom=sfcp[j,i]*units.hPa, depth=(sfcp[j,i]-lcl_pressure[j,i])*units.hPa).magnitude
+                else:
+                    lcl_height[j,i] = mc.thickness_hydrostatic(p, T[:,j,i], q[:,j,i]*units('kg/kg'), bottom=sfcp[j,i]*units.hPa, depth=(sfcp[j,i]-lcl_pressure[j,i])*units.hPa).magnitude
                 
-                # zh = z[:,j,i]
-                # print(np.min(zh))
-                # print(np.max(zh))
-                # return
-                # zh = z[:,i]
+                parcel_prof[:,j,i][z[:,j,i]>orog[j,i]] = mc.parcel_profile(p[z[:,j,i]>orog[j,i]], T[:,j,i][z[:,j,i]>orog[j,i]][0], Td[:,j,i][z[:,j,i]>orog[j,i]][0]).to('degC')
+                parcel_prof[:,j,i][z[:,j,i]<=orog[j,i]] = np.nan
+                
                 shear = mc.bulk_shear(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], height=z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, depth=6000*units.m)
                 shear06[j,i] = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
                 shear = mc.bulk_shear(p[z[:,j,i]>orog[j,i]], u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], height=z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, depth=3000*units.m)
@@ -152,6 +179,15 @@ def extract_data(latt,lont,timt,data,datas):
                 srh01[j,i] = srh[2].magnitude
                 srh = mc.storm_relative_helicity(z[:,j,i][z[:,j,i]>orog[j,i]]*units.m, u[:,j,i][z[:,j,i]>orog[j,i]], v[:,j,i][z[:,j,i]>orog[j,i]], depth=3000*units.m, storm_u=rm[0], storm_v=rm[1])
                 srh03[j,i] = srh[2].magnitude
+                
+                pp = np.array([sfcp[j,i]] + list(prs[prs<sfcp[j,i]]))*units.hPa
+                tt = np.array([t2m[j,i].magnitude] + list(T[:,j,i][prs<sfcp[j,i]].magnitude))*units.K
+                dd = np.array([td2m[j,i].magnitude] + list(Td[:,j,i][prs<sfcp[j,i]].magnitude+273.15))*units.K
+                dc = mc.downdraft_cape(pp, tt, dd)
+                dcape[j,i] = dc[0].magnitude
+                # downp[j,i] = dc[1].magnitude[0]
+                downT[j,i] = dc[2].magnitude[0]
+                
     
         z = np.nanmean(z, axis=(1,2))
         T = np.nanmean(T, axis=(1,2))
@@ -179,12 +215,15 @@ def extract_data(latt,lont,timt,data,datas):
         theta2m = np.nanmean(theta2m)
         lcl_pressure = np.nanmean(lcl_pressure)
         lcl_temperature = np.nanmean(lcl_temperature)
+        lcl_height = np.nanmean(lcl_height)
         shear06 = np.nanmean(shear06)
         shear03 = np.nanmean(shear03)
         shear01 = np.nanmean(shear01)
         srh03 = np.nanmean(srh03)
         srh01 = np.nanmean(srh01)
         lapse_rate = np.nanmean(lapse_rate)
+        dcape = np.nanmean(dcape)
+        downT = np.nanmean(downT)
     
     # Calculate the parcel profile.
     # calclow = 0
@@ -203,24 +242,26 @@ def extract_data(latt,lont,timt,data,datas):
     data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
                 'cape':cape, 'cin':cin, 'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m,
                 'leftm':leftm*units('m/s'), 'meanm':meanm*units('m/s'), 'rightm':rightm*units('m/s'), 'parcel_prof':parcel_prof*units.degC,
-                'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lapse_rate':lapse_rate,
+                'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lcl_height':lcl_height*units.m, 'lapse_rate':lapse_rate,
                 'shear06':shear06*units('m/s'), 'shear03':shear03*units('m/s'), 'shear01':shear01*units('m/s'),
-                'srh03':srh03*units('m**2/s**2'), 'srh01':srh01*units('m**2/s**2')}
+                'srh03':srh03*units('m**2/s**2'), 'srh01':srh01*units('m**2/s**2'), 'dcape':dcape, 'downT':downT*units.K}
     return data_out
     # return p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature
 
 
 
-def extract_data_areal(latt,lont,timt,data,datas):
-    data01 = data.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
-    data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+# def extract_data_along_track(latt,lont,timt,data,datas):
+#     latitude = data['latitude'].values
+#     longitude = data['longitude'].values
     
-    p = data01.pressure_level.values * units.hPa
-    z = data01['z'].values/9.81
-    T = data01['t'].values*units.K
-    q = data01['q'].values
-    u = data01['u'].values*units('m/s')
-    v = data01['v'].values*units('m/s')
+#     for lat,lon,tim in zip(latt,lont,timt):
+#         lati = np.argmin(np.abs(latitude-lat))
+#         loni = np.argmin(np.abs(longitude-lon))
+#         lats = latitude[lati-1:lati+2]
+#         lons = longitude[loni-1:loni+2]
+        
+#         data = extract_data(lats,lons,tim,data,datas)
+    
     
     
 
@@ -1310,7 +1351,34 @@ def getBeamHeight(lat, lon, elevation_angle, lat_o=None, lon_o=None, radar_id=No
 
 
 
-
+def correct_datetime(year,month,day,hour):
+    if np.mod(year,4) == 0:
+        max_days = [31,29,31,30,31,30,31,31,30,31,30,31]
+    else:
+        max_days = [31,28,31,30,31,30,31,31,30,31,30,31]
+    
+    if hour < 0:
+        hour = hour + 24
+        day = day - 1
+        if day < 1:
+            month = month - 1
+            if month < 1:
+                month = 12
+                year = year - 1
+            day = max_days[int(month-1)]
+    
+    elif hour > 23:
+        hour = hour - 24
+        day = day + 1
+        if day > max_days[int(month-1)]:
+            day = 1
+            month = month + 1
+            if month > 12:
+                month = 1
+                year = year + 1
+    
+    return year,month,day,hour
+    
 
 
 
