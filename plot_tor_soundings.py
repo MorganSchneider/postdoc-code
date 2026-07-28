@@ -572,8 +572,8 @@ for i in range(len(events)):
     lati = np.argmin(np.abs(latitude-lattstart))
     loni = np.argmin(np.abs(longitude-lontstart))
     
-    latt = latitude[lati-2:lati+3]
-    lont = longitude[loni-2:loni+3]
+    latt = latitude[lati-3:lati+4]
+    lont = longitude[loni-3:loni+4]
     
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
     data = extract_data(latt, lont, timt, datap, datas)
@@ -690,7 +690,7 @@ ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(50))
 ax.set_xlim([0,7])
-ax.set_ylim([0,300])
+ax.set_ylim([0,350])
 if figsave:
     plt.savefig(fp+'figs/barplot_srh.png', dpi=300)
 
@@ -725,7 +725,7 @@ ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(250))
 ax.set_xlim([0,7])
-ax.set_ylim([-350,2000])
+ax.set_ylim([-350,2100])
 if figsave:
     plt.savefig(fp+'figs/barplot_cape.png', dpi=300)
 
@@ -778,7 +778,7 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], lclz[i], f"{lclz[i]:.0f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x1[i], lclz[i], f"{lclz[i]:.0f} m", fontsize=12, ha='center', va='bottom')
 ax.set_title('LCL Height 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
 
@@ -836,7 +836,7 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f}", fontsize=12, ha='center', va='bottom')
+    ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f} C", fontsize=12, ha='center', va='bottom')
 ax.set_title('2-m Dewpoint Depression 1 H Prior to First Tornado/Severe Report', fontsize=16)
 ax.legend(fontsize=12, loc='upper left')
 
@@ -897,8 +897,8 @@ ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
                    '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
 for i in range(len(x1)):
-    ax.text(x1[i], downT[i]-t2m[i], f"{downT[i]-t2m[i]:.1f}", fontsize=12, ha='center', va='bottom')
-ax.set_title('Predicted Cold Pool Strength 1 H Prior to First Tornado/Severe Report', fontsize=16)
+    ax.text(x1[i], downT[i]-t2m[i], f"{downT[i]-t2m[i]:.1f} C", fontsize=12, ha='center', va='bottom')
+ax.set_title("Predicted Cold Pool Temperature Deficit 1 H Prior to First Tornado/Severe Report", fontsize=14)
 ax.legend(fontsize=12, loc='upper left')
 
 ax.grid(visible=True, which='major', axis='y', color='lightgray', linewidth=0.75, linestyle='--')
@@ -951,46 +951,58 @@ events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724"
 data_all = dict()
 
 for i in range(len(events)):
-    tors = locs[events[i]]
+    # tors = locs[events[i]]
     
-    lats = []
-    lons = []
-    timt = []
+    # lats = []
+    # lons = []
+    # timt = []
 
-    for k in range(len(tors)):
-        tor = tors[f"loc{k+1}"]
-        lats.append(tors[f"loc{k+1}"]['lat'])
-        lons.append(tors[f"loc{k+1}"]['lon'])
-        [yyyyt,mmt,ddt] = tors[f"loc{k+1}"]['date_ymd']
-        minute = float(tors[f"loc{k+1}"]['time_utc'][2:])
-        if minute <= 30:
-            hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime
-        else:
-            hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime + 1
+    # for k in range(len(tors)):
+    #     tor = tors[f"loc{k+1}"]
+    #     lats.append(tors[f"loc{k+1}"]['lat'])
+    #     lons.append(tors[f"loc{k+1}"]['lon'])
+    #     [yyyyt,mmt,ddt] = tors[f"loc{k+1}"]['date_ymd']
+    #     minute = float(tors[f"loc{k+1}"]['time_utc'][2:])
+    #     if minute <= 30:
+    #         hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime
+    #     else:
+    #         hht = float(tors[f"loc{k+1}"]['time_utc'][:2]) - leadtime + 1
         
-        if (hht < 0) or (hht > 23):
-            yyyyt,mmt,ddt,hht = correct_datetime(yyyyt,mmt,ddt,hht)
+    #     if (hht < 0) or (hht > 23):
+    #         yyyyt,mmt,ddt,hht = correct_datetime(yyyyt,mmt,ddt,hht)
         
+    #     timt.append(f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000")
+    
+    
+    [yyyyt,mmt,dayt] = locs[events[i]][f"loc1"]['date_ymd']
+    
+    lats = latpoints[events[i]]
+    lons = lonpoints[events[i]]
+    timt = []
+    
+    for k in range(len(lats)):
+        ddt = daypoints[events[i]][k]
+        hht = hourpoints[events[i]][k]
         timt.append(f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000")
     
     
-    n = np.arange(len(tors))
+    n = np.arange(len(lats))
     
-    t2m = np.zeros((len(tors),))
-    td2m = np.zeros((len(tors),))
-    cape = np.zeros((len(tors),))
-    cin = np.zeros((len(tors),))
-    shear01 = np.zeros((len(tors),))
-    shear03 = np.zeros((len(tors),))
-    shear06 = np.zeros((len(tors),))
-    srh01 = np.zeros((len(tors),))
-    srh03 = np.zeros((len(tors),))
-    lclp = np.zeros((len(tors),))
-    lr = np.zeros((len(tors),))
-    sfcp = np.zeros((len(tors),))
-    lclz = np.zeros((len(tors),))
-    dcape = np.zeros((len(tors),))
-    downT = np.zeros((len(tors),))
+    t2m = np.zeros((len(lats),))
+    td2m = np.zeros((len(lats),))
+    cape = np.zeros((len(lats),))
+    cin = np.zeros((len(lats),))
+    shear01 = np.zeros((len(lats),))
+    shear03 = np.zeros((len(lats),))
+    shear06 = np.zeros((len(lats),))
+    srh01 = np.zeros((len(lats),))
+    srh03 = np.zeros((len(lats),))
+    lclp = np.zeros((len(lats),))
+    lr = np.zeros((len(lats),))
+    sfcp = np.zeros((len(lats),))
+    lclz = np.zeros((len(lats),))
+    dcape = np.zeros((len(lats),))
+    downT = np.zeros((len(lats),))
     
     
     for lat,lon,tim,k in zip(lats,lons,timt,n):
@@ -1043,7 +1055,7 @@ for i in range(len(events)):
 
 
 
-#%%
+#%% Make box plots
 
 labels = ['11 Aug 2021\n Outbreak ',
           '23 Jun 2025\n Outbreak ',
@@ -1216,6 +1228,200 @@ ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
 plt.show()
+
+
+
+#%%
+
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+
+# yyyy = 2025
+# mm = 6
+# dd = 23
+
+leadtime = 1
+
+dbfile = open(fp+"tornado_locs.pkl", 'rb')
+locs = pickle.load(dbfile)
+dbfile.close()
+
+events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
+
+
+# August 11 2021
+lats_1 = [46.5, 46.25, 46.5, 46.25, 46.5, 
+          46.4797, 46.5449, 46.5274, 46.4657, 46.25, 46.25, 46.25, 46.5,
+          46.3870, 46.6557, 46.25, 46.5, 46.25, 46.25, 46.5, 46.5]
+lons_1 = [-84.25, -84.5, -84.0, -84.75, -84.5, 
+          -83.6403, -83.5907, -83.2889, -83.2155, -84.0, -83.5, -83.0, -83.0,
+          -82.7493, -82.4617, -82.5, -82.5, -81.75, -82.25, -82.25, -82.0]
+hours_1 = [19, 19, 19, 19, 19,
+           20, 20, 20, 20, 20, 20, 20, 20,
+           21, 21, 21, 21, 21, 21, 21, 21]
+days_1 = [11, 11, 11, 11, 11,
+          11, 11, 11, 11, 11, 11, 11, 11,
+          11, 11, 11, 11, 11, 11, 11, 11]
+latlont1 = []
+for lat,lon,t in zip(lats_1,lons_1,hours_1):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont1.append([t,latr,lonr])
+
+
+# June 23 2025
+lats_2 = [48.3975, 48.4647, 48.0, 48.25, 48.5, 48.5, 48.75,
+          48.5, 48.25, 48.25, 48.5, 48.25, 48.0, 48.0, 
+          48.2033, 47.9149, 48.0, 48.0, 48.25, 48.0, 48.25, 47.75,
+          47.5, 47.5, 47.5, 47.5, 47.75, 47.75, 47.75,
+          47.25, 47.25, 47.25, 47.0, 47.0, 47.0, 47.0, 
+          46.7872, 46.7757, 46.75, 46.75, 47.0, 46.5, 46.5]
+lons_2 = [-75.5880, -75.4900, -76.75, -76.75, -76.75, -75.25, -75.25,
+          -75.0, -74.5, -74.75, -74.25, -74.25, -74.75, -74.5, 
+          -73.5234, -73.5056, -73.25, -73.0, -73.25, -73.75, -73.75, -73.25,
+          -72.0, -72.25, -72.75, -72.5, -72.75, -72.5, -72.25,
+          -72.0, -71.75, -71.5, -72.25, -71.75, -71.5, -71.25, 
+          -70.7827, -70.4072, -71.25, -71.0, -70.75, -70.75, -70.5]
+hours_2 = [20, 20, 20, 20, 20, 20, 20,
+           21, 21, 21, 21, 21, 21, 21,
+           22, 22, 22, 22, 22, 22, 22, 22,
+           23, 23, 23, 23, 23, 23, 23,
+           0, 0, 0, 0, 0, 0, 0,
+           1, 1, 1, 1, 1, 1, 1]
+days_2 = [23, 23, 23, 23, 23, 23, 23,
+          23, 23, 23, 23, 23, 23, 23,
+          23, 23, 23, 23, 23, 23, 23, 23,
+          23, 23, 23, 23, 23, 23, 23,
+          24, 24, 24, 24, 24, 24, 24,
+          24, 24, 24, 24, 24, 24, 24]
+latlont2 = []
+for lat,lon,t in zip(lats_2,lons_2,hours_2):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont2.append([t,latr,lonr])
+
+
+# May 30 2022
+lats_3 = [48.6148, 48.6699, 48.9114, 48.25, 48.5, 48.5, 48.75, 
+          49.3689, 48.6757]
+lons_3 = [-93.5304, -93.5219, -93.5778, -93.5, -94.0, -93.75, -93.25, 
+          -93.0754, -92.2308]
+hours_3 = [0, 0, 0, 0, 0, 0, 0,
+           1, 1]
+days_3 = [31, 31, 31, 31, 31, 31, 31,
+          31, 31]
+latlont3 = []
+for lat,lon,t in zip(lats_3,lons_3,hours_3):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont3.append([t,latr,lonr])
+
+
+# May 21 2022
+lats_4 = [42.5, 42.25, 42.5,
+          42.5, 42.75, 42.75, 43.0, 42.75, 43.0,
+          43.0179, 42.9217, 42.75, 43.0, 43.25, 43.0, 43.25, 43.25,
+          43.5, 43.25, 43.75, 43.75, 43.5, 43.75,
+          44.1058, 44.1755, 44.0, 43.75, 44.0, 44.0, 44.25]
+lons_4 = [-83.0, -83.75, -83.25,
+          -83.0, -82.75, -82.5, -82.25, -82.25, -82.0,
+          -81.2216, -81.1977, -81.75, -81.5, -81.25, -81.0, -80.75, -81.0,
+          -80.5, -80.5, -80.5, -80.0, -80.25, -80.25,
+          -79.1458, -78.7722, -79.5, -79.5, -79.0, -78.5, -78.5]
+hours_4 = [13, 13, 13,
+           14, 14, 14, 14, 14, 14,
+           15, 15, 15, 15, 15, 15, 15, 15,
+           16, 16, 16, 16, 16, 16,
+           17, 17, 17, 17, 17, 17, 17]
+days_4 = [21, 21, 21,
+          21, 21, 21, 21, 21, 21,
+          21, 21, 21, 21, 21, 21, 21, 21,
+          21, 21, 21, 21, 21, 21,
+          21, 21, 21, 21, 21, 21, 21]
+latlont4 = []
+for lat,lon,t in zip(lats_4,lons_4,hours_4):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont4.append([t,latr,lonr])
+
+
+# June 30 2026
+lats_5 = [45.6315, 44.6890,
+          44.4640, 44.3021, 44.3303,
+          44.0, 43.75]
+lons_5 = [-77.8432, -76.9664,
+          -76.7289, -76.5386, -76.9268,
+          -75.5, -75.5]
+hours_5 = [15, 15,
+           16, 16, 16,
+           17, 17]
+days_5 = [30, 30,
+          30, 30, 30,
+          30, 30]
+latlont5 = []
+for lat,lon,t in zip(lats_5,lons_5,hours_5):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont5.append([t,latr,lonr])
+
+
+# July 24 2025
+lats_6 = [43.47, 44.25, 45.00]
+lons_6 = [-81.18, -80.50, -79.25]
+hours_6 = [23, 23, 23]
+days_6 = [24, 24, 24]
+latlont6 = []
+for lat,lon,t in zip(lats_6,lons_6,hours_6):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont6.append([t,latr,lonr])
+
+
+# July 3 2026
+lats_7 = [42.2766,
+          42.2393,
+          42.4226,
+          42.7505]
+lons_7 = [-83.7341,
+          -83.0576,
+          -82.1339,
+          -81.7004]
+hours_7 = [21,
+           22,
+           23,
+           0]
+days_7 = [3,
+          3,
+          3,
+          4]
+latlont7 = []
+for lat,lon,t in zip(lats_7,lons_7,hours_7):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont7.append([t,latr,lonr])
+
+
+
+
+latpoints = {"20210811":lats_1, "20250623":lats_2, "20220530":lats_3, "20220521":lats_4, "20260630":lats_5, "20250724":lats_6, "20260703":lats_7}
+lonpoints = {"20210811":lons_1, "20250623":lons_2, "20220530":lons_3, "20220521":lons_4, "20260630":lons_5, "20250724":lons_6, "20260703":lons_7}
+hourpoints = {"20210811":hours_1, "20250623":hours_2, "20220530":hours_3, "20220521":hours_4, "20260630":hours_5, "20250724":hours_6, "20260703":hours_7}
+daypoints = {"20210811":days_1, "20250623":days_2, "20220530":days_3, "20220521":days_4, "20260630":days_5, "20250724":days_6, "20260703":days_7}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
