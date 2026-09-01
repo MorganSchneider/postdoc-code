@@ -523,7 +523,9 @@ locs = pickle.load(dbfile)
 # locs = locs_all[f"{yyyy}{mm:02.0f}{dd:02.0f}"]
 dbfile.close()
 
-events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
+events = ["20210811", "20250623", "20210907",
+          "20220530", "20220521", "20260630",
+          "20250724", "20260703", "20260802"]
 
 t2m = np.zeros((len(events),))
 td2m = np.zeros((len(events),))
@@ -623,7 +625,7 @@ x3 = [x + wid1 for x in x2]
 
 
 # Bulk shear
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 ax.bar(x1, shear01, color='salmon', width=wid2, edgecolor='k', label='0-1 km')
 ax.bar(x2, shear03, color='gold', width=wid2, edgecolor='k', label='0-3 km')
@@ -631,9 +633,9 @@ ax.bar(x3, shear06, color='skyblue', width=wid2, edgecolor='k', label='0-6 km')
 
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('Bulk wind shear (m/s)', fontsize=12)
-ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], shear01[i], f"{shear01[i]:.0f}", fontsize=12, ha='center', va='bottom')
     ax.text(x2[i], shear03[i], f"{shear03[i]:.0f}", fontsize=12, ha='center', va='bottom')
@@ -646,7 +648,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(5))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([0,35])
 if figsave:
     plt.savefig(fp+'figs/barplot_shear.png', dpi=300)
@@ -666,7 +668,7 @@ x2 = [x + 0.5+wid2 for x in x0]
 
 
 # SRH
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 ax.bar(x1, srh01, color='salmon', width=wid1, edgecolor='k', label='0-1 km')
 ax.bar(x2, srh03, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km')
@@ -675,9 +677,9 @@ ax.bar(x2, srh03, color='lightskyblue', width=wid1, edgecolor='k', label='0-3 km
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('SRH (m2/s2)', fontsize=12)
 ax.set_xticks([x + 0.5 for x in x0],
-              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+              ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-               '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+               '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], srh01[i], f"{srh01[i]:.0f}", fontsize=12, ha='center', va='bottom')
     ax.text(x2[i], srh03[i], f"{srh03[i]:.0f}", fontsize=12, ha='center', va='bottom')
@@ -689,7 +691,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(50))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([0,350])
 if figsave:
     plt.savefig(fp+'figs/barplot_srh.png', dpi=300)
@@ -700,7 +702,7 @@ if figsave:
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 ax.bar(x1, cape, color='lightskyblue', width=wid1, edgecolor='k', label='CAPE')
 ax.bar(x1, -1*cin, color='b', width=wid1, edgecolor='k', label='CIN')
@@ -709,9 +711,9 @@ ax.axhline(0, c='k', linewidth=1, linestyle='--')
 
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('CAPE/CIN (J/kg)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], cape[i], f"{cape[i]:.0f}", fontsize=12, ha='center', va='bottom')
     ax.text(x1[i], -1*cin[i]-10, f"{-1*cin[i]:.0f}", fontsize=12, ha='center', va='top')
@@ -724,8 +726,8 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(250))
-ax.set_xlim([0,7])
-ax.set_ylim([-350,2100])
+ax.set_xlim([0,len(events)])
+ax.set_ylim([-550,2100])
 if figsave:
     plt.savefig(fp+'figs/barplot_cape.png', dpi=300)
 
@@ -736,15 +738,15 @@ wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 # inverted axis - plot bars=bar(x, anchor-data, ... bottom=data) -> invert_yaxis() -> for b in bars, b.sticky_edges.y[:] = [anchor]
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 b1 = ax.bar(x1, 1000-lclp, color='tan', width=wid1, edgecolor='gray', bottom=lclp)
 bars = ax.bar(x1, sfcp-lclp, color='lightskyblue', width=wid1, edgecolor='k', label='LCL pressure', bottom=lclp)
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('Pressure (hPa)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], lclp[i], f"{lclp[i]:.0f}", fontsize=12, ha='center', va='bottom')
     ax.text(x1[i], sfcp[i], f"{sfcp[i]:.0f}", fontsize=12, ha='center', va='bottom')
@@ -757,7 +759,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(25))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.invert_yaxis()
 for b in bars:
     b.sticky_edges.y[:] = [sfcp]
@@ -769,14 +771,14 @@ if figsave:
 
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 bars = ax.bar(x1, lclz, color='lightskyblue', width=wid1, edgecolor='k', label='LCL height')
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('Height (m)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], lclz[i], f"{lclz[i]:.0f} m", fontsize=12, ha='center', va='bottom')
 ax.set_title('LCL Height 1 H Prior to First Tornado/Severe Report', fontsize=16)
@@ -787,7 +789,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(250))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([0,2000])
 if figsave:
     plt.savefig(fp+'figs/barplot_lcl_height.png', dpi=300)
@@ -798,14 +800,14 @@ if figsave:
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 bars = ax.bar(x1, lr, color='lightskyblue', width=wid1, edgecolor='k', label='Lapse rate')
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('Lapse rate (K/km)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], lr[i], f"{lr[i]:.1f}", fontsize=12, ha='center', va='bottom')
 ax.set_title('700-500 mb Lapse Rate 1 H Prior to First Tornado/Severe Report', fontsize=16)
@@ -816,7 +818,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(0.5))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([5,8])
 if figsave:
     plt.savefig(fp+'figs/barplot_lapserate.png', dpi=300)
@@ -827,14 +829,14 @@ if figsave:
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 bars = ax.bar(x1, t2m-td2m, color='lightskyblue', width=wid1, edgecolor='k', label='T - Td')
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('T - Td (C)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], t2m[i]-td2m[i], f"{t2m[i]-td2m[i]:.1f} C", fontsize=12, ha='center', va='bottom')
 ax.set_title('2-m Dewpoint Depression 1 H Prior to First Tornado/Severe Report', fontsize=16)
@@ -845,7 +847,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(2))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([0,12])
 if figsave:
     plt.savefig(fp+'figs/barplot_dewpt_depression.png', dpi=300)
@@ -856,16 +858,16 @@ if figsave:
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 ax.bar(x1, dcape, color='lightskyblue', width=wid1, edgecolor='k', label='DCAPE')
 # ax.axhline(0, c='k', linewidth=1, linestyle='--')
 
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('DCAPE (J/kg)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], dcape[i], f"{dcape[i]:.0f}", fontsize=12, ha='center', va='bottom')
 ax.set_title('Downdraft CAPE 1 H Prior to First Tornado/Severe Report', fontsize=16)
@@ -876,7 +878,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(250))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 ax.set_ylim([0,1500])
 if figsave:
     plt.savefig(fp+'figs/barplot_dcape.png', dpi=300)
@@ -888,14 +890,14 @@ if figsave:
 wid1 = 0.35
 x1 = np.arange(len(cape)) + 0.5
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 
 bars = ax.bar(x1, t2m-downT, color='lightskyblue', width=wid1, edgecolor='k', label='2-m temperature deficit', bottom=downT-t2m)
 # ax.set_xlabel('Event date', fontsize=12)
 ax.set_ylabel('T(downdraft) - T(env)  (C)', fontsize=12)
-ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ',
+ax.set_xticks(x1, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null event ', '3 Jul 2026\n Null event '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
 for i in range(len(x1)):
     ax.text(x1[i], downT[i]-t2m[i], f"{downT[i]-t2m[i]:.1f} C", fontsize=12, ha='center', va='bottom')
 ax.set_title("Predicted Cold Pool Temperature Deficit 1 H Prior to First Tornado/Severe Report", fontsize=14)
@@ -906,7 +908,7 @@ ax.grid(visible=True, which='minor', axis='x', color='lightgray', linewidth=0.75
 ax.set_axisbelow(True)
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.yaxis.set_major_locator(MultipleLocator(2))
-ax.set_xlim([0,7])
+ax.set_xlim([0,len(events)])
 
 ax.invert_yaxis()
 for b in bars:
@@ -932,13 +934,15 @@ fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/e
 # mm = 6
 # dd = 23
 
-leadtime = 1
+# leadtime = 1
 
 dbfile = open(fp+"tornado_locs.pkl", 'rb')
 locs = pickle.load(dbfile)
 dbfile.close()
 
-events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
+events = ["20210811", "20250623", "20210907",
+          "20220530", "20220521", "20260630", 
+          "20250724", "20260703", "20260802"]
 
 # lats = []
 # lons = []
@@ -1059,13 +1063,15 @@ for i in range(len(events)):
 
 labels = ['11 Aug 2021\n Outbreak ',
           '23 Jun 2025\n Outbreak ',
+          '7 Sep 2021\n Outbreak ',
           '30 May 2022\n Sub-outbreak ',
           '21 May 2022\n Sub-outbreak ',
           '30 Jun 2026\n Sub-outbreak ',
-          '24 Jul 2025\n Null event ',
-          '3 July 2026\n Null event ']
+          '24 Jul 2025\n Null ',
+          '3 Jul 2026\n Null ',
+          '2 Aug 2026\n Null ']
 
-labels_none = ['', '', '', '', '', '', '']
+labels_none = ['', '', '', '', '', '', '', '', '']
 bw = 0.25
 # colors = ['lightpink', 'salmon', 'crimson']
 
@@ -1104,7 +1110,7 @@ lr_all = [data_all[events[i]]['lr'] for i in range(len(events))]
 
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(shear01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1120,7 +1126,7 @@ ax.set_title('0-1 km bulk wind difference')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(shear03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1129,7 +1135,7 @@ ax.set_title('0-3 km bulk wind difference')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(shear06_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1140,7 +1146,7 @@ ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(cape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1149,7 +1155,7 @@ ax.set_title('CAPE')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(cin_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1158,7 +1164,7 @@ ax.set_title('CIN')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(dcape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1167,7 +1173,7 @@ ax.set_title('Downdraft CAPE')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,5), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(lr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1178,7 +1184,7 @@ ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(srh01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1187,7 +1193,7 @@ ax.set_title('0-1 km SRH')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(srh03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1198,7 +1204,7 @@ ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(lclz_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1207,7 +1213,7 @@ ax.set_title('LCL height')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(tdepr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1216,7 +1222,7 @@ ax.set_title('Dewpoint depression')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 
 
-fig,ax = plt.subplots(figsize=(9,6), layout='constrained')
+fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(cpt_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
 for patch in b['boxes']:
     patch.set_facecolor('lightskyblue')
@@ -1231,7 +1237,7 @@ plt.show()
 
 
 
-#%%
+#%% Set lat lon coords along storm paths
 
 fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
@@ -1245,22 +1251,24 @@ dbfile = open(fp+"tornado_locs.pkl", 'rb')
 locs = pickle.load(dbfile)
 dbfile.close()
 
-events = ["20210811", "20250623", "20220530", "20220521", "20260630", "20250724", "20260703"]
+events = ["20210811", "20250623", "20210907",
+          "20220530", "20220521", "20260630", 
+          "20250724", "20260703", "20260802"]
 
 
 # August 11 2021
-lats_1 = [46.5, 46.25, 46.5, 46.25, 46.5, 
-          46.4797, 46.5449, 46.5274, 46.4657, 46.25, 46.25, 46.25, 46.5,
-          46.3870, 46.6557, 46.25, 46.5, 46.25, 46.25, 46.5, 46.5]
-lons_1 = [-84.25, -84.5, -84.0, -84.75, -84.5, 
-          -83.6403, -83.5907, -83.2889, -83.2155, -84.0, -83.5, -83.0, -83.0,
-          -82.7493, -82.4617, -82.5, -82.5, -81.75, -82.25, -82.25, -82.0]
-hours_1 = [19, 19, 19, 19, 19,
-           20, 20, 20, 20, 20, 20, 20, 20,
-           21, 21, 21, 21, 21, 21, 21, 21]
-days_1 = [11, 11, 11, 11, 11,
-          11, 11, 11, 11, 11, 11, 11, 11,
-          11, 11, 11, 11, 11, 11, 11, 11]
+lats_1 = [46.25, 46.5, 46.25, 46.5, 46.25, 46.25,
+          46.4797, 46.5449, 46.5274, 46.4657, 46.5, 46.25, 46.5, 46.25, 46.25,
+          46.3870, 46.6557, 46.5, 46.25, 46.25, 46.75, 46.5]
+lons_1 = [-85.25, -84.75, -85.0, -84.5, -84.75, -84.5,
+          -83.6403, -83.5907, -83.2889, -83.2155, -84.0, -84.0, -83.0, -83.75, -83.5,
+          -82.7493, -82.4617, -82.5, -82.75, -82.5, -82.75, -82.25]
+hours_1 = [19, 19, 19, 19, 19, 19,
+           20, 20, 20, 20, 20, 20, 20, 20, 20,
+           21, 21, 21, 21, 21, 21, 21]
+days_1 = [11, 11, 11, 11, 11, 11,
+          11, 11, 11, 11, 11, 11, 11, 11, 11,
+          11, 11, 11, 11, 11, 11, 11]
 latlont1 = []
 for lat,lon,t in zip(lats_1,lons_1,hours_1):
     latr = np.round(lat/0.25) * 0.25
@@ -1269,30 +1277,30 @@ for lat,lon,t in zip(lats_1,lons_1,hours_1):
 
 
 # June 23 2025
-lats_2 = [48.3975, 48.4647, 48.0, 48.25, 48.5, 48.5, 48.75,
-          48.5, 48.25, 48.25, 48.5, 48.25, 48.0, 48.0, 
-          48.2033, 47.9149, 48.0, 48.0, 48.25, 48.0, 48.25, 47.75,
-          47.5, 47.5, 47.5, 47.5, 47.75, 47.75, 47.75,
-          47.25, 47.25, 47.25, 47.0, 47.0, 47.0, 47.0, 
-          46.7872, 46.7757, 46.75, 46.75, 47.0, 46.5, 46.5]
-lons_2 = [-75.5880, -75.4900, -76.75, -76.75, -76.75, -75.25, -75.25,
-          -75.0, -74.5, -74.75, -74.25, -74.25, -74.75, -74.5, 
-          -73.5234, -73.5056, -73.25, -73.0, -73.25, -73.75, -73.75, -73.25,
-          -72.0, -72.25, -72.75, -72.5, -72.75, -72.5, -72.25,
-          -72.0, -71.75, -71.5, -72.25, -71.75, -71.5, -71.25, 
-          -70.7827, -70.4072, -71.25, -71.0, -70.75, -70.75, -70.5]
-hours_2 = [20, 20, 20, 20, 20, 20, 20,
-           21, 21, 21, 21, 21, 21, 21,
-           22, 22, 22, 22, 22, 22, 22, 22,
-           23, 23, 23, 23, 23, 23, 23,
-           0, 0, 0, 0, 0, 0, 0,
-           1, 1, 1, 1, 1, 1, 1]
-days_2 = [23, 23, 23, 23, 23, 23, 23,
-          23, 23, 23, 23, 23, 23, 23,
-          23, 23, 23, 23, 23, 23, 23, 23,
-          23, 23, 23, 23, 23, 23, 23,
-          24, 24, 24, 24, 24, 24, 24,
-          24, 24, 24, 24, 24, 24, 24]
+lats_2 = [48.3975, 48.4647, 48.5, 48.5,
+          48.5, 48.25, 48.25, 48.0,
+          48.2033, 47.9149, 48.0, 47.75, 48.0,
+          47.75, 47.5, 47.5, 47.5, 47.25,
+          47.25, 47.5, 47.0, 47.0, 47.25,
+          46.7872, 46.7757, 46.75, 46.5, 46.5]
+lons_2 = [-75.5880, -75.4900, -76.0, -75.75,
+          -75.0, -75.0, -74.5, -74.25,
+          -73.5234, -73.5056, -74.0, -73.25, -73.0,
+          -72.75, -72.5, -73.0, -72.0, -72.5,
+          -72.0, -71.75, -72.0, -71.5, -71.0,
+          -70.7827, -70.4072, -71.0, -71.0, -70.5]
+hours_2 = [20, 20, 20, 20,
+           21, 21, 21, 21,
+           22, 22, 22, 22, 22,
+           23, 23, 23, 23, 23,
+           0, 0, 0, 0, 0,
+           1, 1, 1, 1, 1]
+days_2 = [23, 23, 23, 23,
+          23, 23, 23, 23,
+          23, 23, 23, 23, 23,
+          23, 23, 23, 23, 23,
+          24, 24, 24, 24, 24,
+          24, 24, 24, 24, 24]
 latlont2 = []
 for lat,lon,t in zip(lats_2,lons_2,hours_2):
     latr = np.round(lat/0.25) * 0.25
@@ -1301,14 +1309,14 @@ for lat,lon,t in zip(lats_2,lons_2,hours_2):
 
 
 # May 30 2022
-lats_3 = [48.6148, 48.6699, 48.9114, 48.25, 48.5, 48.5, 48.75, 
-          49.3689, 48.6757]
-lons_3 = [-93.5304, -93.5219, -93.5778, -93.5, -94.0, -93.75, -93.25, 
-          -93.0754, -92.2308]
-hours_3 = [0, 0, 0, 0, 0, 0, 0,
-           1, 1]
-days_3 = [31, 31, 31, 31, 31, 31, 31,
-          31, 31]
+lats_3 = [48.6148, 48.6699, 48.9114, 48.25, 48.25, 48.5, 47.75, 48.0,
+          49.3689, 48.6757, 49.0, 49.25, 48.25, 48.5, 48.75, 48.5]
+lons_3 = [-93.5304, -93.5219, -93.5778, -94.0, -93.5, -93.75, -93.0, -92.75,
+          -93.0754, -92.2308, -93.0, -92.75, -92.5, -92.5, -92.25, -92.0]
+hours_3 = [0, 0, 0, 0, 0, 0, 0, 0,
+           1, 1, 1, 1, 1, 1, 1, 1]
+days_3 = [31, 31, 31, 31, 31, 31, 31, 31,
+          31, 31, 31, 31, 31, 31, 31, 31]
 latlont3 = []
 for lat,lon,t in zip(lats_3,lons_3,hours_3):
     latr = np.round(lat/0.25) * 0.25
@@ -1317,26 +1325,22 @@ for lat,lon,t in zip(lats_3,lons_3,hours_3):
 
 
 # May 21 2022
-lats_4 = [42.5, 42.25, 42.5,
-          42.5, 42.75, 42.75, 43.0, 42.75, 43.0,
-          43.0179, 42.9217, 42.75, 43.0, 43.25, 43.0, 43.25, 43.25,
-          43.5, 43.25, 43.75, 43.75, 43.5, 43.75,
-          44.1058, 44.1755, 44.0, 43.75, 44.0, 44.0, 44.25]
-lons_4 = [-83.0, -83.75, -83.25,
-          -83.0, -82.75, -82.5, -82.25, -82.25, -82.0,
-          -81.2216, -81.1977, -81.75, -81.5, -81.25, -81.0, -80.75, -81.0,
-          -80.5, -80.5, -80.5, -80.0, -80.25, -80.25,
-          -79.1458, -78.7722, -79.5, -79.5, -79.0, -78.5, -78.5]
-hours_4 = [13, 13, 13,
-           14, 14, 14, 14, 14, 14,
+lats_4 = [42.5, 42.5, 42.75, 43.0,
+          43.0179, 42.9217, 43.0, 42.75, 43.25, 42.74, 43.0, 43.5,
+          43.5, 43.25, 43.75, 43.5, 43.75, 43.5,
+          44.1058, 44.1755, 44.25, 44.0, 43.75, 44.0, 44.25, 44.0, 44.25]
+lons_4 = [-83.0, -82.5, -82.75, -82.25,
+          -81.2216, -81.1977, -81.75, -82.0, -81.5, -81.5, -81.0, -81.0,
+          -80.5, -80.75, -80.25, -80.0, -79.75, -79.75,
+          -79.1458, -78.7722, -79.25, -79.5, -79.25, -79.0, -79.0, -78.75, -78.75]
+hours_4 = [14, 14, 14, 14,
            15, 15, 15, 15, 15, 15, 15, 15,
            16, 16, 16, 16, 16, 16,
-           17, 17, 17, 17, 17, 17, 17]
-days_4 = [21, 21, 21,
-          21, 21, 21, 21, 21, 21,
+           17, 17, 17, 17, 17, 17, 17, 17, 17]
+days_4 = [21, 21, 21, 21,
           21, 21, 21, 21, 21, 21, 21, 21,
           21, 21, 21, 21, 21, 21,
-          21, 21, 21, 21, 21, 21, 21]
+          21, 21, 21, 21, 21, 21, 21, 21, 21]
 latlont4 = []
 for lat,lon,t in zip(lats_4,lons_4,hours_4):
     latr = np.round(lat/0.25) * 0.25
@@ -1345,18 +1349,18 @@ for lat,lon,t in zip(lats_4,lons_4,hours_4):
 
 
 # June 30 2026
-lats_5 = [45.6315, 44.6890,
-          44.4640, 44.3021, 44.3303,
-          44.0, 43.75]
-lons_5 = [-77.8432, -76.9664,
-          -76.7289, -76.5386, -76.9268,
-          -75.5, -75.5]
-hours_5 = [15, 15,
-           16, 16, 16,
-           17, 17]
-days_5 = [30, 30,
-          30, 30, 30,
-          30, 30]
+lats_5 = [44.4640, 44.3021, 44.75, 44.5, 44.75, 44.5, 44.25,
+          44.25, 44.25, 44.25, 44.0, 44.0, 44.0, 43.75, 44.0, 44.0,
+          43.9011, 43.75, 43.75, 44.0]
+lons_5 = [-76.7289, -76.5386, -77.0, -77.0, -76.75, -76.5, -76.75,
+          -76.5, -76.25, -76.0, -76.5, -76.25, -76.0, -76.0, -75.75, -75.5,
+          -75.4486, -75.5, -75.25, -75.25]
+hours_5 = [16, 16, 16, 16, 16, 16, 16,
+           17, 17, 17, 17, 17, 17, 17, 17, 17,
+           18, 18, 18, 18]
+days_5 = [30, 30, 30, 30, 30, 30, 30,
+          30, 30, 30, 30, 30, 30, 30, 30, 30,
+          30, 30, 30, 30]
 latlont5 = []
 for lat,lon,t in zip(lats_5,lons_5,hours_5):
     latr = np.round(lat/0.25) * 0.25
@@ -1365,10 +1369,22 @@ for lat,lon,t in zip(lats_5,lons_5,hours_5):
 
 
 # July 24 2025
-lats_6 = [43.47, 44.25, 45.00]
-lons_6 = [-81.18, -80.50, -79.25]
-hours_6 = [23, 23, 23]
-days_6 = [24, 24, 24]
+lats_6 = [44.5, 44.25, 44.5, 44.25, 44.0, 43.75, 44.0,
+          43.75, 43.5, 43.75, 44.0, 44.25, 43.75,
+          43.4561, 43.5, 43.75, 43.5, 43.75, 43.75, 43.5, 43.25, 43.25,
+          43.25, 43.25, 43.5, 43.0, 43.25, 43.25, 43.0]
+lons_6 = [-81.25, -81.5, -81.0, -81.25, -81.5, -81.5, -81.0,
+          -81.25, -81.5, -81.0, -80.75, -80.25, -80.75,
+          -81.2220, -81.0, -80.5, -80.75, -80.25, -80.0, -80.5, -81.75, -81.5,
+          -81.0, -81.25, -80.0, -81.25, -80.75, -80.5, -81.5]
+hours_6 = [21, 21, 21, 21, 21, 21, 21,
+           22, 22, 22, 22, 22, 22,
+           23, 23, 23, 23, 23, 23, 23, 23, 23,
+           0, 0, 0, 0, 0, 0, 0]
+days_6 = [24, 24, 24, 24, 24, 24, 24,
+          24, 24, 24, 24, 24, 24,
+          24, 24, 24, 24, 24, 24, 24, 24, 24,
+          25, 25, 25, 25, 25, 25, 25]
 latlont6 = []
 for lat,lon,t in zip(lats_6,lons_6,hours_6):
     latr = np.round(lat/0.25) * 0.25
@@ -1377,22 +1393,18 @@ for lat,lon,t in zip(lats_6,lons_6,hours_6):
 
 
 # July 3 2026
-lats_7 = [42.2766,
-          42.2393,
-          42.4226,
-          42.7505]
-lons_7 = [-83.7341,
-          -83.0576,
-          -82.1339,
-          -81.7004]
-hours_7 = [21,
-           22,
-           23,
-           0]
-days_7 = [3,
-          3,
-          3,
-          4]
+lats_7 = [42.0928, 42.25, 42.25, 42.25, 42.0, 42.0, 42.0, 42.0, 42.25,
+          42.4068, 42.3880, 42.25, 42.0, 42.25, 42.25, 42.75, 42.5,
+          42.5, 42.75, 43.0, 42.75, 43.0]
+lons_7 = [-83.1115, -83.5, -83.25, -83.0, -83.5, -83.25, -83.0, -82.75, -82.75,
+          -82.1286, -82.1066, -82.5, -82.5, -82.25, -82.0, -82.5, -82.5,
+          -81.75, -82.0, -82.25, -81.75, -82.0]
+hours_7 = [22, 22, 22, 22, 22, 22, 22, 22, 22,
+           23, 23, 23, 23, 23, 23, 23, 23,
+           0, 0, 0, 0, 0]
+days_7 = [3, 3, 3, 3, 3, 3, 3, 3, 3,
+          3, 3, 3, 3, 3, 3, 3, 3,
+          4, 4, 4, 4, 4]
 latlont7 = []
 for lat,lon,t in zip(lats_7,lons_7,hours_7):
     latr = np.round(lat/0.25) * 0.25
@@ -1400,12 +1412,62 @@ for lat,lon,t in zip(lats_7,lons_7,hours_7):
     latlont7.append([t,latr,lonr])
 
 
+# September 7 2021
+lats_8 = [43.9421, 43.7095, 44.25, 44.0, 44.25,
+          43.9027, 43.5713, 43.5399, 44.0, 43.75, 44.0, 44.0, 43.75, 43.75,
+          43.9187, 44.0, 44.0, 43.75, 43.75, 43.75, 44.0]
+lons_8 = [-81.7239, -81.7057, -81.5, -81.5, -81.25,
+          -80.9030, -81.1098, -81.0055, -81.25, -81.25, -80.75, -80.5, -80.75, -80.5,
+          -79.4874, -80.0, -79.75, -80.25, -80.0, -79.75, -79.25]
+hours_8 = [20, 20, 20, 20, 20,
+           21, 21, 21, 21, 21, 21, 21, 21, 21,
+           22, 22, 22, 22, 22, 22, 22]
+days_8 = [7, 7, 7, 7, 7,
+          7, 7, 7, 7, 7, 7, 7, 7, 7,
+          7, 7, 7, 7, 7, 7, 7]
+latlont8 = []
+for lat,lon,t in zip(lats_8,lons_8,hours_8):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont8.append([t,latr,lonr])
 
 
-latpoints = {"20210811":lats_1, "20250623":lats_2, "20220530":lats_3, "20220521":lats_4, "20260630":lats_5, "20250724":lats_6, "20260703":lats_7}
-lonpoints = {"20210811":lons_1, "20250623":lons_2, "20220530":lons_3, "20220521":lons_4, "20260630":lons_5, "20250724":lons_6, "20260703":lons_7}
-hourpoints = {"20210811":hours_1, "20250623":hours_2, "20220530":hours_3, "20220521":hours_4, "20260630":hours_5, "20250724":hours_6, "20260703":hours_7}
-daypoints = {"20210811":days_1, "20250623":days_2, "20220530":days_3, "20220521":days_4, "20260630":days_5, "20250724":days_6, "20260703":days_7}
+# August 2 2026
+lats_9 = [43.0, 43.0, 43.0,
+          43.0784, 43.0, 43.0, 43.25, 43.25,
+          43.0, 43.25, 43.0, 43.25]
+lons_9 = [-79.75, -80.0, -79.5,
+          -79.2324, -79.5, -79.0, -79.0, -79.25,
+          -79.0, -78.75, -78.75, -78.5]
+hours_9 = [15, 15, 15,
+           16, 16, 16, 16, 16,
+           17, 17, 17, 17]
+days_9 = [2, 2, 2,
+          2, 2, 2, 2, 2,
+          2, 2, 2, 2]
+latlont9 = []
+for lat,lon,t in zip(lats_9,lons_9,hours_9):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont9.append([t,latr,lonr])
+
+
+
+latpoints = {"20210811":lats_1, "20250623":lats_2, "20210907":lats_8,
+             "20220530":lats_3, "20220521":lats_4, "20260630":lats_5, 
+             "20250724":lats_6, "20260703":lats_7, "20260802":lats_9}
+
+lonpoints = {"20210811":lons_1, "20250623":lons_2, "20210907":lons_8,
+             "20220530":lons_3, "20220521":lons_4, "20260630":lons_5, 
+             "20250724":lons_6, "20260703":lons_7, "20260802":lons_9}
+
+hourpoints = {"20210811":hours_1, "20250623":hours_2, "20210907":hours_8,
+              "20220530":hours_3, "20220521":hours_4, "20260630":hours_5, 
+              "20250724":hours_6, "20260703":hours_7, "20260802":hours_9}
+
+daypoints = {"20210811":days_1, "20250623":days_2, "20210907":days_8,
+             "20220530":days_3, "20220521":days_4, "20260630":days_5, 
+             "20250724":days_6, "20260703":days_7, "20260802":days_9}
 
 
 
