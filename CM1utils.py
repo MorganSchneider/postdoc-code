@@ -542,5 +542,19 @@ def calc_dbz_p3(ds, nCat=1):
 
 
 
+def plot_violin(data, ax, fc='w', ec='k', lw=1, **kwargs):
+    v = ax.violinplot(data, **kwargs)
+    for vb in v['bodies']:
+        vb.set_facecolor(fc)
+        vb.set_edgecolor(ec)
+        vb.set_alpha(1)
+    for key in list(v.keys())[1:]:
+        v[key].set_linewidths(lw)
+        v[key].set_colors(ec)
+    
+    return v
+
+
+
 
 

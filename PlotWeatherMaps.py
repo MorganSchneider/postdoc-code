@@ -205,11 +205,13 @@ figsave = False
 
 # yyyyt = 2021; mmt = 8; ddt = 11; tor hht = 20,21 (17-22)
 # yyyyt = 2025; mmt = 6; ddt = 23-24; tor hht = 20,22,1 (17-23, 0-3)
+# yyyyt = 2021; mmt = 9; ddt = 7; tor hht = 20-22 (17-23)
 # yyyyt = 2022; mmt = 5; ddt = 30-31; tor hht = 0,1,2 (21-23, 0-3)
 # yyyyt = 2022; mmt = 5; ddt = 21; tor hht = 15,17 (12-18)
-# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-17)
+# yyyyt = 2026; mmt = 6; ddt = 30; tor hht = 16,17 (13-18)
 # yyyyt = 2025; mmt = 7; ddt = 24-25; bow/db hht = 21-23 (19-23, 0-1)
 # yyyyt = 2026; mmt = 7; ddt = 3-4; hht = 22-00 (19-23, 0-2)
+# yyyyt = 2026; mmt = 8; ddt = 2; hht = 16-17 (12-17)
 # yyyyt = 2026; mmt = 4; ddt = 15; tor/null hht = 5,6 (2-8)
 
 timt="%d-%s-%sT%s:00:00.000000000" %(yyyyt,str(mmt).zfill(2),str(ddt).zfill(2),str(hht).zfill(2))
@@ -226,6 +228,10 @@ elif (yyyyt==2025) & (mmt==6) & ((ddt==23)|(ddt==24)):
     lattstart = [48.3975, 48.4647, 48.2033, 47.9149, 46.7872, 46.7757]
     lontstart = [-75.5880, -75.4900, -73.5234, -73.5056, -70.7827, -70.4072]
     figfolder = fp+"/figs/20250623/"
+elif (yyyyt==2021) & (mmt==9) & (ddt==7):
+    lattstart = [43.9421, 43.7095, 43.9027, 43.5713, 43.5399, 43.9187]
+    lontstart = [-81.7239, -81.7057, -80.9030, -81.1098, -81.0055, -79.4874]
+    figfolder = fp+"/figs/20210907/"
 elif (yyyyt==2022) & (mmt==5) & ((ddt==30)|(ddt==31)):
     lattstart = [48.6148, 48.6699, 48.9114, 49.3689, 48.6757]
     lontstart = [-93.5304, -93.5219, -93.5778, -93.0754, -92.2308]
@@ -234,26 +240,42 @@ elif (yyyyt==2022) & (mmt==5) & (ddt==21):
     lattstart = [43.0179, 42.9217, 44.1058, 44.1755]
     lontstart = [-81.2216, -81.1977, -79.1458, -78.7722]
     figfolder = fp+"/figs/20220521/"
+elif (yyyyt==2026) & (mmt==6) & (ddt==30):
+    lattstart = [44.4640, 44.3021, 43.9011]
+    lontstart = [-76.7289, -76.5386, -75.4486]
+    figfolder = fp+"/figs/20260630/"
 elif (yyyyt==2025) & (mmt==7) & (ddt==24):
-    lattstart = [43.4700, 44.2500, 45.0000]
-    lontstart = [-81.1800, -80.5000, -79.2500]
+    lattstart = []
+    lontstart = []
     figfolder = fp+"/figs/20250724/"
+elif (yyyyt==2026) & (mmt==7) & ((ddt==3)|(ddt==4)):
+    lattstart = []
+    lontstart = []
+    figfolder = fp+"/figs/20260703/"
+elif (yyyyt==2026) & (mmt==8) & (ddt==2):
+    lattstart = []
+    lontstart = []
+    figfolder = fp+"/figs/20260802/"
+# extra cases
 elif (yyyyt==2026) & (mmt==4) & (ddt==15):
     lattstart = [42.2718, 42.2684, 42.2393, 42.2423]
     lontstart = [-83.7524, -83.2104, -83.0576, -82.8484]
     figfolder = fp+"/figs/20260415/"
-elif (yyyyt==2026) & (mmt==6) & (ddt==30):
-    lattstart = [44.4640, 44.3021, 44.3303, 45.6315, 44.6890]
-    lontstart = [-76.7289, -76.5386, -76.9268, -77.8432, -76.9664]
-    figfolder = fp+"/figs/20260630/"
-elif (yyyyt==2026) & (mmt==7) & ((ddt==3)|(ddt==4)):
-    lattstart = [42.2393, 42.4226, 42.7505, 42.2766]
-    lontstart = [-83.0576, -82.1339, -81.7004, -83.7341]
-    figfolder = fp+"/figs/20260703/"
-elif (yyyyt==2021) & (mmt==9) & (ddt==7):
-    lattstart = []
-    lontstart = []
-    figfolder = fp+"/figs/20210907/"
+# elif (yyyyt==2022) & (mmt==8) & ((ddt==2)|(ddt==3)):
+#     lattstart = [50.4961, 50.5822, 50.6197, 50.6461, 50.6542, 50.6856]
+#     lontstart = [-94.1375, -94.0039, -94.0122, -93.9406, -93.8642, -93.7758]
+# elif (yyyyt==2026) & (mmt==5) & (ddt==19):
+#     lattstart = [42.8518, 42.9117, 42.9874]
+#     lontstart = [-81.5513, -81.3402, -80.8983]
+# elif (yyyyt==2023) & (mmt==6) & (ddt==26):
+#     lattstart = [44.4531, 44.5229, 44.4911, 44.5796, 44.6447]
+#     lontstart = [-77.3223, -77.2820, -77.2735, -77.2735, -77.2886]
+# elif (yyyyt==2024) & (mmt==6) & (ddt==29):
+#     lattstart = [48.3431, 48.3865, 48.3525, 48.2921, 48.2532, 48.3104]
+#     lontstart = [-80.1639, -80.0776, -79.9718, -79.9626, -79.7957, -79.7777]
+# elif (yyyyt==2025) & (mmt==9) & (ddt==5):
+#     lattstart = []
+#     lontstart = []
 
 
 # # Didsbury

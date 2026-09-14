@@ -940,8 +940,8 @@ dbfile = open(fp+"tornado_locs.pkl", 'rb')
 locs = pickle.load(dbfile)
 dbfile.close()
 
-events = ["20210811", "20250623", "20210907",
-          "20220530", "20220521", "20260630", 
+events = ["20210811", "20250623", "20210907", "20220802",
+          "20220530", "20220521", "20260630", "20260902", "20260903",
           "20250724", "20260703", "20260802"]
 
 # lats = []
@@ -1051,7 +1051,24 @@ for i in range(len(events)):
         lclz[k] = data['lcl_height'].magnitude
         dcape[k] = data['dcape']
         downT[k] = data['downT'].magnitude
-        
+    
+    t2m = t2m[~np.isnan(t2m)]
+    td2m = td2m[~np.isnan(td2m)]
+    cape = cape[~np.isnan(cape)]
+    cin = cin[~np.isnan(cin)]
+    lclp = lclp[~np.isnan(lclp)]
+    shear06 = shear06[~np.isnan(shear06)]
+    shear03 = shear03[~np.isnan(shear03)]
+    shear01 = shear01[~np.isnan(shear01)]
+    srh03 = srh03[~np.isnan(srh03)]
+    srh01 = srh01[~np.isnan(srh01)]
+    lr = lr[~np.isnan(lr)]
+    sfcp = sfcp[~np.isnan(sfcp)]
+    lclz = lclz[~np.isnan(lclz)]
+    dcape = dcape[~np.isnan(dcape)]
+    downT = downT[~np.isnan(downT)]
+    
+    
     dat = dict(p=p, sfcp=sfcp, t2m=t2m, td2m=td2m, cape=cape, cin=cin, lclp=lclp, lclz=lclz, lr=lr,
                shear01=shear01, shear03=shear03, shear06=shear06, srh01=srh01, srh03=srh03, dcape=dcape, downT=downT)
     
@@ -1074,6 +1091,15 @@ labels = ['11 Aug 2021\n Outbreak ',
 labels_none = ['', '', '', '', '', '', '', '', '']
 bw = 0.25
 # colors = ['lightpink', 'salmon', 'crimson']
+boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1.25)
+whiskerprops=dict(color='k', linewidth=1.25)
+capprops=dict(color='k', linewidth=1.25)
+medianprops=dict(color='k', linewidth=1.25)
+meanprops=dict(marker='o', markerfacecolor='r', markeredgecolor='k')
+
+
+
+figsave = False
 
 # colors = 
 
@@ -1111,9 +1137,8 @@ lr_all = [data_all[events[i]]['lr'] for i in range(len(events))]
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(shear01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(shear01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 # b3 = ax.boxplot(shear03_all, tick_labels=labels_none, patch_artist=True, positions=np.arange(len(events))+0.2, widths=bw)
 # for patch in b3['boxes']:
 #     patch.set_facecolor('blue')
@@ -1124,116 +1149,701 @@ for patch in b['boxes']:
 ax.set_ylabel('Shear [m/s]')
 ax.set_title('0-1 km bulk wind difference')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_shear01.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(shear03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(shear03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Shear [m/s]')
 ax.set_title('0-3 km bulk wind difference')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_shear03.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(shear06_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(shear06_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Shear [m/s]')
 ax.set_title('0-6 km bulk wind difference')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_shear06.png', dpi=300)
 
 
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(cape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(cape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('CAPE [J/kg]')
 ax.set_title('CAPE')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_cape.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(cin_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(cin_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('CIN [J/kg]')
 ax.set_title('CIN')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_cin.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(dcape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(dcape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('DCAPE [J/kg]')
 ax.set_title('Downdraft CAPE')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_dcape.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
-b = ax.boxplot(lr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(lr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Lapse rate [K/km]')
 ax.set_title('Mid-level lapse rate (700-500 mb)')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_lapserate.png', dpi=300)
 
 
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(srh01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(srh01_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('0-1 km SRH')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_srh01.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(srh03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(srh03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('0-3 km SRH')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_srh03.png', dpi=300)
 
 
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(lclz_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(lclz_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Height [m]')
 ax.set_title('LCL height')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_lcl_height.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(tdepr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(tdepr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Temperature [C]')
 ax.set_title('Dewpoint depression')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_dewpt_depression.png', dpi=300)
 
 
 fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
-b = ax.boxplot(cpt_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw)
-for patch in b['boxes']:
-    patch.set_facecolor('lightskyblue')
+b = ax.boxplot(cpt_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
+               boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Temperature [C]')
 ax.set_title('Predicted cold pool temperature deficit')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_events_coldpool.png', dpi=300)
 
 
 
 
 plt.show()
+
+
+
+#%% Box plots - overall distributions for each event type
+# Currently- outbreak (n=71), sub-outbreak (n=63), null (n=63)
+
+fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+
+dbfile = open(fp+"tornado_locs.pkl", 'rb')
+locs = pickle.load(dbfile)
+dbfile.close()
+
+events = ["20210811", "20250623", "20210907", "20220802",
+          "20220530", "20220521", "20260630", "20260902", "20260903",
+          "20250724", "20260703", "20260802"]
+# outbreaks = [events[i] for i in range(len(events)) if locs[events[i]]['type']=='outbreak']
+# subs = [events[i] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak']
+# nulls = [events[i] for i in range(len(events)) if locs[events[i]]['type']=='null']
+
+
+figsave = False
+
+
+
+shear01_type = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear03_type = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear06_type = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cape_type = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cin_type = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+            -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+            -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
+lclz_type = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh01_type = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh03_type = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+t2m_type = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+            np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+            np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+td2m_type = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+             np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+downT_type = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+tdepr_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+            np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+            np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+              np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+lr_type = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+           np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+           np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+
+
+
+
+labels = ['Outbreaks', 'Sub-outbreaks', 'Nulls']
+labels_none = ['', '', '']
+bw = 0.25
+pos = [0, 0.5, 1.0]
+boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
+whiskerprops=dict(color='k', linewidth=1)
+capprops=dict(color='k', linewidth=1)
+medianprops=dict(color='k', linewidth=1)
+meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
+figsize=(6,4)
+xlim = [-0.4, 1.4]
+
+
+
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(shear01_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Shear [m/s]')
+# ax.set_title('0-1 km bulk wind difference')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,20])
+# ax.yaxis.set_major_locator(MultipleLocator(5))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_shear01.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(shear01_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-1 km bulk wind difference')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,20])
+ax.yaxis.set_major_locator(MultipleLocator(5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_shear01.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(shear03_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Shear [m/s]')
+# ax.set_title('0-3 km bulk wind difference')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,30])
+# ax.yaxis.set_major_locator(MultipleLocator(5))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_shear03.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(shear03_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-3 km bulk wind difference')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,30])
+ax.yaxis.set_major_locator(MultipleLocator(5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_shear03.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(shear06_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Shear [m/s]')
+# ax.set_title('0-6 km bulk wind difference')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,40])
+# ax.yaxis.set_major_locator(MultipleLocator(5))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_shear06.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(shear06_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('0-6 km bulk wind difference')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,40])
+ax.yaxis.set_major_locator(MultipleLocator(5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_shear06.png', dpi=300)
+
+
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(cape_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('CAPE [J/kg]')
+# ax.set_title('CAPE')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,2250])
+# ax.yaxis.set_major_locator(MultipleLocator(250))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_cape.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(cape_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('CAPE [J/kg]')
+ax.set_title('MLCAPE')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,2500])
+ax.yaxis.set_major_locator(MultipleLocator(250))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_cape.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(cin_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('CIN [J/kg]')
+# ax.set_title('MLCIN')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([-500,0])
+# ax.yaxis.set_major_locator(MultipleLocator(100))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_cin.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(cin_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('CIN [J/kg]')
+ax.set_title('MLCIN')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([-500,0])
+ax.yaxis.set_major_locator(MultipleLocator(100))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_cin.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(dcape_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('DCAPE [J/kg]')
+# ax.set_title('Downdraft CAPE')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([200,1400])
+# ax.yaxis.set_major_locator(MultipleLocator(200))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_dcape.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(dcape_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('DCAPE [J/kg]')
+ax.set_title('Downdraft CAPE')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([200,1400])
+ax.yaxis.set_major_locator(MultipleLocator(200))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_dcape.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(lr_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Lapse rate [K/km]')
+# ax.set_title('Mid-level lapse rate (700-500 mb)')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([5,8])
+# ax.yaxis.set_major_locator(MultipleLocator(0.5))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_lapserate.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(lr_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Lapse rate [K/km]')
+ax.set_title('Mid-level lapse rate (700-500 mb)')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([5,8])
+ax.yaxis.set_major_locator(MultipleLocator(0.5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_lapserate.png', dpi=300)
+
+
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(srh01_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('SRH [m2/s2]')
+# ax.set_title('0-1 km SRH')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([-50,300])
+# ax.yaxis.set_major_locator(MultipleLocator(50))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_srh01.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(srh01_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('0-1 km SRH')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([-50,400])
+ax.yaxis.set_major_locator(MultipleLocator(50))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_srh01.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(srh03_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('SRH [m2/s2]')
+# ax.set_title('0-3 km SRH')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,450])
+# ax.yaxis.set_major_locator(MultipleLocator(50))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_srh03.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(srh03_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('0-3 km SRH')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,500])
+ax.yaxis.set_major_locator(MultipleLocator(50))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_srh03.png', dpi=300)
+
+
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(lclz_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Height [m]')
+# ax.set_title('LCL height')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,1800])
+# ax.yaxis.set_major_locator(MultipleLocator(200))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_lcl_height.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(lclz_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Height [m]')
+ax.set_title('LCL height')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,1800])
+ax.yaxis.set_major_locator(MultipleLocator(200))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_lcl_height.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(tdepr_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Temperature [C]')
+# ax.set_title('Dewpoint depression (T - Td)')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([0,12])
+# ax.yaxis.set_major_locator(MultipleLocator(2))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_dewpt_depression.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(tdepr_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Temperature [C]')
+ax.set_title('Dewpoint depression (T - Td)')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([0,12])
+ax.yaxis.set_major_locator(MultipleLocator(2))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_dewpt_depression.png', dpi=300)
+
+
+# fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+# b = ax.boxplot(cpt_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
+#                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('Temperature [C]')
+# ax.set_title('Predicted cold pool temperature deficit')
+# # ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([-16,0])
+# ax.yaxis.set_major_locator(MultipleLocator(2))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# if figsave:
+#     plt.savefig(fp+'figs/boxplot_coldpool.png', dpi=300)
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v = plot_violin(cpt_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+ax.set_ylabel('Temperature [C]')
+ax.set_title('Predicted cold pool temperature deficit')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim(xlim)
+ax.set_ylim([-16,0])
+ax.yaxis.set_major_locator(MultipleLocator(2))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks(pos, labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_coldpool.png', dpi=300)
+
+
+#%%
+#####
+
+
+
+
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+b1 = ax.boxplot(shear01_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,1.0,2.0], widths=0.2, #showmeans=True,
+               boxprops=dict(facecolor='white', color='k', linewidth=1),
+               whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+b2 = ax.boxplot(shear03_type, tick_labels=labels, patch_artist=True, positions=[0.25,1.25,2.25], widths=0.2, #showmeans=True,
+               boxprops=dict(facecolor='lightgray', color='k', linewidth=1),
+               whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+b3 = ax.boxplot(shear06_type, tick_labels=labels_none, patch_artist=True, positions=[0.5,1.5,2.5], widths=0.2, #showmeans=True,
+               boxprops=dict(facecolor='gray', color='k', linewidth=1),
+               whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('Bulk wind shear')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,2.8])
+ax.set_ylim([0,40])
+ax.yaxis.set_major_locator(MultipleLocator(5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[b1['boxes'][0], b2['boxes'][0], b3['boxes'][0]], labels=['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
+if figsave:
+    plt.savefig(fp+'figs/boxplot_shear.png', dpi=300)
+
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v1 = plot_violin(shear01_type, ax, fc='white', ec='k', lw=1, positions=[0.0,1.0,2.0], widths=0.2, showmedians=True)
+v2 = plot_violin(shear03_type, ax, fc='lightgray', ec='k', lw=1, positions=[0.25,1.25,2.25], widths=0.2, showmedians=True)
+v3 = plot_violin(shear06_type, ax, fc='gray', ec='k', lw=1, positions=[0.5,1.5,2.5], widths=0.2, showmedians=True)
+ax.set_ylabel('Shear [m/s]')
+ax.set_title('Bulk wind shear')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,2.8])
+ax.set_ylim([0,40])
+ax.yaxis.set_major_locator(MultipleLocator(5))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], v3['bodies'][0]], labels=['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
+ax.set_xticks([0.25,1.25,2.25], labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_shear.png', dpi=300)
+
+
+#%%
+
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+b1 = ax.boxplot(srh01_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,0.8,1.6], widths=0.2, #showmeans=True,
+               boxprops=dict(facecolor='white', color='k', linewidth=1),
+               whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+b2 = ax.boxplot(srh03_type, tick_labels=labels_none, patch_artist=True, positions=[0.3,1.1,1.9], widths=0.2, #showmeans=True,
+               boxprops=dict(facecolor='silver', color='k', linewidth=1),
+               whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('Storm-relative helicity')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,2.2])
+ax.set_ylim([-50,500])
+ax.yaxis.set_major_locator(MultipleLocator(50))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[b1['boxes'][0], b2['boxes'][0]], labels=['0-1 km', '0-3 km'], loc='upper right')
+ax.set_xticks([0.15, 0.95, 1.75], labels)
+if figsave:
+    plt.savefig(fp+'figs/boxplot_srh.png', dpi=300)
+
+fig,ax = plt.subplots(figsize=figsize, layout='constrained')
+v1 = plot_violin(srh01_type, ax, fc='white', ec='k', lw=1, positions=[0.0,0.8,1.6], widths=0.2, showmedians=True)
+v2 = plot_violin(srh03_type, ax, fc='silver', ec='k', lw=1, positions=[0.3,1.1,1.9], widths=0.2, showmedians=True)
+ax.set_ylabel('SRH [m2/s2]')
+ax.set_title('Storm-relative helicity')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,2.2])
+ax.set_ylim([-50,500])
+ax.yaxis.set_major_locator(MultipleLocator(50))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[v1['bodies'][0], v2['bodies'][0]], labels=['0-1 km', '0-3 km'], loc='upper right')
+ax.set_xticks([0.15, 0.95, 1.75], labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_srh.png', dpi=300)
+
+
+
+
+fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
+b1 = ax.boxplot(cape_type, tick_labels=labels, patch_artist=True, positions=[0.0,0.5,1.0], widths=0.3, #showmeans=True,
+               boxprops=dict(facecolor='white', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+b2 = ax.boxplot(cin_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,0.5,1.0], widths=0.3, #showmeans=True,
+               boxprops=dict(facecolor='silver', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+ax.set_ylabel('CAPE/CIN [J/kg]')
+ax.set_title('Mixed-layer CAPE/CIN')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,1.3])
+ax.set_ylim([-500,2500])
+ax.yaxis.set_major_locator(MultipleLocator(250))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[b1['boxes'][0], b2['boxes'][0]], labels=['MLCAPE', 'MLCIN'], loc='upper right')
+if figsave:
+    plt.savefig(fp+'figs/boxplot_capecin.png', dpi=300)
+
+fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
+v1 = plot_violin(cape_type, ax, fc='white', ec='k', lw=1, positions=[0.0,0.5,1.0], widths=0.3, showmedians=True)
+v2 = plot_violin(cin_type, ax, fc='silver', ec='k', lw=1, positions=[0.0,0.5,1.0], widths=0.3, showmedians=True)
+ax.set_ylabel('CAPE/CIN [J/kg]')
+ax.set_title('Mixed-layer CAPE/CIN')
+ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+ax.set_xlim([-0.3,1.3])
+ax.set_ylim([-500,2500])
+ax.yaxis.set_major_locator(MultipleLocator(250))
+# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.legend(handles=[v1['bodies'][0], v2['bodies'][0]], labels=['MLCAPE', 'MLCIN'], loc='upper right')
+ax.set_xticks([0.0, 0.5, 1.0], labels)
+if figsave:
+    plt.savefig(fp+'figs/violinplot_capecin.png', dpi=300)
+
+
+
+
+
+plt.show()
+
+
+
+
 
 
 
@@ -1452,21 +2062,61 @@ for lat,lon,t in zip(lats_9,lons_9,hours_9):
     latlont9.append([t,latr,lonr])
 
 
+# August 2-3 2022
+lats_10 = [50.4961, 50.5822, 50.6197, 50.6461,
+           50.6542, 50.6856]
+lons_10 = [-94.1375, -94.0039, -94.0122, -93.9406,
+           -93.8642, -93.7758]
+hours_10 = [1, 1, 1, 1,
+            2, 2]
+days_10 = [3, 3, 3, 3,
+           3, 3]
+latlont10 = []
+for lat,lon,t in zip(lats_10,lons_10,hours_10):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont10.append([t,latr,lonr])
 
-latpoints = {"20210811":lats_1, "20250623":lats_2, "20210907":lats_8,
-             "20220530":lats_3, "20220521":lats_4, "20260630":lats_5, 
+
+# September 2 2026
+lats_11 = [43.6092, 43.3277, 43.3481, 43.4910]
+lons_11 = [-81.2014, -80.8992, -80.8193, -80.8012]
+hours_11 = [21, 21, 21, 21]
+days_11 = [2, 2, 2, 2]
+latlont11 = []
+for lat,lon,t in zip(lats_11,lons_11,hours_11):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont11.append([t,latr,lonr])
+
+
+# September 3 2026
+lats_12 = [42.3310, 42.1168]
+lons_12 = [-82.9762, -82.4868]
+hours_12 = [20, 20]
+days_12 = [3, 3]
+latlont12 = []
+for lat,lon,t in zip(lats_12,lons_12,hours_12):
+    latr = np.round(lat/0.25) * 0.25
+    lonr = np.round(lon/0.25) * 0.25
+    latlont12.append([t,latr,lonr])
+
+
+
+latpoints = {"20210811":lats_1, "20250623":lats_2, "20210907":lats_8, "20220802":lats_10,
+             "20220530":lats_3, "20220521":lats_4, "20260630":lats_5, "20260902":lats_11, "20260903":lats_12,
              "20250724":lats_6, "20260703":lats_7, "20260802":lats_9}
 
-lonpoints = {"20210811":lons_1, "20250623":lons_2, "20210907":lons_8,
-             "20220530":lons_3, "20220521":lons_4, "20260630":lons_5, 
+lonpoints = {"20210811":lons_1, "20250623":lons_2, "20210907":lons_8, "20220802":lons_10,
+             "20220530":lons_3, "20220521":lons_4, "20260630":lons_5, "20260902":lons_11, "20260903":lons_12,
              "20250724":lons_6, "20260703":lons_7, "20260802":lons_9}
 
-hourpoints = {"20210811":hours_1, "20250623":hours_2, "20210907":hours_8,
-              "20220530":hours_3, "20220521":hours_4, "20260630":hours_5, 
+hourpoints = {"20210811":hours_1, "20250623":hours_2, "20210907":hours_8, "20220802":hours_10,
+              "20220530":hours_3, "20220521":hours_4, "20260630":hours_5, "20260902":hours_11, "20260903":hours_12,
               "20250724":hours_6, "20260703":hours_7, "20260802":hours_9}
 
-daypoints = {"20210811":days_1, "20250623":days_2, "20210907":days_8,
-             "20220530":days_3, "20220521":days_4, "20260630":days_5, 
+daypoints = {"20210811":days_1, "20250623":days_2, "20210907":days_8, "20220802":days_10,
+             "20220530":days_3, "20220521":days_4, "20260630":days_5, "20260902":days_11, "20260903":days_12,
              "20250724":days_6, "20260703":days_7, "20260802":days_9}
 
 
