@@ -7,28 +7,36 @@ Created on Fri Sep 11 11:15:55 2026
 
 # Calculate QTor
 
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import netCDF4 as nc
-import xarray as xr
-import pandas as pd
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
-import metpy.calc as mc
-from metpy.plots import SkewT, Hodograph
-from metpy.units import units
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
+import xarray as xr
+from skimage import measure,morphology,filters
+# import sklearn
 from glob import glob
-from scipy.ndimage import gaussian_filter
 import os
 from os.path import exists
 from matplotlib.ticker import MultipleLocator
-
+from scipy.ndimage import gaussian_filter
 from skimage import measure,morphology,filters
-from QTORutils import *
 from metpy.interpolate import interpolate_to_points
+from datetime import datetime
 
+
+# import shapely
+# from shapely.geometry import Polygon
+# import centerline
+# from centerline.geometry import Centerline
+# import geojson
+# import geopandas as gpd
+# from scipy.spatial import KDTree
+
+
+from QTORutils import *
 
 
 ### STEPS
@@ -52,7 +60,7 @@ from metpy.interpolate import interpolate_to_points
 
 
 
-#%% Open files
+#%% Open file
 
 fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/qlcs_tornado_outbreaks/'
 
@@ -60,8 +68,8 @@ radar_name = 'KBUF'
 yyyyt = 2026
 mmt = 8
 ddt = 2
-# timestr = '162824'
-timestr = '161342'
+timestr = '162824'
+# timestr = '161342'
 filename = fp + f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_{timestr}_V06.ar2v"
 
 
@@ -76,25 +84,47 @@ cref = cradar.fields['composite_reflectivity']['data']
 gate_x = cradar.extract_sweeps([0]).gate_x['data']/1000
 gate_y = cradar.extract_sweeps([0]).gate_y['data']/1000
 rng = cradar.range['data']/1000
+gate_lat = cradar.extract_sweeps([0]).gate_latitude['data']
+gate_lon = cradar.extract_sweeps([0]).gate_longitude['data']
+
+#%% Cressman filtering
+
+
 
 max_rng = 300 #set max range, km
 hres = 3 #gridded resolution, km
+radius = 3
 
-pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-vals = cref[:,(rng<=max_rng)].ravel().data
-xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
-xi = np.array([xm.ravel(), ym.ravel()]).transpose()
+# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
+# vals = cref[:,(rng<=max_rng)].ravel().data
+# xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
+# xi = np.array([xm.ravel(), ym.ravel()]).transpose()
+# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
+# cref_interp = cref_interp_flat.reshape(xm.shape)
+# cref_smooth = filters.gaussian(cref_interp, sigma=0.8)
 
-cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-cref_interp = cref_interp_flat.reshape(xm.shape)
 
-cref_smooth = filters.gaussian(cref_interp, sigma=0.8)
+gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
+gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+vals = cref[:,(rng<=max_rng)].data
+xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, radius))
+cref_smooth = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
 
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+ax.set_title('Cressman interpolated cref')
+plt.show()
+
+
+glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
+glon = gate_lon[:,(rng<=max_rng)].astype(np.float32)
+lonm,latm = np.meshgrid(np.linspace(np.min(glon), np.max(glon), len(xm)), np.linspace(np.min(glat), np.max(glat), len(xm)))
 
 #%% Retrieve QLCS object IDs
 
 
-qlcs_labels, qlcs_regions = find_qlcs_objects(cref_smooth, hres, merge_distance=6)
+qlcs_labels, qlcs_regions = find_qlcs_objects(cref_smooth, hres)
 
 # if more than one object, pick the one with the highest dbz
 if len(qlcs_regions) > 1:
@@ -108,12 +138,15 @@ else:
 
 
 
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
+ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
+plt.show()
 
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
-# ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
-# plt.show()
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, qlcs_obj, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
+ax.set_title('Final QLCS object\n Object with highest dBZ ')
+plt.show()
 
 
 
@@ -125,7 +158,7 @@ ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
 
 
 # Previous volume
-radar1 = pyart.io.read(filenames[ind-2])
+radar1 = pyart.io.read(filenames[ind-1])
 gatefilter = pyart.filters.GateFilter(radar1)
 gatefilter.exclude_transition()
 gatefilter.exclude_below('cross_correlation_ratio', 0.9)
@@ -135,18 +168,22 @@ cref_prev = cradar_prev.fields['composite_reflectivity']['data']
 gate_x = cradar_prev.extract_sweeps([0]).gate_x['data']/1000
 gate_y = cradar_prev.extract_sweeps([0]).gate_y['data']/1000
 
-pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-vals = cref_prev[:,(rng<=max_rng)].ravel().data
-
-cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-cref_interp_prev = cref_interp_flat.reshape(xm.shape)
-cref_smooth_prev = filters.gaussian(cref_interp_prev, sigma=0.8)
+# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
+# vals = cref_prev[:,(rng<=max_rng)].ravel().data
+# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
+# cref_interp_prev = cref_interp_flat.reshape(xm.shape)
+# cref_smooth_prev = filters.gaussian(cref_interp_prev, sigma=0.8)
+print('Previous volume')
+gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
+gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+vals = cref_prev[:,(rng<=max_rng)].data
+cref_smooth_prev = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
 
 
 
 
 # Next volume
-radar2 = pyart.io.read(filenames[ind+2])
+radar2 = pyart.io.read(filenames[ind+1])
 gatefilter = pyart.filters.GateFilter(radar2)
 gatefilter.exclude_transition()
 gatefilter.exclude_below('cross_correlation_ratio', 0.9)
@@ -156,36 +193,52 @@ cref_next = cradar_next.fields['composite_reflectivity']['data']
 gate_x = cradar_next.extract_sweeps([0]).gate_x['data']/1000
 gate_y = cradar_next.extract_sweeps([0]).gate_y['data']/1000
 
-pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-vals = cref_next[:,(rng<=max_rng)].ravel().data
+# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
+# vals = cref_next[:,(rng<=max_rng)].ravel().data
+# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
+# cref_interp_next = cref_interp_flat.reshape(xm.shape)
+# cref_smooth_next = filters.gaussian(cref_interp_next, sigma=0.8)
+print('Next volume')
+gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
+gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+vals = cref_next[:,(rng<=max_rng)].data
+cref_smooth_next = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
 
-cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-cref_interp_next = cref_interp_flat.reshape(xm.shape)
-cref_smooth_next = filters.gaussian(cref_interp_next, sigma=0.8)
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth_prev, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# ax.set_title('Cressman interpolated cref, previous volume')
+# plt.show()
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth_next, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# ax.set_title('Cressman interpolated cref, next volume')
+# plt.show()
 
 
 
 #%% Find QLCS objects in previous and next volumes
 
-qlcs_labels_prev, qlcs_regions_prev = find_qlcs_objects(cref_smooth_prev, hres, merge_distance=6)
-qlcs_labels_next, qlcs_regions_next = find_qlcs_objects(cref_smooth_next, hres, merge_distance=6)
+qlcs_labels_prev, qlcs_regions_prev = find_qlcs_objects(cref_smooth_prev, hres)
+qlcs_labels_next, qlcs_regions_next = find_qlcs_objects(cref_smooth_next, hres)
 
 
 
-#%% Get centroids from analysis scan
+#%% Get centroids from analysis scan + previous and next scans
 
-# ib1,jb1,ib2,jb2 = qlcs_region.bbox
-# bbox = [[xm[ib1,jb1], ym[ib1,jb1]], [xm[ib1,jb2-1], ym[ib1,jb2-1]], [xm[ib2-1,jb1], ym[ib2-1,jb1]], [xm[ib2-1,jb2-1], ym[ib2-1,jb2-1]]]
+# jb1,ib1,jb2,ib2 = qlcs_region.bbox
+# bbox = [[xm[jb1,ib1], ym[jb1,ib1]], [xm[jb1,ib2-1], ym[jb1,ib2-1]], [xm[jb2-1,ib1], ym[jb2-1,ib1]], [xm[jb2-1,ib2-1], ym[jb2-1,ib2-1]]]
 
-i_centroid,j_centroid = qlcs_region.centroid
-ic1,jc1,ic2,jc2 = np.floor(i_centroid), np.floor(j_centroid), np.ceil(i_centroid), np.ceil(j_centroid)
-i1,j1,i2,j2 = int(ic1), int(jc1), int(ic2), int(jc2)
-x_centroid = (1 - abs(j_centroid-jc1))*xm[i1,j1] + (1 - abs(j_centroid-jc2))*xm[i1,j2]
-y_centroid = (1 - abs(i_centroid-ic1))*ym[i1,j1] + (1 - abs(i_centroid-ic2))*ym[i2,j1]
+j_centroid,i_centroid = qlcs_region.centroid
+jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+x_centroid = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+y_centroid = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
 centroid = [x_centroid, y_centroid]
 
 
-#%% Get centroids from previous and next scan
+#% Get centroids from previous and next scan
 
 qlcs_labels_prev_old = qlcs_labels_prev
 qlcs_labels_next_old = qlcs_labels_next
@@ -201,11 +254,11 @@ if len(qlcs_regions_prev) > 1:
     centroid_dist2 = np.zeros((len(qlcs_regions_prev),))
     regs = np.unique(qlcs_labels_prev[(qlcs_labels_prev>0)])
     for n in range(len(centroid_dist2)):
-        i_centroid,j_centroid = qlcs_regions_prev[n].centroid
-        ic1,jc1,ic2,jc2 = np.floor(i_centroid), np.floor(j_centroid), np.ceil(i_centroid), np.ceil(j_centroid)
-        i1,j1,i2,j2 = int(ic1), int(jc1), int(ic2), int(jc2)
-        xc[n] = (1 - abs(j_centroid-jc1))*xm[i1,j1] + (1 - abs(j_centroid-jc2))*xm[i1,j2]
-        yc[n] = (1 - abs(i_centroid-ic1))*ym[i1,j1] + (1 - abs(i_centroid-ic2))*ym[i2,j1]
+        j_centroid,i_centroid = qlcs_regions_prev[n].centroid
+        jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+        j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+        xc[n] = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+        yc[n] = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
         
         centroid_dist2[n] = (xc[n] - x_centroid)**2 + (yc[n] - y_centroid)**2
         
@@ -217,11 +270,11 @@ if len(qlcs_regions_prev) > 1:
     x_centroid_prev = xc[n_closest]
     y_centroid_prev = yc[n_closest]
 else:
-    i_centroid,j_centroid = qlcs_regions_prev[0].centroid
-    ic1,jc1,ic2,jc2 = np.floor(i_centroid), np.floor(j_centroid), np.ceil(i_centroid), np.ceil(j_centroid)
-    i1,j1,i2,j2 = int(ic1), int(jc1), int(ic2), int(jc2)
-    x_centroid_prev = (1 - abs(j_centroid-jc1))*xm[i1,j1] + (1 - abs(j_centroid-jc2))*xm[i1,j2]
-    y_centroid_prev = (1 - abs(i_centroid-ic1))*ym[i1,j1] + (1 - abs(i_centroid-ic2))*ym[i2,j1]
+    j_centroid,i_centroid = qlcs_regions_prev[0].centroid
+    jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+    j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+    x_centroid_prev = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+    y_centroid_prev = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
     
     qlcs_obj_prev = qlcs_labels_prev
     
@@ -233,11 +286,11 @@ if len(qlcs_regions_next) > 1:
     centroid_dist2 = np.zeros((len(qlcs_regions_next),))
     regs = np.unique(qlcs_labels_next[(qlcs_labels_next>0)])
     for n in range(len(centroid_dist2)):
-        i_centroid,j_centroid = qlcs_regions_next[n].centroid
-        ic1,jc1,ic2,jc2 = np.floor(i_centroid), np.floor(j_centroid), np.ceil(i_centroid), np.ceil(j_centroid)
-        i1,j1,i2,j2 = int(ic1), int(jc1), int(ic2), int(jc2)
-        xc[n] = (1 - abs(j_centroid-jc1))*xm[i1,j1] + (1 - abs(j_centroid-jc2))*xm[i1,j2]
-        yc[n] = (1 - abs(i_centroid-ic1))*ym[i1,j1] + (1 - abs(i_centroid-ic2))*ym[i2,j1]
+        j_centroid,i_centroid = qlcs_regions_next[n].centroid
+        jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+        j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+        xc[n] = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+        yc[n] = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
         
         centroid_dist2[n] = (xc[n] - x_centroid)**2 + (yc[n] - y_centroid)**2
         
@@ -249,18 +302,17 @@ if len(qlcs_regions_next) > 1:
     x_centroid_next = xc[n_closest]
     y_centroid_next = yc[n_closest]
 else:
-    i_centroid,j_centroid = qlcs_regions_next[0].centroid
-    ic1,jc1,ic2,jc2 = np.floor(i_centroid), np.floor(j_centroid), np.ceil(i_centroid), np.ceil(j_centroid)
-    i1,j1,i2,j2 = int(ic1), int(jc1), int(ic2), int(jc2)
-    x_centroid_next = (1 - abs(j_centroid-jc1))*xm[i1,j1] + (1 - abs(j_centroid-jc2))*xm[i1,j2]
-    y_centroid_next = (1 - abs(i_centroid-ic1))*ym[i1,j1] + (1 - abs(i_centroid-ic2))*ym[i2,j1]
+    j_centroid,i_centroid = qlcs_regions_next[0].centroid
+    jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+    j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+    x_centroid_next = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+    y_centroid_next = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
     
     qlcs_obj_next = qlcs_labels_next
 
 
 #%% Estimate storm motion from centroid displacement
 
-from datetime import datetime
 
 time = cradar.time['mean']
 time_prev = cradar_prev.time['mean']
@@ -282,8 +334,451 @@ v_sm = np.mean([v_prev, v_next])
 
 
 
+#%% Initial leading line identification using storm motion
 
-#%% Leading line identification
+# E-W search
+x_ll_u = []
+y_ll_u = []
+idx_ll_u = []
+jdy_ll_u = []
+
+for jdy in range(xm.shape[0]):
+    if np.any(qlcs_obj[jdy,:] > 0):
+        if u_sm > 0:
+            idx = np.where(qlcs_obj[jdy,:]>0)[0][-1]
+        elif u_sm < 0:
+            idx = np.where(qlcs_obj[jdy,:]>0)[0][0]
+        
+        x_ll_u.append(xm[jdy,idx])
+        y_ll_u.append(ym[jdy,idx])
+        idx_ll_u.append(idx)
+        jdy_ll_u.append(jdy)
+        
+
+# N-S search
+x_ll_v = []
+y_ll_v = []
+idx_ll_v = []
+jdy_ll_v = []
+
+for idx in range(ym.shape[1]):
+    if np.any(qlcs_obj[:,idx] > 0):
+        if v_sm > 0:
+            jdy = np.where(qlcs_obj[:,idx]>0)[0][-1]
+        elif v_sm < 0:
+            jdy = np.where(qlcs_obj[:,idx]>0)[0][0]
+        
+        x_ll_v.append(xm[jdy,idx])
+        y_ll_v.append(ym[jdy,idx])
+        idx_ll_v.append(idx)
+        jdy_ll_v.append(jdy)
+
+
+#%% Save leading line to pickles
+
+ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u}
+ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v}
+data = {'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
+
+dbfile = open(fp+'leading_line_test.pkl', 'wb')
+pickle.dump(data, dbfile)
+dbfile.close()
+
+
+
+data = {'xm':xm, 'ym':ym, 'cref_smooth':cref_smooth, 'qlcs_obj':qlcs_obj, 'x_centroid':x_centroid, 'y_centroid':y_centroid, 'qlcs_region':qlcs_region}
+dbfile = open(fp+'qlcs_object_test.pkl', 'wb')
+pickle.dump(data, dbfile)
+dbfile.close()
+
+
+
+
+#%% Find centerline
+
+
+qlcs_obj_smooth = filters.gaussian(qlcs_obj, sigma=5/3)
+
+thres = np.percentile(qlcs_obj_smooth[(qlcs_obj_smooth>0)], 60) #could just use 5e-20? idk if the limits are universal
+# thres = np.max(qlcs_obj_smooth) / 2
+# thres = 5e-20
+obj_smooth_bin = np.where(qlcs_obj_smooth>thres, 1, 0)
+
+contours = measure.find_contours(obj_smooth_bin.astype(bool), level=0.99, fully_connected='low')
+contours_int = [np.round(contours[n]).astype(int) for n in range(len(contours))]
+
+# contour = np.concatenate(contours)
+ind = np.asarray([len(contours[n]) for n in range(len(contours))])
+contour = contours[np.argmax(ind)]
+obj_contour_int = np.round(contour).astype(int)
+obj_contour = np.array([ [xm[j,i], ym[j,i]] for j,i in zip(obj_contour_int[:,0], obj_contour_int[:,1]) ])
+
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, qlcs_obj_smooth, 'dbz', ax, datalims=[0,np.max(qlcs_obj_smooth)], cmap='HomeyerRainbow')
+# ax.scatter(x_centroid, y_centroid, marker='.', s=30, c='k')
+# ax.set_title(f"QLCS object smoothed")
+# plt.show()
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, obj_smooth_bin, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
+# ax.scatter(x_centroid, y_centroid, marker='.', s=30, c='k')
+# for j,i in zip(obj_contour_int[:,0], obj_contour_int[:,1]):
+#     ax.scatter(xm[j,i], ym[j,i], marker='.', s=1, c='yellow')
+# ax.set_title(f"QLCS object smoothed, binarized")
+# plt.show()
+
+
+
+
+polygon = Polygon(obj_contour)
+centerline = Centerline(polygon)
+
+
+
+if True:
+    new_centerline, centerline_length = longest_continuous_branch(centerline.geometry)
+
+trimmed_centerline = substring(new_centerline, 0.05*centerline_length, 0.95*centerline_length)
+
+x_cl,y_cl = trimmed_centerline.xy
+
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+# ax.scatter(x_centroid, y_centroid, marker='.', s=30, c='k')
+# ax.set_title(f"QLCS polygon with centerline")
+# plt.show()
+
+
+
+if False:
+    data_cl = {'x':x_cl, 'y':y_cl, 'centerline':new_centerline, 'trimmed_centerline':trimmed_centerline}
+    dbfile = open(fp+'centerline_test.pkl', 'wb')
+    pickle.dump(data_cl, dbfile)
+    dbfile.close()
+
+
+
+#%% QC and smooth leading line points
+#   Find closest centerline point to each leading line point,
+#   create vector between centerline and leading line points,
+#   exclude any leading line points misaligned with expected SM
+
+from scipy.spatial import KDTree
+
+
+
+dbfile = open(fp+'leading_line_test.pkl', 'rb')
+ll = pickle.load(dbfile)
+u_sm = ll['u_sm']
+v_sm = ll['v_sm']
+x_zonal = ll['zonal']['x']
+y_zonal = ll['zonal']['y']
+x_merid = ll['meridional']['x']
+y_merid = ll['meridional']['y']
+dbfile.close()
+
+
+dbfile = open(fp+'centerline_test.pkl', 'rb')
+cl = pickle.load(dbfile)
+x_cl = cl['x']
+y_cl = cl['y']
+dbfile.close()
+
+
+cl_points = np.column_stack( (x_cl, y_cl))
+zonal_points = np.column_stack( (x_zonal, y_zonal))
+merid_points = np.column_stack( (x_merid, y_merid))
+
+tree_cl = KDTree(cl_points)
+
+
+# Zonal
+dist_zonal,inds_zonal = tree_cl.query(zonal_points) # Find nearest centerline point in tree_cl to each zonal point
+
+# Meridional
+dist_merid,inds_merid = tree_cl.query(merid_points) # Find nearest centerline point in tree_cl to each meridional point
+
+cl_points_matched_zonal = np.array([cl_points[inds_zonal[i]] for i in range(len(inds_zonal))])
+cl_points_matched_merid = np.array([cl_points[inds_merid[i]] for i in range(len(inds_merid))])
+
+vector_zonal = zonal_points - cl_points_matched_zonal
+vector_merid = merid_points - cl_points_matched_merid
+
+
+
+
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+# ax.scatter(x_zonal, y_zonal, marker='.', s=1, c='red')
+# ax.plot(np.column_stack((cl_points_matched_zonal[:,0], x_zonal)).transpose(), np.column_stack((cl_points_matched_zonal[:,1], y_zonal)).transpose(), '-r', linewidth=0.75)
+# ax.set_title(f"QLCS polygon with centerline and zonal points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+# plt.show()
+
+
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+# ax.scatter(x_merid, y_merid, marker='.', s=1, c='red')
+# ax.plot(np.column_stack((cl_points_matched_merid[:,0], x_merid)).transpose(), np.column_stack((cl_points_matched_merid[:,1], y_merid)).transpose(), '-r', linewidth=0.75)
+# ax.set_title(f"QLCS polygon with centerline and meridional points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+# plt.show()
+
+
+
+if abs(u_sm) > abs(v_sm):
+    # zonal_points_filtered = zonal_points[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
+    # merid_points_filtered = merid_points[((vector_merid[:,0]/u_sm > 0) & (abs(vector_merid[:,0])>abs(vector_merid[:,1]))),:]
+    # cl_points_filtered_zonal = cl_points_matched_zonal[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
+    zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_sm > 0),:]
+    merid_points_filtered = merid_points[(vector_merid[:,0]/u_sm > 0),:]
+    idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,0]/u_sm > 0)]
+    jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,0]/u_sm > 0)]
+    idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,0]/u_sm > 0)]
+    jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,0]/u_sm > 0)]
+elif abs(v_sm) > abs(u_sm):
+    # zonal_points_filtered = zonal_points[((vector_zonal[:,1]/v_sm > 0) & (abs(vector_zonal[:,1])>abs(vector_zonal[:,0]))),:]
+    # merid_points_filtered = merid_points[((vector_merid[:,1]/v_sm > 0) & (abs(vector_merid[:,1])>abs(vector_merid[:,0]))),:]
+    zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_sm > 0),:]
+    merid_points_filtered = merid_points[(vector_merid[:,1]/v_sm > 0),:]
+    idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,1]/v_sm > 0)]
+    jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,1]/v_sm > 0)]
+    idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,1]/v_sm > 0)]
+    jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,1]/v_sm > 0)]
+
+
+
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+# ax.scatter(zonal_points_filtered[:,0], zonal_points_filtered[:,1], marker='.', s=2, c='r')
+# ax.scatter(merid_points_filtered[:,0], merid_points_filtered[:,1], marker='.', s=2, c='b')
+# # ax.plot(np.column_stack((cl_points_matched_zonal[:,0], x_zonal)).transpose(), np.column_stack((cl_points_matched_zonal[:,1], y_zonal)).transpose(), '-r', linewidth=0.75)
+# ax.set_title(f"QLCS polygon with centerline and zonal points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+# plt.show()
+
+
+
+
+
+
+def distance(point1, point2):
+    return math.hypot(point2[0] - point1[0], point2[1] - point1[1])
+
+
+
+
+ll_points_cat = []
+seen = set()
+
+for item in zonal_points_filtered.tolist() + merid_points_filtered.tolist():
+    # if tuple(ll_points_cat[i]) not in seen:
+    if tuple(item) not in seen:
+        seen.add(tuple(item))
+        ll_points_cat.append(item)
+
+
+ll_points_merged = []
+query_point = [-300, 300]
+points_tmp = [item for item in ll_points_cat]
+is_sorted = [False] * len(ll_points_cat)
+
+tree_ll = KDTree(np.asarray(ll_points_cat))
+dist,ind = tree_ll.query([-300,300])
+start_point = ll_points_cat[ind]
+points_tmp.remove(start_point)
+query_point = start_point
+ll_points_merged.append(start_point)
+
+for i in range(len(ll_points_cat)-1):
+    tree = KDTree(np.asarray(points_tmp))
+    dist,ind = tree.query(start_point)
+    
+    dist2,ind2 = tree.query(query_point)
+    
+    ll_points_merged.append(points_tmp[ind])
+    points_tmp.remove(points_tmp[ind])
+
+ll_points_sorted = [item for item in ll_points_merged]
+# fix messed up points
+for i in range(1, len(ll_points_cat)-1):
+    d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
+    d2 = distance(ll_points_sorted[i], ll_points_sorted[i+1])
+    d3 = distance(ll_points_sorted[i-1], ll_points_sorted[i+1])
+    
+    if (d1>d3) & (d2>d3):
+        ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
+
+
+
+
+ll_points_merged = np.asarray(ll_points_merged, dtype=float)
+ll_points_sorted = np.asarray(ll_points_sorted, dtype=float)
+ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=2/3, axis=0)
+
+ll_points = ll_points_smooth
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+# ax.plot(ll_points_merged[:,0], ll_points_merged[:,1], 'r', linewidth=1)
+# ax.plot(ll_points_sorted[:,0], ll_points_sorted[:,1], 'b', linewidth=1)
+# ax.plot(ll_points_smooth[:,0], ll_points_smooth[:,1], 'w', linewidth=1)
+# # ax.scatter(zonal_points_filtered[:,0], zonal_points_filtered[:,1], marker='.', s=2, c='r')
+# # ax.scatter(merid_points_filtered[:,0], merid_points_filtered[:,1], marker='.', s=2, c='b')
+# # ax.plot(np.column_stack((cl_points_matched_zonal[:,0], x_zonal)).transpose(), np.column_stack((cl_points_matched_zonal[:,1], y_zonal)).transpose(), '-r', linewidth=0.75)
+# ax.set_title(f"QLCS polygon with centerline and zonal points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+# plt.show()
+
+
+
+
+if False:
+    ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u,
+                'x_filtered':zonal_points_filtered[:,0], 'y_filtered':zonal_points_filtered[:,1]}
+    ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v,
+                     'x_filtered':merid_points_filtered[:,0], 'y_filtered':merid_points_filtered[:,1]}
+    data = {'ll_points':ll_points_smooth, 'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
+    
+    dbfile = open(fp+'leading_line_test_2.pkl', 'wb')
+    pickle.dump(data, dbfile)
+    dbfile.close()
+
+
+
+
+#%% Get inflow polygon
+
+dbfile = open(fp+'leading_line_test_2.pkl', 'rb')
+tmp = pickle.load(dbfile)
+ll_points = tmp['ll_points']
+x_ll = ll_points[:,0]
+y_ll = ll_points[:,1]
+dbfile.close()
+
+theta_local = np.zeros((len(ll_points),), dtype=float)
+theta_norm = np.zeros((len(ll_points),), dtype=float)
+x_proj = np.zeros((len(ll_points),), dtype=float)
+y_proj = np.zeros((len(ll_points),), dtype=float)
+dist = 40
+
+for i in range(len(ll_points)):
+    if i == 0:
+        theta_local[i] = np.arctan2(y_ll[i+1]-y_ll[i], x_ll[i+1]-x_ll[i])
+    elif i == len(ll_points)-1:
+        theta_local[i] = np.arctan2(y_ll[i]-y_ll[i-1], x_ll[i]-x_ll[i-1])
+    else:
+        dist1 = distance([x_ll[i],y_ll[i]], [x_ll[i-1],y_ll[i-1]])
+        dist2 = distance([x_ll[i],y_ll[i]], [x_ll[i+1],y_ll[i+1]])
+        theta1 = np.arctan2(y_ll[i]-y_ll[i-1], x_ll[i]-x_ll[i-1])
+        theta2 = np.arctan2(y_ll[i+1]-y_ll[i], x_ll[i+1]-x_ll[i])
+        theta_local[i] = dist2/(dist1+dist2)*theta1 + dist1/(dist1+dist2)*theta2
+
+
+
+
+for i in range(len(theta_local)):
+    if abs(u_sm) > abs(v_sm):
+        if u_sm > 0:
+            theta_norm[i] = theta_local[i] + np.pi/2
+        elif u_sm < 0:
+            theta_norm[i] = theta_local[i] - np.pi/2
+    elif abs(v_sm) > abs(u_sm):
+        if v_sm > 0:
+            theta_norm[i] = theta_local[i] + np.pi/2
+        elif v_sm < 0:
+            theta_norm[i] = theta_local[i] - np.pi/2
+    
+    
+    x_proj[i] = x_ll[i] + dist*np.cos(theta_norm[i])
+    y_proj[i] = y_ll[i] + dist*np.sin(theta_norm[i])
+
+
+
+# QC polygon
+
+qc_points = ll_points.tolist()
+qc_points.append([-300,-300])
+qc_polygon = Polygon(qc_points)
+
+
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(qc_polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_ll, y_ll, 'k', linewidth=1)
+# ax.plot(x_proj, y_proj, 'k', linewidth=1)
+# ax.set_title(f"Projection QC polygon")
+# ax.set_xlim([-300,300])
+# ax.set_ylim([-300,300])
+# plt.show()
+
+
+theta_norm_qc = np.zeros((len(ll_points),))
+x_proj_qc = np.zeros((len(ll_points),))
+y_proj_qc = np.zeros((len(ll_points),))
+
+for i in range(len(ll_points)):
+    point = Point(x_proj[i], y_proj[i])
+    is_inside = qc_polygon.contains(point)
+    if is_inside:
+        if theta_norm[i] > 0:
+            theta_norm_qc[i] = theta_norm[i] - np.pi
+        else:
+            theta_norm_qc[i] = theta_norm[i] + np.pi
+        x_proj_qc = x_ll[i] + dist*np.cos(theta_norm_qc[i])
+        y_proj_qc = y_ll[i] + dist*np.sin(theta_norm_qc[i])
+    else:
+        theta_norm_qc[i] = theta_norm[i]
+        x_proj_qc[i] = x_proj[i]
+        y_proj_qc[i] = y_proj[i]
+
+
+
+# ll_points = ll_points.tolist()
+leading_points = [[x_ll[i], y_ll[i]] for i in range(len(ll_points))]
+proj_points = [[x_proj_qc[i], y_proj_qc[i]] for i in range(len(ll_points))][::-1]
+
+inflow_polygon = shapely.buffer(Polygon(leading_points+proj_points), 0)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+plot_polygon(inflow_polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+ax.set_title(f"Inflow polygon")
+ax.set_xlim([-300,300])
+ax.set_ylim([-300,300])
+plt.show()
+
+
+
+#%% Inflow shear analysis
+
+# need to save lonm and latm to pickle probably. need those for era5
 
 
 
@@ -311,7 +806,40 @@ v_sm = np.mean([v_prev, v_next])
 
 
 
-#%%
+
+
+
+
+
+
+
+#%% empty space here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%% QLCS object ID testing and debugging
 
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
@@ -358,33 +886,18 @@ plt.show()
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_smooth_prev, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-ax.set_title('Gridded CRef with Gaussian smoothing, prev')
+ax.set_title('Gridded CRef, prev')
 plt.show()
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-ax.set_title('Gridded CRef with Gaussian smoothing')
+ax.set_title('Gridded CRef')
 plt.show()
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_smooth_next, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-ax.set_title('Gridded CRef with Gaussian smoothing, next')
+ax.set_title('Gridded CRef, next')
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -420,7 +933,7 @@ regions = measure.regionprops(cref_labeled)
 # ix2 = bbox[2]-1
 # iy2 = bbox[3]-1
 
-
+#%%
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(gate_x, gate_y, cref, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
 ax.set_title('Original composite reflectivity')
@@ -438,7 +951,7 @@ plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow
 ax.set_title('Gridded CRef with Gaussian smoothing')
 plt.show()
 
-
+#%%
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_bin, 'dbz', ax, datalims=[0,1], cmap='Grays')
@@ -601,6 +1114,26 @@ fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_merged_filtered, 'dbz', ax, datalims=[0,np.max(regions_fin)], cmap='HomeyerRainbow')
 ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
 plt.show()
+
+
+
+
+
+#%% 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -17,12 +17,34 @@ import netCDF4 as nc
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
 # import xarray as xr
-from skimage import measure,morphology,filters
 # import sklearn
-# from glob import glob
+from glob import glob
 import os
 from os.path import exists
 from matplotlib.ticker import MultipleLocator
+from scipy.ndimage import gaussian_filter
+from skimage import measure,morphology,filters
+from metpy.interpolate import interpolate_to_points
+from datetime import datetime
+
+from scipy.ndimage import gaussian_filter1d
+import math
+
+import shapely
+from shapely.geometry import Polygon,Point,LineString,MultiLineString
+from shapely.plotting import plot_polygon
+from centerline.geometry import Centerline
+from shapely.ops import linemerge,substring
+import networkx as nx
+
+# import shapely
+# from shapely.geometry import Polygon
+# import centerline
+# from centerline.geometry import Centerline
+# import geojson
+# import geopandas as gpd
+# from scipy.spatial import KDTree
+
 
 #%%
 
@@ -69,66 +91,13 @@ cmaps = {
 #%% Data processing and analysis functions
 
 
-def cressman_interpolation(obs_lats, obs_lons, data, grid_lats, grid_lons, radius):
-    '''
-    obs_lats  : 2D array-like of observation lats (y) - shape (M,N)
-    obs_lons  : 2D array-like of observation lons (x) - shape (M,N)
-    data      : 2D array-like of observation values - shape (M,N)
-    grid_lats : 2D array-like of grid lats - shape (P,Q)
-    grid_lons : 2D array-like of grid lons - shape (P,Q)
-    radius    : Radius of influence
-    '''
-    
-    # Convert inputs to numpy arrays
-    obs_lats = np.asarray(obs_lats, dtype=np.float32)
-    obs_lons = np.asarray(obs_lons, dtype=np.float32)
-    data = np.asarray(data, dtype=np.float32)
-    grid_lats = np.asarray(grid_lats, dtype=np.float32)
-    grid_lons = np.asarray(grid_lons, dtype=np.float32)
-    
-    # Flatten grid for vectorized computation
-    obs_lat_flat = obs_lats.ravel()
-    obs_lon_flat = obs_lons.ravel()
-    data_flat = data.ravel()
-    grid_lat_flat = grid_lats.ravel()
-    grid_lon_flat = grid_lons.ravel()
-    
-    # Compute squared distances between each grid point and each observation
-    # Broadcasting: (G,1) - (1,O) → (G,O)
-    dlat2 = (grid_lat_flat[:,None] - obs_lat_flat[None,:])**2
-    dlon2 = (grid_lon_flat[:,None] - obs_lon_flat[None,:])**2
-    dist2 = dlat2 + dlon2
-    
-    # Apply Cressman weights only where dist2 < radius^2
-    mask = dist2 < radius**2
-    weights = np.zeros_like(dist2)
-    weights[mask] = (radius**2 - dist2[mask]) / (radius**2 + dist2[mask])
-    
-    # Weighted sum and normalization
-    weighted_sum = np.sum(weights*data_flat[None,:], axis=1)
-    weight_total = np.sum(weights, axis=1)
-    
-    # Avoid division by 0
-    with np.errstate(divide='ignore', invalid='ignore'):
-        analysis_flat = np.where(weight_total>0, weighted_sum/weight_total, np.nan)
-    
-    # Reshape data back to grid shape
-    analysis = analysis_flat.reshape(grid_lats.shape)
-    
-    return analysis
-    
-    
-    
-
-
 # Retrieve QLCS objects
-
 def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, min_length1=100, min_length2=150, min_ecc1=0.85, min_ecc2=0.74, min_area=54):
     '''
     QLCS object identification following Britt et al. 2024 and 2026.
     
-    cref : Composite reflectivity interpolated onto 2D Cartesian grid.
-    hres : Horizontal grid resolution.
+    cref : Composite reflectivity interpolated onto 2D Cartesian grid (and smoothed if needed, ideally).
+    hres : Horizontal grid resolution (assumed km).
     min_cref : First reflectivity threshold for initial storm object ID. Default is 40 dBZ.
     max_cref : Second reflectivity threshold for filtering storm objects. Default is 45 dBZ.
     merge_distance : Distance threshold for merging storm objects. Default is 12 km.
@@ -159,12 +128,6 @@ def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, m
     obj_labels_filtered = np.zeros(shape=obj_labels.shape, dtype=int)
 
     for i in range(len(regions)):
-        area = regions[i].area
-        axis_major = regions[i].axis_major_length
-        coords = regions[i].coords
-        bbox = regions[i].bbox
-        ecc = regions[i].eccentricity
-        
         if np.nanmax(cref[(obj_labels==i+1)]) > max_cref:
             maxz_met = True
             obj_labels_filtered[(obj_labels==i+1)] = i+1
@@ -178,8 +141,8 @@ def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, m
     cref_bin_filtered[(obj_labels_filtered>0)] = True
     
     # Dilate binarized objects to merge objects within merge_distance of each other
-    merge_len_oneway = merge_distance / hres #convert to number of pixels
-    if np.mod(merge_distance, hres) != 0:
+    merge_len_oneway = 0.5*merge_distance / hres #convert to number of pixels
+    if np.mod(0.5*merge_distance, hres) != 0:
         merge_len_oneway = np.round(merge_len_oneway)
     merge_len = int(2*merge_len_oneway + 1)
     footprint = morphology.footprint_rectangle((merge_len, merge_len))
@@ -200,12 +163,11 @@ def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, m
     
     n = 0
     for i in range(len(regions_merged)):
-        area = regions_merged[i].area
+        # area = regions_merged[i].area
         axis_major = regions_merged[i].axis_major_length
         ecc = regions_merged[i].eccentricity
         
-        print(f"Region {i+1} major axis= {axis_major:.1f} pixels ({axis_major*3:.1f} km) , ecc={ecc:.2f}")
-        
+        # print(f"Region {i+1} major axis= {axis_major:.1f} pixels ({axis_major*3:.1f} km) , ecc={ecc:.2f}")
         
         if (axis_major > 33) & (ecc > 0.85):
             lenecc_met = True
@@ -224,11 +186,155 @@ def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, m
             qlcs_regions_final.append(regions_merged[i])
     
     return qlcs_labels_final, qlcs_regions_final
+
+
+
+
+# Cressman filtering interpolation - does not work with large datasets
+def cressman_interpolation(obs_x, obs_y, data, grid_x, grid_y, radius):
+    '''
+    obs_x  : array-like of observation x points
+    obs_y  : array-like of observation y points
+    data   : array-like of observations
+    grid_x : array-like of grid x points
+    grid_y : array-like of grid y points
+    radius : Radius of influence
+    '''
     
+    # Convert inputs to numpy arrays
+    obs_x = np.asarray(obs_x, dtype=np.float32)
+    obs_y = np.asarray(obs_y, dtype=np.float32)
+    data = np.asarray(data, dtype=np.float32)
+    grid_x = np.asarray(grid_x, dtype=np.float32)
+    grid_y = np.asarray(grid_y, dtype=np.float32)
     
+    # Flatten grid for vectorized computation
+    obs_x_flat = obs_x.ravel()
+    obs_y_flat = obs_y.ravel()
+    data_flat = data.ravel()
+    grid_x_flat = grid_x.ravel()
+    grid_y_flat = grid_y.ravel()
     
+    # Compute squared distances between each grid point and each observation
+    # Broadcasting: (G,1) - (1,O) → (G,O)
+    dx2 = (grid_x_flat[:,None] - obs_x_flat[None,:])**2
+    dy2 = (grid_y_flat[:,None] - obs_y_flat[None,:])**2
+    dist2 = dx2 + dy2
     
+    # Apply Cressman weights only where dist2 < radius^2
+    mask = dist2 < radius**2
+    weights = np.zeros_like(dist2)
+    weights[mask] = (radius**2 - dist2[mask]) / (radius**2 + dist2[mask])
     
+    # Weighted sum and normalization
+    weighted_sum = np.sum(weights*data_flat[None,:], axis=1)
+    weight_total = np.sum(weights, axis=1)
+    
+    # Avoid division by 0
+    with np.errstate(divide='ignore', invalid='ignore'):
+        analysis_flat = np.where(weight_total>0, weighted_sum/weight_total, np.nan)
+    
+    # Reshape data back to grid shape
+    analysis = analysis_flat.reshape(grid_x.shape)
+    
+    return analysis
+
+
+
+
+# Cressman filtering interpolation - parallelized with Dask to work with large datasets 
+def cressman_interpolation_dask(obs_x, obs_y, data, grid_x, grid_y, radius, chunk_size=5000):
+    import dask.array as da
+    from dask.diagnostics import ProgressBar
+    
+    obs_x = np.asarray(obs_x, dtype=np.float32)
+    obs_y = np.asarray(obs_y, dtype=np.float32)
+    data = np.asarray(data, dtype=np.float32)
+    grid_x = np.asarray(grid_x, dtype=np.float32)
+    grid_y = np.asarray(grid_y, dtype=np.float32)
+    
+    # Flatten obs and grid for vectorized computation
+    obs_points = np.column_stack( (obs_x.ravel(), obs_y.ravel()) )
+    obs_values = data.ravel()
+    grid_points = np.column_stack( (grid_x.ravel(), grid_y.ravel()) )
+    # grid_values = np.full(grid_points.shape[0], np.nan, dtype=np.float32)
+    
+    # Convert to Dask arrays if not already
+    # obs_points_da = da.from_array(obs_points, chunks=(chunk_size, 2))
+    # obs_values_da = da.from_array(obs_values, chunks=(chunk_size,))
+    grid_points_da = da.from_array(grid_points, chunks=(chunk_size, 2))
+    
+    radius2 = radius**2
+    
+    def interpolate_point(gp):
+        """Interpolate a single grid point (NumPy inside Dask map_blocks)."""
+        dx = obs_points[:, 0] - gp[0] #should this be obs_points_da?
+        dy = obs_points[:, 1] - gp[1]
+        dist2 = dx**2 + dy**2
+
+        mask = dist2 <= radius2
+        if not np.any(mask):
+            return np.nan
+
+        weights = (radius2 - dist2[mask]) / (radius2 + dist2[mask])
+        weights = np.clip(weights, 0, None)
+
+        if np.sum(weights) > 0:
+            return np.sum(weights * obs_values[mask]) / np.sum(weights)
+        else:
+            return np.nan
+        
+    # Apply interpolation to each grid point lazily
+    interpolated_da = grid_points_da.map_blocks(
+        lambda block: np.array([interpolate_point(gp) for gp in block]),
+        dtype=float,
+        drop_axis=1
+    )
+
+    # Reshape to grid
+    interpolated_da = interpolated_da.reshape(grid_x.shape)
+    
+    # Compute with progress bar
+    with ProgressBar():
+        interpolated = interpolated_da.compute()
+
+    return interpolated
+
+
+
+
+def longest_continuous_branch(multilines):
+    if not isinstance(multilines, MultiLineString):
+        raise TypeError("Input must be a shapely MultiLineString")
+
+    # Build a graph where nodes are coordinates and edges are line segments
+    G = nx.Graph()
+    for line in multilines.geoms:
+        coords = list(line.coords)
+        for i in range(len(coords) - 1):
+            p1, p2 = coords[i], coords[i + 1]
+            length = LineString([p1, p2]).length
+            G.add_edge(p1, p2, weight=length)
+
+    # Find connected components
+    longest_path = []
+    max_length = 0.0
+
+    for component in nx.connected_components(G):
+        subgraph = G.subgraph(component)
+        # Find all pairs shortest paths (weighted by length)
+        for u in subgraph.nodes:
+            lengths, paths = nx.single_source_dijkstra(subgraph, u, weight="weight")
+            for v, length in lengths.items():
+                if length > max_length:
+                    max_length = length
+                    longest_path = paths[v]
+
+    # Convert longest path to a LineString
+    if longest_path:
+        return LineString(longest_path), max_length
+    else:
+        return None, 0.0
 
 
 #%% Miscellaneous other functions
@@ -262,6 +368,7 @@ def latlon2xy(lat, lon, lat_o, lon_o):
     posx = np.matmul(R[1],xyz)
     posy = np.matmul(R[2],xyz)
     
+    # # this does not work and idk why
     # if len(lat) != len(lon):
     #     posx = np.zeros(shape=(len(lat),len(lon)))
     #     posy = np.zeros(shape=(len(lat),len(lon)))
@@ -392,6 +499,44 @@ def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
         ax.set_ylim(ylims[0], ylims[1])
     
     return c
+
+
+
+
+
+#%%
+
+
+def reduce_floats(variables, nbits=32):
+    # variables: list of floats and/or floating point arrays
+    # nbits: scalar, default 32
+    
+    reduced_variables = []
+    
+    for v in variables:
+        if nbits == 32:
+            reduced_variables.append( v.astype(np.float32) )
+        elif nbits == 16:
+            reduced_variables.append( v.astype(np.float16) )
+    
+    return reduced_variables
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
