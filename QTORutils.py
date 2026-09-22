@@ -16,7 +16,7 @@ import numpy as np
 import netCDF4 as nc
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
-# import xarray as xr
+import xarray as xr
 # import sklearn
 from glob import glob
 import os
@@ -92,23 +92,26 @@ cmaps = {
 #%% Data processing and analysis functions
 
 
-
+# raster?
 def calc_QTor():
     return
 
 
 
+# Single point
 def get_local_tortuosity():
     return
 
 
 
-def get_line_parallel_shear(z, orog, u, v, u10, v10, theta_local, theta_norm):
+# Single point
+def get_line_parallel_shear(shear, theta_local, theta_norm):
     return
 
 
 
-def get_line_normal_shear(z, orog, u, v, u10, v10, theta_local, theta_norm):
+# Single point
+def get_line_normal_shear(shear, theta_local, theta_norm):
     return
 
 
@@ -136,7 +139,7 @@ def InterpolateToHeightAboveGround(z, orog, param, height):
 
 
 
-# Get ERA5 shear vector
+# Get ERA5 shear components (raster)
 def get_shear(z, orog, u, v, u10, v10, depth, bottom=None):
     if bottom is None:
         bottom = 10
@@ -177,12 +180,18 @@ def get_shear(z, orog, u, v, u10, v10, depth, bottom=None):
         v2 = np.append(v_interp, v10[np.newaxis,:], axis=0)
         v_interp = v2[sort_inds2,:,:]
     
-    mask = ((z_interp>bottom) | np.isclose(z_interp,bottom)) & ((z_interp<top) | np.isclose(z_interp,top))
-    u_layer = np.ma.masked_array(u_interp, ~mask)
-    v_layer = np.ma.masked_array(v_interp, ~mask)
+    u_shear = u_top - u10
+    v_shear = v_top - v10
     
-    u_shear = u_layer[-1,:,:] - u_layer[0,:,:]
-    v_shear = v_layer[-1,:,:] - v_layer[0,:,:]
+    # mask = ((z_interp>bottom) | np.isclose(z_interp,bottom)) & ((z_interp<top) | np.isclose(z_interp,top))
+    # # z_masked = np.ma.masked_array(z_interp, ~mask)
+    # u_layer = np.ma.masked_array(u_interp, ~mask)
+    # v_layer = np.ma.masked_array(v_interp, ~mask)
+    # # u_layer = u_interp[(mask)]
+    # # v_layer = v_interp[(mask)]
+    
+    # u_shear = u_layer[-1,:,:] - u_layer[0,:,:]
+    # v_shear = v_layer[-1,:,:] - v_layer[0,:,:]
     
     return (u_shear, v_shear)
 

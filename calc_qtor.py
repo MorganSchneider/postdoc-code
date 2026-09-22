@@ -37,8 +37,7 @@ from QTORutils import *
 
 
 ### Functions to write
-# get_line_normal_shear
-# get_line_parallel_shear
+# get_shear_components - line normal and line parallel
 # get_local_tortuosity
 # calc_QTor
 
@@ -72,6 +71,8 @@ gate_y = cradar.extract_sweeps([0]).gate_y['data']/1000
 rng = cradar.range['data']/1000
 gate_lat = cradar.extract_sweeps([0]).gate_latitude['data']
 gate_lon = cradar.extract_sweeps([0]).gate_longitude['data']
+radar_lat = cradar.latitude['data'][0]
+radar_lon = cradar.longitude['data'][0]
 
 #%% Cressman filtering
 
@@ -787,10 +788,10 @@ plt.show()
 
 
 
-#%% Inflow shear analysis
+#%% Load ERA5 data for inflow shear analysis
 
 # need to save lonm and latm to pickle probably. need those for era5
-fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/'
+fp2 = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/'
 
 # yyyyt = 2026
 # mmt = 8
@@ -799,8 +800,8 @@ hht = int(timestr[:2])
 # timestr = '161342'
 timt = f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000"
 
-fn_preslev = fp + f"era5_{yyyyt}{mmt}{ddt}_preslevs.nc"
-fn_singlev = fp + f"era5_{yyyyt}{mmt}{ddt}_singlevs.nc"
+fn_preslev = fp2 + f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
+fn_singlev = fp2 + f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
 
 datap = xr.open_dataset(fn_preslev)
 datas = xr.open_dataset(fn_singlev)
@@ -808,8 +809,8 @@ datas = xr.open_dataset(fn_singlev)
 latitude = datap['latitude'][:].values
 longitude = datap['longitude'][:].values
 
-lati = slice(np.argmin(abs(latitude-np.min(glat))), np.argmin(abs(latitude-np.max(glat)))+1)
-loni = slice(np.argmin(abs(longitude-np.min(glon))), np.argmin(abs(longitude-np.max(glon)))+1)
+lati = slice(np.argmin(abs(latitude-np.max(latm))), np.argmin(abs(latitude-np.min(latm)))+1)
+loni = slice(np.argmin(abs(longitude-np.min(lonm))), np.argmin(abs(longitude-np.max(lonm)))+1)
 latt = latitude[lati]
 lont = longitude[loni]
 
@@ -819,6 +820,7 @@ data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lon
 datap.close()
 datas.close()
 
+p = data01.pressure_level.values
 z = data01['z'].values/9.81
 u = data01['u'].values
 v = data01['v'].values
@@ -830,16 +832,109 @@ data01.close()
 data02.close()
 
 
+long,latg = np.meshgrid(lont, latt)
+x = np.zeros(long.shape, dtype=float)
+y = np.zeros(long.shape, dtype=float)
 
-for j in range(len(latt)):
-    for i in range(len(lont)):
-        point = Point()
-    point = Point(x_proj[i], y_proj[i])
-    is_inside = qc_polygon.contains(point)
+for j in range(len(long)):
+    xtmp,ytmp = latlon2xy(latg[j,:], long[j,:], radar_lat, radar_lon)
+    x[j,:] = xtmp
+    y[j,:] = ytmp
 
 
-# ERA5 31-km resolution might be a problem here. might need to interpolate onto a finer grid idkkkkkkkk
 
+# gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
+# gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+# vals = cref[:,(rng<=max_rng)].data
+xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
+
+u_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+v_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+z_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+
+for k in range(len(p)):
+    print(f"Pressure level {p[k]:.0f} hPa")
+    u_interp[k,:,:] = cressman_interpolation_dask(x, y, u[k,:,:], xm, ym, 62, chunk_size=3000)
+    v_interp[k,:,:] = cressman_interpolation_dask(x, y, v[k,:,:], xm, ym, 62, chunk_size=3000)
+    z_interp[k,:,:] = cressman_interpolation_dask(x, y, z[k,:,:], xm, ym, 62, chunk_size=3000)
+u10_interp = cressman_interpolation_dask(x, y, u10, xm, ym, 62, chunk_size=3000)
+v10_interp = cressman_interpolation_dask(x, y, v10, xm, ym, 62, chunk_size=3000)
+orog_interp = cressman_interpolation_dask(x, y, orog, xm, ym, 62, chunk_size=3000)
+
+#%%
+
+shear03 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 3000)
+shear01 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 1000)
+
+
+
+# ERA5 31-km resolution might be a problem here
+
+
+#%%
+
+
+
+dbfile = open(fp+'leading_line_test_2.pkl', 'rb')
+tmp = pickle.load(dbfile)
+ll_points = tmp['ll_points']
+dbfile.close()
+
+tree = KDTree(ll_points)
+
+
+points = np.column_stack( (xm.ravel(), ym.ravel()))
+shear03_vals = np.column_stack( (shear03[0].ravel(), shear03[1].ravel()))
+shear01_vals = np.column_stack( (shear01[0].ravel(), shear01[1].ravel()))
+
+
+mask = [False] * len(points)
+for i in range(len(points)):
+    point = Point(points[i])
+    mask[i] = inflow_polygon.covers(point)
+
+inflow_points = points[mask]
+inflow_shear03 = shear03_vals[mask]
+inflow_shear01 = shear01_vals[mask]
+
+dists,inds = tree.query(inflow_points) # Find nearest leading line point in tree to each inflow point
+
+#%%
+
+LN03 = np.zeros((len(ll_points),), dtype=float)
+LP01 = np.zeros((len(ll_points),), dtype=float)
+tort = np.zeros((len(ll_points),), dtype=float)
+qtor = np.zeros((len(ll_points),), dtype=float)
+
+for i in range(len(ll_points)):
+    if np.any(inds == i):
+        s03 = inflow_shear03[(inds==i)]
+        s01 = inflow_shear01[(inds==i)]
+        S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
+        S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
+        
+        orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)]
+        
+        lp01 = np.zeros((len(s03),), dtype=float)
+        ln03 = np.zeros((len(s03),), dtype=float)
+        for j in range(len(s03)):
+            s03_norm = s03[j] / S03[j]
+            s01_norm = s01[j] / S01[j]
+            lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
+            lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
+            
+            lp01[j] = lp01_percent * S01[j]
+            ln03_mag = (1 - lp03_percent) * S03[j]
+            ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
+            ln03[j] = ln03_mag * ln03_sgn
+        
+        LP01[i] = np.nanmean(lp01)
+        LN03[i] = np.nanmean(ln03)
+        
+        
+    # Tortuosity - moving block
+    
+    
 
 
 
