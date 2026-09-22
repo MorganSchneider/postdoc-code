@@ -8,34 +8,6 @@ Created on Fri Sep 11 11:15:55 2026
 # Calculate QTor
 
 
-
-import matplotlib.pyplot as plt
-import numpy as np
-import netCDF4 as nc
-import pyart #need an earlier version of xarray -> 0.20.2 or earlier
-import pickle
-import xarray as xr
-from skimage import measure,morphology,filters
-# import sklearn
-from glob import glob
-import os
-from os.path import exists
-from matplotlib.ticker import MultipleLocator
-from scipy.ndimage import gaussian_filter
-from skimage import measure,morphology,filters
-from metpy.interpolate import interpolate_to_points
-from datetime import datetime
-
-
-# import shapely
-# from shapely.geometry import Polygon
-# import centerline
-# from centerline.geometry import Centerline
-# import geojson
-# import geopandas as gpd
-# from scipy.spatial import KDTree
-
-
 from QTORutils import *
 
 
@@ -51,10 +23,24 @@ from QTORutils import *
 # NEXRAD fields: 'differential_reflectivity', 'reflectivity', 'cross_correlation_ratio', 'clutter_filter_power_removed', 'spectrum_width', 'differential_phase', 'velocity'
 
 
+### Functions ###
+# cressman_interpolation_dask
+# find_qlcs_objects
+# distance
+# get_storm_motion
+# get_centroid
+# get_leading_line
+# get_inflow_polygon
+# get_shear
+# InterpolateToHeightAboveGround
+# 
 
 
-
-
+### Functions to write
+# get_line_normal_shear
+# get_line_parallel_shear
+# get_local_tortuosity
+# calc_QTor
 
 
 
@@ -111,10 +97,10 @@ xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng,
 cref_smooth = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6))
-plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-ax.set_title('Cressman interpolated cref')
-plt.show()
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# ax.set_title('Cressman interpolated cref')
+# plt.show()
 
 
 glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
@@ -124,7 +110,7 @@ lonm,latm = np.meshgrid(np.linspace(np.min(glon), np.max(glon), len(xm)), np.lin
 #%% Retrieve QLCS object IDs
 
 
-qlcs_labels, qlcs_regions = find_qlcs_objects(cref_smooth, hres)
+qlcs_labels, qlcs_regions = get_qlcs_objects(cref_smooth, hres)
 
 # if more than one object, pick the one with the highest dbz
 if len(qlcs_regions) > 1:
@@ -138,15 +124,15 @@ else:
 
 
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6))
-plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
-ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
-plt.show()
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
+# ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
+# plt.show()
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6))
-plot_cfill(xm, ym, qlcs_obj, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
-ax.set_title('Final QLCS object\n Object with highest dBZ ')
-plt.show()
+# fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(xm, ym, qlcs_obj, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
+# ax.set_title('Final QLCS object\n Object with highest dBZ ')
+# plt.show()
 
 
 
@@ -168,11 +154,6 @@ cref_prev = cradar_prev.fields['composite_reflectivity']['data']
 gate_x = cradar_prev.extract_sweeps([0]).gate_x['data']/1000
 gate_y = cradar_prev.extract_sweeps([0]).gate_y['data']/1000
 
-# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-# vals = cref_prev[:,(rng<=max_rng)].ravel().data
-# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-# cref_interp_prev = cref_interp_flat.reshape(xm.shape)
-# cref_smooth_prev = filters.gaussian(cref_interp_prev, sigma=0.8)
 print('Previous volume')
 gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
 gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
@@ -193,11 +174,6 @@ cref_next = cradar_next.fields['composite_reflectivity']['data']
 gate_x = cradar_next.extract_sweeps([0]).gate_x['data']/1000
 gate_y = cradar_next.extract_sweeps([0]).gate_y['data']/1000
 
-# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-# vals = cref_next[:,(rng<=max_rng)].ravel().data
-# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-# cref_interp_next = cref_interp_flat.reshape(xm.shape)
-# cref_smooth_next = filters.gaussian(cref_interp_next, sigma=0.8)
 print('Next volume')
 gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
 gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
@@ -220,8 +196,8 @@ cref_smooth_next = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chu
 
 #%% Find QLCS objects in previous and next volumes
 
-qlcs_labels_prev, qlcs_regions_prev = find_qlcs_objects(cref_smooth_prev, hres)
-qlcs_labels_next, qlcs_regions_next = find_qlcs_objects(cref_smooth_next, hres)
+qlcs_labels_prev, qlcs_regions_prev = get_qlcs_objects(cref_smooth_prev, hres)
+qlcs_labels_next, qlcs_regions_next = get_qlcs_objects(cref_smooth_next, hres)
 
 
 
@@ -341,6 +317,8 @@ x_ll_u = []
 y_ll_u = []
 idx_ll_u = []
 jdy_ll_u = []
+lat_ll_u = []
+lon_ll_u = []
 
 for jdy in range(xm.shape[0]):
     if np.any(qlcs_obj[jdy,:] > 0):
@@ -353,6 +331,8 @@ for jdy in range(xm.shape[0]):
         y_ll_u.append(ym[jdy,idx])
         idx_ll_u.append(idx)
         jdy_ll_u.append(jdy)
+        lat_ll_u.append(latm[jdy,idx])
+        lon_ll_u.append(lonm[jdy,idx])
         
 
 # N-S search
@@ -360,6 +340,8 @@ x_ll_v = []
 y_ll_v = []
 idx_ll_v = []
 jdy_ll_v = []
+lat_ll_v = []
+lon_ll_v = []
 
 for idx in range(ym.shape[1]):
     if np.any(qlcs_obj[:,idx] > 0):
@@ -372,12 +354,14 @@ for idx in range(ym.shape[1]):
         y_ll_v.append(ym[jdy,idx])
         idx_ll_v.append(idx)
         jdy_ll_v.append(jdy)
+        lat_ll_v.append(latm[jdy,idx])
+        lon_ll_v.append(lonm[jdy,idx])
 
 
 #%% Save leading line to pickles
 
-ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u}
-ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v}
+ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u, 'lat':lat_ll_u, 'lon':lon_ll_u}
+ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v, 'lat':lat_ll_v, 'lon':lon_ll_v}
 data = {'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
 
 dbfile = open(fp+'leading_line_test.pkl', 'wb')
@@ -386,7 +370,7 @@ dbfile.close()
 
 
 
-data = {'xm':xm, 'ym':ym, 'cref_smooth':cref_smooth, 'qlcs_obj':qlcs_obj, 'x_centroid':x_centroid, 'y_centroid':y_centroid, 'qlcs_region':qlcs_region}
+data = {'xm':xm, 'ym':ym, 'latm':latm, 'lonm':lonm, 'cref_smooth':cref_smooth, 'qlcs_obj':qlcs_obj, 'x_centroid':x_centroid, 'y_centroid':y_centroid, 'qlcs_region':qlcs_region}
 dbfile = open(fp+'qlcs_object_test.pkl', 'wb')
 pickle.dump(data, dbfile)
 dbfile.close()
@@ -433,31 +417,32 @@ obj_contour = np.array([ [xm[j,i], ym[j,i]] for j,i in zip(obj_contour_int[:,0],
 
 
 polygon = Polygon(obj_contour)
-centerline = Centerline(polygon)
+
+centerline = get_centerline(polygon)
+trimmed_centerline = substring(centerline, 0.05*centerline.length, 0.95*centerline.length)
+
+# centerline = Centerline(polygon)
+# if True:
+#     new_centerline, centerline_length = longest_continuous_branch(centerline.geometry)
+#     centerline = new_centerline
+#     trimmed_centerline = substring(new_centerline, 0.05*centerline_length, 0.95*centerline_length)
+
+x_cl,y_cl = trimmed_centerline.xy
+
+#%
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+ax.scatter(x_centroid, y_centroid, marker='.', s=30, c='k')
+ax.set_title(f"QLCS polygon with centerline")
+plt.show()
 
 
 
 if True:
-    new_centerline, centerline_length = longest_continuous_branch(centerline.geometry)
-
-trimmed_centerline = substring(new_centerline, 0.05*centerline_length, 0.95*centerline_length)
-
-x_cl,y_cl = trimmed_centerline.xy
-
-
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
-# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
-# ax.scatter(x_centroid, y_centroid, marker='.', s=30, c='k')
-# ax.set_title(f"QLCS polygon with centerline")
-# plt.show()
-
-
-
-if False:
-    data_cl = {'x':x_cl, 'y':y_cl, 'centerline':new_centerline, 'trimmed_centerline':trimmed_centerline}
+    data_cl = {'x':x_cl, 'y':y_cl, 'centerline':centerline, 'trimmed_centerline':trimmed_centerline}
     dbfile = open(fp+'centerline_test.pkl', 'wb')
     pickle.dump(data_cl, dbfile)
     dbfile.close()
@@ -469,8 +454,6 @@ if False:
 #   create vector between centerline and leading line points,
 #   exclude any leading line points misaligned with expected SM
 
-from scipy.spatial import KDTree
-
 
 
 dbfile = open(fp+'leading_line_test.pkl', 'rb')
@@ -481,6 +464,10 @@ x_zonal = ll['zonal']['x']
 y_zonal = ll['zonal']['y']
 x_merid = ll['meridional']['x']
 y_merid = ll['meridional']['y']
+lat_zonal = ll['zonal']['lat']
+lon_zonal = ll['zonal']['lon']
+lat_merid = ll['meridional']['lat']
+lon_merid = ll['meridional']['lon']
 dbfile.close()
 
 
@@ -494,6 +481,8 @@ dbfile.close()
 cl_points = np.column_stack( (x_cl, y_cl))
 zonal_points = np.column_stack( (x_zonal, y_zonal))
 merid_points = np.column_stack( (x_merid, y_merid))
+zonal_lonlat = np.column_stack( (lon_zonal, lat_zonal))
+merid_lonlat = np.column_stack( (lon_merid, lat_merid))
 
 tree_cl = KDTree(cl_points)
 
@@ -548,6 +537,8 @@ if abs(u_sm) > abs(v_sm):
     # cl_points_filtered_zonal = cl_points_matched_zonal[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
     zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_sm > 0),:]
     merid_points_filtered = merid_points[(vector_merid[:,0]/u_sm > 0),:]
+    zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_sm > 0),:]
+    merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_sm > 0),:]
     idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,0]/u_sm > 0)]
     jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,0]/u_sm > 0)]
     idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,0]/u_sm > 0)]
@@ -557,6 +548,8 @@ elif abs(v_sm) > abs(u_sm):
     # merid_points_filtered = merid_points[((vector_merid[:,1]/v_sm > 0) & (abs(vector_merid[:,1])>abs(vector_merid[:,0]))),:]
     zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_sm > 0),:]
     merid_points_filtered = merid_points[(vector_merid[:,1]/v_sm > 0),:]
+    zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_sm > 0),:]
+    merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_sm > 0),:]
     idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,1]/v_sm > 0)]
     jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,1]/v_sm > 0)]
     idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,1]/v_sm > 0)]
@@ -590,26 +583,33 @@ def distance(point1, point2):
 
 
 ll_points_cat = []
+ll_lonlat_cat = []
 seen = set()
 
-for item in zonal_points_filtered.tolist() + merid_points_filtered.tolist():
+for item,item2 in zip(zonal_points_filtered.tolist() + merid_points_filtered.tolist(), zonal_lonlat_filtered.tolist() + merid_lonlat_filtered.tolist()):
     # if tuple(ll_points_cat[i]) not in seen:
     if tuple(item) not in seen:
         seen.add(tuple(item))
         ll_points_cat.append(item)
+        ll_lonlat_cat.append(item2)
 
 
 ll_points_merged = []
+ll_lonlat_merged = []
 query_point = [-300, 300]
 points_tmp = [item for item in ll_points_cat]
+lonlat_tmp = [item for item in ll_lonlat_cat]
 is_sorted = [False] * len(ll_points_cat)
 
 tree_ll = KDTree(np.asarray(ll_points_cat))
 dist,ind = tree_ll.query([-300,300])
 start_point = ll_points_cat[ind]
+start_lonlat = ll_lonlat_cat[ind]
 points_tmp.remove(start_point)
+lonlat_tmp.remove(start_lonlat)
 query_point = start_point
 ll_points_merged.append(start_point)
+ll_lonlat_merged.append(start_lonlat)
 
 for i in range(len(ll_points_cat)-1):
     tree = KDTree(np.asarray(points_tmp))
@@ -619,8 +619,12 @@ for i in range(len(ll_points_cat)-1):
     
     ll_points_merged.append(points_tmp[ind])
     points_tmp.remove(points_tmp[ind])
+    
+    ll_lonlat_merged.append(lonlat_tmp[ind])
+    lonlat_tmp.remove(lonlat_tmp[ind])
 
 ll_points_sorted = [item for item in ll_points_merged]
+ll_lonlat_sorted = [item for item in ll_lonlat_merged]
 # fix messed up points
 for i in range(1, len(ll_points_cat)-1):
     d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
@@ -629,6 +633,7 @@ for i in range(1, len(ll_points_cat)-1):
     
     if (d1>d3) & (d2>d3):
         ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
+        ll_lonlat_sorted[i], ll_lonlat_sorted[i+1] = ll_lonlat_merged[i+1], ll_lonlat_merged[i]
 
 
 
@@ -636,34 +641,40 @@ for i in range(1, len(ll_points_cat)-1):
 ll_points_merged = np.asarray(ll_points_merged, dtype=float)
 ll_points_sorted = np.asarray(ll_points_sorted, dtype=float)
 ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=2/3, axis=0)
-
 ll_points = ll_points_smooth
 
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
-# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
-# ax.plot(ll_points_merged[:,0], ll_points_merged[:,1], 'r', linewidth=1)
-# ax.plot(ll_points_sorted[:,0], ll_points_sorted[:,1], 'b', linewidth=1)
-# ax.plot(ll_points_smooth[:,0], ll_points_smooth[:,1], 'w', linewidth=1)
-# # ax.scatter(zonal_points_filtered[:,0], zonal_points_filtered[:,1], marker='.', s=2, c='r')
-# # ax.scatter(merid_points_filtered[:,0], merid_points_filtered[:,1], marker='.', s=2, c='b')
-# # ax.plot(np.column_stack((cl_points_matched_zonal[:,0], x_zonal)).transpose(), np.column_stack((cl_points_matched_zonal[:,1], y_zonal)).transpose(), '-r', linewidth=0.75)
-# ax.set_title(f"QLCS polygon with centerline and zonal points")
-# ax.set_xlim([-200,100])
-# ax.set_ylim([-100,200])
-# plt.show()
+ll_lonlat_merged = np.asarray(ll_lonlat_merged, dtype=float)
+ll_lonlat_sorted = np.asarray(ll_lonlat_sorted, dtype=float)
+ll_lonlat_smooth = gaussian_filter1d(ll_lonlat_sorted, sigma=2/3, axis=0)
+ll_lonlat = ll_lonlat_smooth
 
 
 
 
-if False:
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+ax.plot(ll_points_merged[:,0], ll_points_merged[:,1], 'r', linewidth=1)
+ax.plot(ll_points_sorted[:,0], ll_points_sorted[:,1], 'b', linewidth=1)
+ax.plot(ll_points_smooth[:,0], ll_points_smooth[:,1], 'w', linewidth=1)
+# ax.scatter(zonal_points_filtered[:,0], zonal_points_filtered[:,1], marker='.', s=2, c='r')
+# ax.scatter(merid_points_filtered[:,0], merid_points_filtered[:,1], marker='.', s=2, c='b')
+# ax.plot(np.column_stack((cl_points_matched_zonal[:,0], x_zonal)).transpose(), np.column_stack((cl_points_matched_zonal[:,1], y_zonal)).transpose(), '-r', linewidth=0.75)
+ax.set_title(f"QLCS polygon with centerline and zonal points")
+ax.set_xlim([-200,100])
+ax.set_ylim([-100,200])
+plt.show()
+
+
+
+
+if True:
     ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u,
                 'x_filtered':zonal_points_filtered[:,0], 'y_filtered':zonal_points_filtered[:,1]}
     ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v,
                      'x_filtered':merid_points_filtered[:,0], 'y_filtered':merid_points_filtered[:,1]}
-    data = {'ll_points':ll_points_smooth, 'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
+    data = {'ll_points':ll_points_smooth, 'll_lonlat':ll_lonlat_smooth, 'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
     
     dbfile = open(fp+'leading_line_test_2.pkl', 'wb')
     pickle.dump(data, dbfile)
@@ -779,7 +790,55 @@ plt.show()
 #%% Inflow shear analysis
 
 # need to save lonm and latm to pickle probably. need those for era5
+fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/'
 
+# yyyyt = 2026
+# mmt = 8
+# ddt = 2
+hht = int(timestr[:2])
+# timestr = '161342'
+timt = f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000"
+
+fn_preslev = fp + f"era5_{yyyyt}{mmt}{ddt}_preslevs.nc"
+fn_singlev = fp + f"era5_{yyyyt}{mmt}{ddt}_singlevs.nc"
+
+datap = xr.open_dataset(fn_preslev)
+datas = xr.open_dataset(fn_singlev)
+
+latitude = datap['latitude'][:].values
+longitude = datap['longitude'][:].values
+
+lati = slice(np.argmin(abs(latitude-np.min(glat))), np.argmin(abs(latitude-np.max(glat)))+1)
+loni = slice(np.argmin(abs(longitude-np.min(glon))), np.argmin(abs(longitude-np.max(glon)))+1)
+latt = latitude[lati]
+lont = longitude[loni]
+
+data01 = datap.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+
+datap.close()
+datas.close()
+
+z = data01['z'].values/9.81
+u = data01['u'].values
+v = data01['v'].values
+orog = data02['z'].values/9.81
+u10 = data02['u10'].values
+v10 = data02['v10'].values
+
+data01.close()
+data02.close()
+
+
+
+for j in range(len(latt)):
+    for i in range(len(lont)):
+        point = Point()
+    point = Point(x_proj[i], y_proj[i])
+    is_inside = qc_polygon.contains(point)
+
+
+# ERA5 31-km resolution might be a problem here. might need to interpolate onto a finer grid idkkkkkkkk
 
 
 

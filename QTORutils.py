@@ -33,17 +33,18 @@ import math
 import shapely
 from shapely.geometry import Polygon,Point,LineString,MultiLineString
 from shapely.plotting import plot_polygon
-from centerline.geometry import Centerline
+# from centerline.geometry import Centerline
 from shapely.ops import linemerge,substring
 import networkx as nx
 
-# import shapely
-# from shapely.geometry import Polygon
-# import centerline
-# from centerline.geometry import Centerline
+from label_centerlines import get_centerline
+
+from scipy.spatial import KDTree
+
+
 # import geojson
 # import geopandas as gpd
-# from scipy.spatial import KDTree
+
 
 
 #%%
@@ -91,8 +92,407 @@ cmaps = {
 #%% Data processing and analysis functions
 
 
+
+def calc_QTor():
+    return
+
+
+
+def get_local_tortuosity():
+    return
+
+
+
+def get_line_parallel_shear(z, orog, u, v, u10, v10, theta_local, theta_norm):
+    return
+
+
+
+def get_line_normal_shear(z, orog, u, v, u10, v10, theta_local, theta_norm):
+    return
+
+
+
+def InterpolateToHeightAboveGround(z, orog, param, height):
+    nlevs = z.shape[0] 
+    nx = z.shape[1]
+    ny = z.shape[2]
+    
+    z2 = np.zeros((int(nlevs),int(nx),int(ny)))
+    param_int = np.zeros((int(nx),int(ny)))
+    for k in range(0,nlevs):
+        z2[k,:,:] = z[k,:,:]-orog
+    
+    for i in range(0,nx):
+        for j in range(0,ny):
+            z2idx = np.argmax(np.where(z2[:,i,j] < height))
+            param_below = param[int(z2idx),i,j]
+            param_above = param[int(z2idx+1),i,j]
+            height_below = z2[int(z2idx),i,j]
+            height_above = z2[int(z2idx+1),i,j]
+            param_int[i,j] = (param_above-param_below) / (height_above-height_below) * (height-height_below) + param_below
+
+    return param_int
+
+
+
+# Get ERA5 shear vector
+def get_shear(z, orog, u, v, u10, v10, depth, bottom=None):
+    if bottom is None:
+        bottom = 10
+        top = depth
+    else:
+        top = bottom + depth
+    
+    z_interp = z
+    u_interp = u
+    v_interp = v
+    
+    if top not in z_interp:
+        top_arr = top * np.ones(shape=orog.shape)
+        z1 = np.append(z_interp, top_arr[np.newaxis,:], axis=0)
+        sort_inds1 = np.argsort(z1[:,0,0])
+        
+        z_interp = z1[sort_inds1,:,:]
+        
+        u_top = InterpolateToHeightAboveGround(z, orog, u, top)
+        u1 = np.append(u_interp, u_top[np.newaxis,:], axis=0)
+        u_interp = u1[sort_inds1,:,:]
+
+        v_top = InterpolateToHeightAboveGround(z, orog, v, top)
+        v1 = np.append(v_interp, v_top[np.newaxis,:], axis=0)
+        v_interp = v1[sort_inds1,:,:]
+        
+    # if bottom not in z_interp:
+    if True:
+        bot_arr = bottom * np.ones(shape=orog.shape)
+        z2 = np.append(z_interp, bot_arr[np.newaxis,:], axis=0)
+        sort_inds2 = np.argsort(z2[:,0,0])
+        
+        z_interp = z2[sort_inds2,:,:]
+        
+        u2 = np.append(u_interp, u10[np.newaxis,:], axis=0)
+        u_interp = u2[sort_inds2,:,:]
+        
+        v2 = np.append(v_interp, v10[np.newaxis,:], axis=0)
+        v_interp = v2[sort_inds2,:,:]
+    
+    mask = ((z_interp>bottom) | np.isclose(z_interp,bottom)) & ((z_interp<top) | np.isclose(z_interp,top))
+    u_layer = np.ma.masked_array(u_interp, ~mask)
+    v_layer = np.ma.masked_array(v_interp, ~mask)
+    
+    u_shear = u_layer[-1,:,:] - u_layer[0,:,:]
+    v_shear = v_layer[-1,:,:] - v_layer[0,:,:]
+    
+    return (u_shear, v_shear)
+
+
+
+# Get inflow polygon
+def get_inflow_polygon(ll_points, storm_motion):
+    # ll_points: array-like, column 1: x coords, column 2: y coords
+    # storm_motion: array-like, [u_velocity, v_velocity] of storm object
+    
+    x_ll = ll_points[:,0]
+    y_ll = ll_points[:,1]
+    u_storm = storm_motion[0]
+    v_storm = storm_motion[1]
+    
+    # Project leading line forward
+    theta_local = np.zeros((len(ll_points),), dtype=float)
+    theta_norm = np.zeros((len(ll_points),), dtype=float)
+    x_proj = np.zeros((len(ll_points),), dtype=float)
+    y_proj = np.zeros((len(ll_points),), dtype=float)
+    dist = 40 #km, near-field distance
+
+    for i in range(len(ll_points)):
+        if i == 0:
+            theta_local[i] = np.arctan2(y_ll[i+1]-y_ll[i], x_ll[i+1]-x_ll[i])
+        elif i == len(ll_points)-1:
+            theta_local[i] = np.arctan2(y_ll[i]-y_ll[i-1], x_ll[i]-x_ll[i-1])
+        else:
+            dist1 = distance([x_ll[i],y_ll[i]], [x_ll[i-1],y_ll[i-1]])
+            dist2 = distance([x_ll[i],y_ll[i]], [x_ll[i+1],y_ll[i+1]])
+            theta1 = np.arctan2(y_ll[i]-y_ll[i-1], x_ll[i]-x_ll[i-1])
+            theta2 = np.arctan2(y_ll[i+1]-y_ll[i], x_ll[i+1]-x_ll[i])
+            theta_local[i] = dist2/(dist1+dist2)*theta1 + dist1/(dist1+dist2)*theta2
+
+    # Determine whether to add or subtract 90 deg from local angle to get normal angle
+    for i in range(len(theta_local)):
+        if abs(u_storm) > abs(v_storm):
+            if u_storm > 0:
+                theta_norm[i] = theta_local[i] + np.pi/2
+            elif u_storm < 0:
+                theta_norm[i] = theta_local[i] - np.pi/2
+        elif abs(v_storm) > abs(u_storm):
+            if v_storm > 0:
+                theta_norm[i] = theta_local[i] + np.pi/2
+            elif v_storm < 0:
+                theta_norm[i] = theta_local[i] - np.pi/2
+        
+        x_proj[i] = x_ll[i] + dist*np.cos(theta_norm[i])
+        y_proj[i] = y_ll[i] + dist*np.sin(theta_norm[i])
+    
+    # QC polygon - make sure all projection points are ahead of leading line
+    qc_points = ll_points.tolist()
+    qc_points.append([-300,-300])
+    qc_polygon = Polygon(qc_points)
+
+    theta_norm_qc = np.zeros((len(ll_points),))
+    x_proj_qc = np.zeros((len(ll_points),))
+    y_proj_qc = np.zeros((len(ll_points),))
+
+    for i in range(len(ll_points)):
+        point = Point(x_proj[i], y_proj[i])
+        is_inside = qc_polygon.contains(point)
+        if is_inside:
+            if theta_norm[i] > 0:
+                theta_norm_qc[i] = theta_norm[i] - np.pi
+            else:
+                theta_norm_qc[i] = theta_norm[i] + np.pi
+            x_proj_qc = x_ll[i] + dist*np.cos(theta_norm_qc[i])
+            y_proj_qc = y_ll[i] + dist*np.sin(theta_norm_qc[i])
+        else:
+            theta_norm_qc[i] = theta_norm[i]
+            x_proj_qc[i] = x_proj[i]
+            y_proj_qc[i] = y_proj[i]
+
+    leading_points = ll_points.tolist()
+    proj_points = [[x_proj_qc[i], y_proj_qc[i]] for i in range(len(ll_points))][::-1]
+
+    inflow_polygon = shapely.buffer(Polygon(leading_points+proj_points), 0)
+    
+    return inflow_polygon,theta_norm,theta_local
+
+
+
+def distance(point1, point2):
+    return math.hypot(point2[0] - point1[0], point2[1] - point1[1])
+
+
+
+# Find leading line
+def get_leading_line(qlcs_obj, storm_motion, grid_x, grid_y, grid_lat, grid_lon):
+    # qlcs_obj: array-like, bool of object
+    # storm_motion: array-like, [u_velocity, v_velocity] of storm object
+    # grid_x, grid_y: x/y meshgrids
+    # grid_lat, grid_lon: lat/lon meshgrids
+    
+    # Initial leading line first guess
+    u_storm = storm_motion[0]
+    v_storm = storm_motion[1]
+    
+    # E-W search
+    x_ll_zonal = []
+    y_ll_zonal = []
+    lon_ll_zonal = []
+    lat_ll_zonal = []
+    for jdy in range(grid_x.shape[0]):
+        if np.any(qlcs_obj[jdy,:] > 0):
+            if u_storm > 0:
+                idx = np.where(qlcs_obj[jdy,:]>0)[0][-1]
+            elif u_storm < 0:
+                idx = np.where(qlcs_obj[jdy,:]>0)[0][0]
+            x_ll_zonal.append(grid_x[jdy,idx])
+            y_ll_zonal.append(grid_y[jdy,idx])
+            lon_ll_zonal.append(grid_lon[jdy,idx])
+            lat_ll_zonal.append(grid_lat[jdy,idx])
+            
+
+    # N-S search
+    x_ll_merid = []
+    y_ll_merid = []
+    lon_ll_merid = []
+    lat_ll_merid = []
+    for idx in range(grid_y.shape[1]):
+        if np.any(qlcs_obj[:,idx] > 0):
+            if v_storm > 0:
+                jdy = np.where(qlcs_obj[:,idx]>0)[0][-1]
+            elif v_storm < 0:
+                jdy = np.where(qlcs_obj[:,idx]>0)[0][0]
+            x_ll_merid.append(grid_x[jdy,idx])
+            y_ll_merid.append(grid_y[jdy,idx])
+            lon_ll_merid.append(grid_lon[jdy,idx])
+            lat_ll_merid.append(grid_lat[jdy,idx])
+    
+    ### QC ###
+    
+    # Find centerline
+    qlcs_obj_smooth = filters.gaussian(qlcs_obj, sigma=5/3)
+    thres = np.percentile(qlcs_obj_smooth[(qlcs_obj_smooth>0)], 60) #could just use 5e-20? idk if the limits are universal
+    obj_smooth_bin = np.where(qlcs_obj_smooth>thres, 1, 0)
+
+    contours = measure.find_contours(obj_smooth_bin.astype(bool), level=0.99, fully_connected='low')
+    ind = np.asarray([len(contours[n]) for n in range(len(contours))])
+    contour = contours[np.argmax(ind)]
+    obj_contour_int = np.round(contour).astype(int)
+    obj_contour = np.array([ [grid_x[j,i], grid_y[j,i]] for j,i in zip(obj_contour_int[:,0], obj_contour_int[:,1]) ])
+    
+    polygon = Polygon(obj_contour)
+    centerline = get_centerline(polygon)
+    trimmed_centerline = substring(centerline, 0.05*centerline.length, 0.95*centerline.length)
+    x_cl,y_cl = trimmed_centerline.xy
+    
+    # QC leading line
+    cl_points = np.column_stack( (x_cl, y_cl))
+    zonal_points = np.column_stack( (x_ll_zonal, y_ll_zonal))
+    merid_points = np.column_stack( (x_ll_merid, y_ll_merid))
+    zonal_lonlat = np.column_stack( (lon_ll_zonal, lat_ll_zonal))
+    merid_lonlat = np.column_stack( (lon_ll_merid, lat_ll_merid))
+    
+    tree_cl = KDTree(cl_points)
+    dist_zonal,inds_zonal = tree_cl.query(zonal_points) # Find nearest centerline point in tree_cl to each zonal point
+    dist_merid,inds_merid = tree_cl.query(merid_points) # Find nearest centerline point in tree_cl to each meridional point
+
+    cl_points_matched_zonal = np.array([cl_points[inds_zonal[i]] for i in range(len(inds_zonal))])
+    cl_points_matched_merid = np.array([cl_points[inds_merid[i]] for i in range(len(inds_merid))])
+
+    vector_zonal = zonal_points - cl_points_matched_zonal
+    vector_merid = merid_points - cl_points_matched_merid
+    
+    if abs(u_storm) > abs(v_storm):
+        zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0),:]
+        merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0),:]
+        zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0),:]
+        merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0),:]
+    elif abs(v_storm) > abs(u_storm):
+        zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_storm > 0),:]
+        merid_points_filtered = merid_points[(vector_merid[:,1]/v_storm > 0),:]
+        zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_storm > 0),:]
+        merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_storm > 0),:]
+    
+    
+    # Merge zonal and meridional points
+    ll_points_cat = []
+    ll_lonlat_cat = []
+    seen = set()
+    for item,item2 in zip(zonal_points_filtered.tolist() + merid_points_filtered.tolist(), zonal_lonlat_filtered.tolist() + merid_lonlat_filtered.tolist()):
+        # if tuple(ll_points_cat[i]) not in seen:
+        if tuple(item) not in seen:
+            seen.add(tuple(item))
+            ll_points_cat.append(item)
+            ll_lonlat_cat.append(item2)
+
+    ll_points_merged = []
+    ll_lonlat_merged = []
+    # query_point = [-300, 300]
+    points_tmp = [item for item in ll_points_cat]
+    lonlat_tmp = [item for item in ll_lonlat_cat]
+    # is_sorted = [False] * len(ll_points_cat)
+    tree_ll = KDTree(np.asarray(ll_points_cat))
+    dist,ind = tree_ll.query([-300,300])
+    start_point = ll_points_cat[ind]
+    points_tmp.remove(start_point)
+    start_lonlat = ll_lonlat_cat[ind]
+    lonlat_tmp.remove(start_lonlat)
+    # query_point = start_point
+    ll_points_merged.append(start_point)
+    ll_lonlat_merged.append(start_lonlat)
+
+    for i in range(len(ll_points_cat)-1):
+        tree = KDTree(np.asarray(points_tmp))
+        dist,ind = tree.query(start_point)
+        # dist2,ind2 = tree.query(query_point)
+        ll_points_merged.append(points_tmp[ind])
+        points_tmp.remove(points_tmp[ind])
+        ll_lonlat_merged.append(lonlat_tmp[ind])
+        lonlat_tmp.remove(lonlat_tmp[ind])
+
+    ll_points_sorted = [item for item in ll_points_merged]
+    ll_lonlat_sorted = [item for item in ll_lonlat_merged]
+    # fix messed up points
+    for i in range(1, len(ll_points_cat)-1):
+        d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
+        d2 = distance(ll_points_sorted[i], ll_points_sorted[i+1])
+        d3 = distance(ll_points_sorted[i-1], ll_points_sorted[i+1])
+        
+        if (d1>d3) & (d2>d3):
+            ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
+            ll_lonlat_sorted[i], ll_lonlat_sorted[i+1] = ll_lonlat_merged[i+1], ll_lonlat_merged[i]
+    
+    # Smooth leading line
+    ll_points_sorted = np.asarray(ll_points_sorted, dtype=float)
+    ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=2/3, axis=0)
+    
+    ll_lonlat_sorted = np.asarray(ll_lonlat_sorted, dtype=float)
+    ll_lonlat_smooth = gaussian_filter1d(ll_lonlat_sorted, sigma=2/3, axis=0)
+    
+    return ll_points_smooth, ll_lonlat_smooth
+
+
+
+
+# Get storm object centroid motion
+def get_storm_motion(centroid1, centroid2, time1, time2):
+    # centroid1, centroid2:    array-like, [x_coordinate, y_coordinate] of centroids (in km)
+    # time1, time2:    datetime objects - mean volume scan times
+    
+    dt = (time2 - time1).total_seconds()
+    u_centroid = (centroid2[0] - centroid1[0])*1000 / dt
+    v_centroid = (centroid2[1] - centroid1[1])*1000 / dt
+    
+    # if time2 > time1:
+    #     dt = (time2 - time1).total_seconds()
+    #     u_centroid = (centroid2[0] - centroid1[0])*1000 / dt
+    #     v_centroid = (centroid2[1] - centroid1[1])*1000 / dt
+    # else:
+    #     dt = (time1 - time2).total_seconds()
+    #     u_centroid = (centroid1[0] - centroid2[0])*1000 / dt
+    #     v_centroid = (centroid1[1] - centroid2[1])*1000 / dt
+    
+    return u_centroid,v_centroid
+
+
+
+# Get QLCS object centroid
+def get_centroid(region, grid_x, grid_y, reference_centroid=None):
+    # region:    RegionsProps object or list of RegionProps objects
+    # grid_x, grid_y:    x/y meshgrids
+    # reference_centroid: array-like, [x_coordinate, y_coordinate] of reference centroid
+    if (len(region) > 1) and (reference_centroid is not None):
+        xc = np.zeros((len(region),))
+        yc = np.zeros((len(region),))
+        x_centroid_ref = reference_centroid[0]
+        y_centroid_ref = reference_centroid[1]
+        centroid_dist2 = np.zeros((len(region),))
+        for n in range(len(centroid_dist2)):
+            j_centroid,i_centroid = region[n].centroid
+            jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+            j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+            xc[n] = (1 - abs(i_centroid-ic1))*grid_x[j1,i1] + (1 - abs(i_centroid-ic2))*grid_x[j1,i2]
+            yc[n] = (1 - abs(j_centroid-jc1))*grid_y[j1,i1] + (1 - abs(j_centroid-jc2))*grid_y[j2,i1]
+            
+            centroid_dist2[n] = (xc[n] - x_centroid_ref)**2 + (yc[n] - y_centroid_ref)**2
+            
+        n_closest = np.argmin(centroid_dist2)
+        # qlcs_obj[(qlcs_labels == n_closest+1)] = 1
+        x_centroid = xc[n_closest]
+        y_centroid = yc[n_closest]
+        
+    elif (len(region) > 1) and (reference_centroid is None):
+        print("More than one region --> Need a reference centroid")
+        return
+    
+    else:
+        if isinstance(region, list):
+            j_centroid,i_centroid = region[0].centroid
+        else:
+            j_centroid,i_centroid = region.centroid
+        jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+        j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+        x_centroid = (1 - abs(i_centroid-ic1))*grid_x[j1,i1] + (1 - abs(i_centroid-ic2))*grid_x[j1,i2]
+        y_centroid = (1 - abs(j_centroid-jc1))*grid_y[j1,i1] + (1 - abs(j_centroid-jc2))*grid_y[j2,i1]
+        # qlcs_obj = qlcs_labels
+    
+    centroid = [x_centroid, y_centroid]
+    
+    return centroid
+
+
+
+
 # Retrieve QLCS objects
-def find_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, min_length1=100, min_length2=150, min_ecc1=0.85, min_ecc2=0.74, min_area=54):
+def get_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, min_length1=100, min_length2=150, min_ecc1=0.85, min_ecc2=0.74, min_area=54):
     '''
     QLCS object identification following Britt et al. 2024 and 2026.
     
@@ -338,6 +738,7 @@ def longest_continuous_branch(multilines):
 
 
 #%% Miscellaneous other functions
+
 
 
 # Convert lat/lon coordinates to x/y distances relative to an origin point (in km)
