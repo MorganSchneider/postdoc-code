@@ -27,61 +27,82 @@ from QTORutils import *
 # cressman_interpolation_dask
 # find_qlcs_objects
 # distance
+# latlon2xy
 # get_storm_motion
 # get_centroid
 # get_leading_line
 # get_inflow_polygon
 # get_shear
 # InterpolateToHeightAboveGround
-# 
-
-
-### Functions to write
-# get_shear_components - line normal and line parallel
+# get_line_normal_and_parallel_shear
 # get_local_tortuosity
 # calc_QTor
 
+# read_nexrad
+# read_era5
+
+
+### Functions to write
+# read_eccc
+# read_hrdps
 
 
 
 
-#%% Open file
+#%% Load data from target and previous volumes + Cressman filtering of composite reflectivity
 
 fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/qlcs_tornado_outbreaks/'
 
 radar_name = 'KBUF'
-yyyyt = 2026
-mmt = 8
-ddt = 2
-timestr = '162824'
-# timestr = '161342'
-filename = fp + f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_{timestr}_V06.ar2v"
-
-
-radar = pyart.io.read(filename)
-# dbz = radar.fields['reflectivity']['data']
-gatefilter = pyart.filters.GateFilter(radar)
-gatefilter.exclude_transition()
-gatefilter.exclude_below('cross_correlation_ratio', 0.9)
-cradar = pyart.retrieve.composite_reflectivity(radar, field='reflectivity', gatefilter=gatefilter)
-cref = cradar.fields['composite_reflectivity']['data']
-
-gate_x = cradar.extract_sweeps([0]).gate_x['data']/1000
-gate_y = cradar.extract_sweeps([0]).gate_y['data']/1000
-rng = cradar.range['data']/1000
-gate_lat = cradar.extract_sweeps([0]).gate_latitude['data']
-gate_lon = cradar.extract_sweeps([0]).gate_longitude['data']
-radar_lat = cradar.latitude['data'][0]
-radar_lon = cradar.longitude['data'][0]
-
-#%% Cressman filtering
-
-
+volume_time = datetime(2026, 8, 2, 16, 28, 24)
 
 max_rng = 300 #set max range, km
-hres = 3 #gridded resolution, km
-radius = 3
 
+# Load data files
+
+if radar_name[0] == 'K':
+    # Analysis volume
+    filename = fp + f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_{timestr}_V06.ar2v"
+    print(f"...Reading {filename}")
+    cref, time, radar_lat, radar_lon, gx, gy, glat, glon = read_nexrad(filename, max_rng=max_rng)
+    
+    # Previous volume for storm motion estimation
+    filenames = glob(fp+f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_*_V06.ar2v")
+    ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
+    print(f"...Reading {filenames[ind-1]}")
+    cref_prev, time_prev, _, _, _, _, _, _ = read_nexrad(filenames[ind-1], max_rng=max_rng)
+
+elif radar_name[0] == 'C':
+    df = pd.read_csv('C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/ECCC_radar_locations.csv',
+                     sep=",", header=0, usecols=["Call sign", "Latitude", "Longitude"], index_col="Call sign")
+    radar_lat = df.loc[radar_name]['Latitude']
+    radar_lon = df.loc[radar_name]['Longitude']
+
+
+
+#%%
+
+# Cressman filtering
+hres = 3 #gridded resolution, km
+radius = 3 #Cressman radius of influence, km
+
+# gx = gate_x[:,(rng<=max_rng)].astype(np.float32) #limit gates to range <= max range
+# gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+# glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
+# glon = gate_lon[:,(rng<=max_rng)].astype(np.float32)
+## xy and lat/lon meshgrids
+xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, radius))
+lonm,latm = np.meshgrid(np.linspace(np.min(glon), np.max(glon), len(xm)), np.linspace(np.min(glat), np.max(glat), len(xm))) #gate lat/lon mesh
+
+print(f"...Cressman filtering analysis volume")
+cref_smooth = cressman_interpolation_dask(gx, gy, cref, xm, ym, radius, chunk_size=5000)
+
+print(f"...Cressman filtering previous volume")
+cref_smooth_prev = cressman_interpolation_dask(gx, gy, cref_prev, xm, ym, radius, chunk_size=5000)
+
+
+
+# # Originally used Gaussian interpolation until I figured out Dask
 # pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
 # vals = cref[:,(rng<=max_rng)].ravel().data
 # xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
@@ -91,36 +112,30 @@ radius = 3
 # cref_smooth = filters.gaussian(cref_interp, sigma=0.8)
 
 
-gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
-gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
-vals = cref[:,(rng<=max_rng)].data
-xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, radius))
-cref_smooth = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
-
-
 # fig,ax = plt.subplots(1, 1, figsize=(8,6))
 # plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
 # ax.set_title('Cressman interpolated cref')
 # plt.show()
 
 
-glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
-glon = gate_lon[:,(rng<=max_rng)].astype(np.float32)
-lonm,latm = np.meshgrid(np.linspace(np.min(glon), np.max(glon), len(xm)), np.linspace(np.min(glat), np.max(glat), len(xm)))
-
-#%% Retrieve QLCS object IDs
+#%% Retrieve QLCS object ID for analysis and previous volumes
 
 
 qlcs_labels, qlcs_regions = get_qlcs_objects(cref_smooth, hres)
+qlcs_labels_prev, qlcs_regions_prev = get_qlcs_objects(cref_smooth_prev, hres)
 
-# if more than one object, pick the one with the highest dbz
+#% if more than one object in the analysis volume, pick the one with the highest cref - this may not be a permanent solution - maybe largest area?
 if len(qlcs_regions) > 1:
-    crefmax = np.array([np.nanmax(cref_smooth[(qlcs_labels==i+1)]) for i in range(len(qlcs_regions))])
-    qlcs_obj = np.zeros(shape=qlcs_labels.shape, dtype=int)
-    qlcs_obj[(qlcs_labels == np.argmax(crefmax)+1)] = 1
+    ## max cref
+    crefmax = np.array([np.nanmax(cref_smooth[(qlcs_labels==qlcs_regions[i].label)]) for i in range(len(qlcs_regions))])
     qlcs_region = qlcs_regions[np.argmax(crefmax)]
+    ## max area
+    # areamax = np.array([qlcs_regions[i].area for i in range(len(qlcs_regions))])
+    # qlcs_region = qlcs_regions[np.argmax(areamax)]
+    
+    qlcs_obj = np.where(qlcs_labels == qlcs_region.label, 1, 0)
 else:
-    qlcs_obj = qlcs_labels
+    qlcs_obj = np.where(qlcs_labels>0, 1, 0)
     qlcs_region = qlcs_regions[0]
 
 
@@ -137,189 +152,271 @@ else:
 
 
 
-#%% Storm motion estimation - get data from previous and next volumes
 
+#%% Get centroids from previous and next scan and estimate storm motion
 
-filenames = glob(fp+f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_*_V06.ar2v")
-ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
-
-
-# Previous volume
-radar1 = pyart.io.read(filenames[ind-1])
-gatefilter = pyart.filters.GateFilter(radar1)
-gatefilter.exclude_transition()
-gatefilter.exclude_below('cross_correlation_ratio', 0.9)
-cradar_prev = pyart.retrieve.composite_reflectivity(radar1, field='reflectivity', gatefilter=gatefilter)
-cref_prev = cradar_prev.fields['composite_reflectivity']['data']
-
-gate_x = cradar_prev.extract_sweeps([0]).gate_x['data']/1000
-gate_y = cradar_prev.extract_sweeps([0]).gate_y['data']/1000
-
-print('Previous volume')
-gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
-gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
-vals = cref_prev[:,(rng<=max_rng)].data
-cref_smooth_prev = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
-
-
-
-
-# Next volume
-radar2 = pyart.io.read(filenames[ind+1])
-gatefilter = pyart.filters.GateFilter(radar2)
-gatefilter.exclude_transition()
-gatefilter.exclude_below('cross_correlation_ratio', 0.9)
-cradar_next = pyart.retrieve.composite_reflectivity(radar2, field='reflectivity', gatefilter=gatefilter)
-cref_next = cradar_next.fields['composite_reflectivity']['data']
-
-gate_x = cradar_next.extract_sweeps([0]).gate_x['data']/1000
-gate_y = cradar_next.extract_sweeps([0]).gate_y['data']/1000
-
-print('Next volume')
-gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
-gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
-vals = cref_next[:,(rng<=max_rng)].data
-cref_smooth_next = cressman_interpolation_dask(gx, gy, vals, xm, ym, radius, chunk_size=5000)
-
-
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, cref_smooth_prev, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-# ax.set_title('Cressman interpolated cref, previous volume')
-# plt.show()
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, cref_smooth_next, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-# ax.set_title('Cressman interpolated cref, next volume')
-# plt.show()
-
-
-
-#%% Find QLCS objects in previous and next volumes
-
-qlcs_labels_prev, qlcs_regions_prev = get_qlcs_objects(cref_smooth_prev, hres)
-qlcs_labels_next, qlcs_regions_next = get_qlcs_objects(cref_smooth_next, hres)
-
-
-
-#%% Get centroids from analysis scan + previous and next scans
-
-# jb1,ib1,jb2,ib2 = qlcs_region.bbox
-# bbox = [[xm[jb1,ib1], ym[jb1,ib1]], [xm[jb1,ib2-1], ym[jb1,ib2-1]], [xm[jb2-1,ib1], ym[jb2-1,ib1]], [xm[jb2-1,ib2-1], ym[jb2-1,ib2-1]]]
-
-j_centroid,i_centroid = qlcs_region.centroid
-jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
-j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-x_centroid = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
-y_centroid = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
-centroid = [x_centroid, y_centroid]
-
-
-#% Get centroids from previous and next scan
-
-qlcs_labels_prev_old = qlcs_labels_prev
-qlcs_labels_next_old = qlcs_labels_next
-
-
-qlcs_obj_prev = np.zeros(shape=qlcs_labels_prev.shape, dtype=int)
-qlcs_obj_next = np.zeros(shape=qlcs_labels_next.shape, dtype=int)
-
-
-if len(qlcs_regions_prev) > 1:
-    xc = np.zeros((len(qlcs_regions_prev),))
-    yc = np.zeros((len(qlcs_regions_prev),))
-    centroid_dist2 = np.zeros((len(qlcs_regions_prev),))
-    regs = np.unique(qlcs_labels_prev[(qlcs_labels_prev>0)])
-    for n in range(len(centroid_dist2)):
-        j_centroid,i_centroid = qlcs_regions_prev[n].centroid
-        jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
-        j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-        xc[n] = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
-        yc[n] = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
-        
-        centroid_dist2[n] = (xc[n] - x_centroid)**2 + (yc[n] - y_centroid)**2
-        
-    n_closest = np.argmin(centroid_dist2)
+if True:
+    # Get centroids
+    centroid = get_centroid(qlcs_region, xm, ym, reference_centroid=None)
+    centroid_prev = get_centroid(qlcs_regions_prev, xm, ym, reference_centroid=centroid)
+    x_centroid, y_centroid = centroid[0], centroid[1]
+    x_centroid_prev, y_centroid_prev = centroid_prev[0], centroid_prev[1]
     
-    qlcs_obj_prev[(qlcs_labels_prev == n_closest+1)] = 1
-    # qlcs_obj_prev[(qlcs_labels_prev == regs[n_closest])] = 1
-    qlcs_region_prev = qlcs_regions_prev[n_closest]
-    x_centroid_prev = xc[n_closest]
-    y_centroid_prev = yc[n_closest]
-else:
-    j_centroid,i_centroid = qlcs_regions_prev[0].centroid
+    [u_sm, v_sm] = get_storm_motion(centroid, centroid_prev, time, time_prev)
+    
+if False:
+    # Analysis volume
+    j_centroid,i_centroid = qlcs_region.centroid
     jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
     j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-    x_centroid_prev = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
-    y_centroid_prev = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
+    x_centroid = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+    y_centroid = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
+    centroid = [x_centroid, y_centroid]
     
-    qlcs_obj_prev = qlcs_labels_prev
-    
-
-
-if len(qlcs_regions_next) > 1:
-    xc = np.zeros((len(qlcs_regions_next),))
-    yc = np.zeros((len(qlcs_regions_next),))
-    centroid_dist2 = np.zeros((len(qlcs_regions_next),))
-    regs = np.unique(qlcs_labels_next[(qlcs_labels_next>0)])
-    for n in range(len(centroid_dist2)):
-        j_centroid,i_centroid = qlcs_regions_next[n].centroid
+    # Previous volume
+    qlcs_obj_prev = np.zeros(shape=qlcs_labels_prev.shape, dtype=int)
+    if len(qlcs_regions_prev) > 1:
+        xc = np.zeros((len(qlcs_regions_prev),))
+        yc = np.zeros((len(qlcs_regions_prev),))
+        centroid_dist2 = np.zeros((len(qlcs_regions_prev),))
+        regs = np.unique(qlcs_labels_prev[(qlcs_labels_prev>0)])
+        for n in range(len(centroid_dist2)):
+            j_centroid,i_centroid = qlcs_regions_prev[n].centroid
+            jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+            j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+            xc[n] = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+            yc[n] = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
+            
+            centroid_dist2[n] = (xc[n] - x_centroid)**2 + (yc[n] - y_centroid)**2
+            
+        n_closest = np.argmin(centroid_dist2)
+        
+        qlcs_obj_prev[(qlcs_labels_prev == n_closest+1)] = 1
+        # qlcs_obj_prev[(qlcs_labels_prev == regs[n_closest])] = 1
+        qlcs_region_prev = qlcs_regions_prev[n_closest]
+        x_centroid_prev = xc[n_closest]
+        y_centroid_prev = yc[n_closest]
+        centroid_prev = [x_centroid_prev, y_centroid_prev]
+    else:
+        if isinstance(region, list):
+            j_centroid,i_centroid = qlcs_regions_prev[0].centroid
+        else:
+            j_centroid,i_centroid = qlcs_regions_prev.centroid
         jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
         j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-        xc[n] = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
-        yc[n] = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
-        
-        centroid_dist2[n] = (xc[n] - x_centroid)**2 + (yc[n] - y_centroid)**2
-        
-    n_closest = np.argmin(centroid_dist2)
+        x_centroid_prev = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
+        y_centroid_prev = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
+        centroid_prev = [x_centroid_prev, y_centroid_prev]
+        qlcs_obj_prev = qlcs_labels_prev
     
-    qlcs_obj_next[(qlcs_labels_next == n_closest+1)] = 1
-    # qlcs_obj_next[(qlcs_labels_next == regs[n_closest])] = 1
-    qlcs_region_next = qlcs_regions_next[n_closest]
-    x_centroid_next = xc[n_closest]
-    y_centroid_next = yc[n_closest]
-else:
-    j_centroid,i_centroid = qlcs_regions_next[0].centroid
-    jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
-    j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-    x_centroid_next = (1 - abs(i_centroid-ic1))*xm[j1,i1] + (1 - abs(i_centroid-ic2))*xm[j1,i2]
-    y_centroid_next = (1 - abs(j_centroid-jc1))*ym[j1,i1] + (1 - abs(j_centroid-jc2))*ym[j2,i1]
+    # Storm motion
+    dt_prev = (time - time_prev).total_seconds()
+    u_sm = (x_centroid - x_centroid_prev)*1000 / dt_prev
+    v_sm = (y_centroid - y_centroid_prev)*1000 / dt_prev
+
+
+
+
+#%% Get leading line and inflow polygon
+
+ll_points, ll_lonlat = get_leading_line(qlcs_obj, [u_sm, v_sm], xm, ym, latm, lonm)
+
+inflow_polygon, theta_norm, theta_local = get_inflow_polygon(ll_points, [u_sm, v_sm])
+
+
+#%% Load ERA5 data for inflow shear analysis
+
+fp2 = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/'
+
+
+latlims = [np.min(latm), np.max(latm)]
+lonlims = [np.min(lonm), np.max(lonm)]
+data, latt, lont = read_era5(time, fp2, latlims, lonlims)
+
+p = data['p']
+z = data['z']
+orog = data['orog']
+u = data['u']
+v = data['v']
+u10 = data['u10']
+v10 = data['v10']
+
+
+lonm2,latm2 = np.meshgrid(lont, latt)
+x = np.zeros(lonm2.shape, dtype=float)
+y = np.zeros(lonm2.shape, dtype=float)
+
+for j in range(len(long)):
+    xtmp,ytmp = latlon2xy(latm2[j,:], lonm2[j,:], radar_lat, radar_lon)
+    x[j,:] = xtmp
+    y[j,:] = ytmp
+
+
+
+#%%
+xm2,ym2 = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
+
+u_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+v_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+z_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
+
+for k in range(len(p)):
+    print(f"Pressure level {p[k]:.0f} hPa")
+    u_interp[k,:,:] = cressman_interpolation_dask(x, y, u[k,:,:], xm, ym, 62, chunk_size=3000)
+    v_interp[k,:,:] = cressman_interpolation_dask(x, y, v[k,:,:], xm, ym, 62, chunk_size=3000)
+    z_interp[k,:,:] = cressman_interpolation_dask(x, y, z[k,:,:], xm, ym, 62, chunk_size=3000)
+u10_interp = cressman_interpolation_dask(x, y, u10, xm, ym, 62, chunk_size=3000)
+v10_interp = cressman_interpolation_dask(x, y, v10, xm, ym, 62, chunk_size=3000)
+orog_interp = cressman_interpolation_dask(x, y, orog, xm, ym, 62, chunk_size=3000)
+
+
+#%% Calculate QTor!!!
+
+shear03 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 3000)
+shear01 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 1000)
+
+
+
+points = np.column_stack( (xm.ravel(), ym.ravel()))
+
+
+LN03, LP01 = get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, points)
+tortuosity = get_local_tortuosity(ll_points)
+qtor = calc_QTor(LN03, LP01, tortuosity)
+
+
+
+#%%
+
+from scipy.interpolate import griddata
+
+qtor_grid = griddata(ll_points, qtor, (xm,ym), fill_value=0, method='cubic')
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+# plot_cfill(gx, gy, cref, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+ax.contour(xm, ym, qtor_grid, levels=[0.5,1.0], colors=['k'], linewidths=[0.5,1])
+ax.set_title('Original composite reflectivity + QTor')
+plt.show()
+
+
+
+
+#%% empty space here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%% Shear/tortuosity analysis and calculate QTor - development
+
+shear03_vals = np.column_stack( (shear03[0].ravel(), shear03[1].ravel()))
+shear01_vals = np.column_stack( (shear01[0].ravel(), shear01[1].ravel()))
+
+tree = KDTree(ll_points)
+
+mask = [False] * len(points)
+for i in range(len(points)):
+    point = Point(points[i])
+    mask[i] = inflow_polygon.covers(point)
+
+inflow_points = points[mask]
+inflow_shear03 = shear03_vals[mask]
+inflow_shear01 = shear01_vals[mask]
+
+dists,inds = tree.query(inflow_points) # Find nearest leading line point in tree to each inflow point
+
+
+LN03 = np.zeros((len(ll_points),), dtype=float)
+LP01 = np.zeros((len(ll_points),), dtype=float)
+tortuosity = np.zeros((len(ll_points),), dtype=float)
+# t_factor = np.zeros((len(ll_points),), dtype=float)
+# qtor = np.zeros((len(ll_points),), dtype=float)
+
+for i in range(len(ll_points)):
+    if np.any(inds == i):
+        s03 = inflow_shear03[(inds==i)]
+        s01 = inflow_shear01[(inds==i)]
+        S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
+        S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
+        
+        orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)] #line orientation to the left of normal vector
+        
+        lp01 = np.zeros((len(s03),), dtype=float)
+        ln03 = np.zeros((len(s03),), dtype=float)
+        for j in range(len(s03)):
+            s03_norm = s03[j] / S03[j]
+            s01_norm = s01[j] / S01[j]
+            lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
+            lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
+            
+            lp01[j] = lp01_percent * S01[j]
+            ln03_mag = (1 - lp03_percent) * S03[j]
+            ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
+            ln03[j] = ln03_mag * ln03_sgn
+        
+        LP01[i] = np.nanmean(lp01)
+        LN03[i] = np.nanmean(ln03)
     
-    qlcs_obj_next = qlcs_labels_next
+        
+    # Local tortuosity - moving block
+    
+    inds_left = np.arange(i-5,i+1)
+    inds_right = np.arange(i,i+6)
+    
+    ileft = inds_left[(inds_left>=0)][0]
+    iright = inds_right[(inds_right<len(ll_points))][-1]
+    
+    segment_length = 0.0
+    for k in np.arange(ileft,iright):
+        segment_length += distance(ll_points[k], ll_points[k+1])
+    
+    endpoint_length = distance(ll_points[ileft], ll_points[iright])
+    
+    tortuosity[i] = segment_length / endpoint_length
+
+LN_factor = LN03 / 10.0
+LP_factor = LP01 / 8.0
+LN_factor[(LN_factor<0.5)] = 0.5 #minimum of 0.5 for shear terms
+LP_factor[(LP_factor<0.5)] = 0.5
+LN_factor[(LN_factor>3.0)] = 3.0 #shear terms capped at 3.0
+LP_factor[(LP_factor>3.0)] = 3.0
+T_factor = np.where(tortuosity > 1.05, 2, 1)
 
 
-#%% Estimate storm motion from centroid displacement
+# Calculate QTor!
 
-
-time = cradar.time['mean']
-time_prev = cradar_prev.time['mean']
-time_next = cradar_next.time['mean']
-
-
-dt_prev = (time - time_prev).total_seconds()
-dt_next = (time_next - time).total_seconds()
-
-
-u_prev = (x_centroid - x_centroid_prev)*1000 / dt_prev
-v_prev = (y_centroid - y_centroid_prev)*1000 / dt_prev
-
-u_next = (x_centroid_next - x_centroid)*1000 / dt_next
-v_next = (y_centroid_next - y_centroid)*1000 / dt_next
-
-u_sm = np.mean([u_prev, u_next])
-v_sm = np.mean([v_prev, v_next])
+qtor = LN_factor * LP_factor * T_factor
 
 
 
-#%% Initial leading line identification using storm motion
+
+
+
+
+#%% Initial leading line identification using storm motion -- development
+
+
 
 # E-W search
-x_ll_u = []
-y_ll_u = []
-idx_ll_u = []
-jdy_ll_u = []
-lat_ll_u = []
-lon_ll_u = []
+x_zonal = []
+y_zonal = []
+lat_zonal = []
+lon_zonal = []
 
 for jdy in range(xm.shape[0]):
     if np.any(qlcs_obj[jdy,:] > 0):
@@ -328,21 +425,17 @@ for jdy in range(xm.shape[0]):
         elif u_sm < 0:
             idx = np.where(qlcs_obj[jdy,:]>0)[0][0]
         
-        x_ll_u.append(xm[jdy,idx])
-        y_ll_u.append(ym[jdy,idx])
-        idx_ll_u.append(idx)
-        jdy_ll_u.append(jdy)
-        lat_ll_u.append(latm[jdy,idx])
-        lon_ll_u.append(lonm[jdy,idx])
+        x_zonal.append(xm[jdy,idx])
+        y_zonal.append(ym[jdy,idx])
+        lat_zonal.append(latm[jdy,idx])
+        lon_zonal.append(lonm[jdy,idx])
         
 
 # N-S search
-x_ll_v = []
-y_ll_v = []
-idx_ll_v = []
-jdy_ll_v = []
-lat_ll_v = []
-lon_ll_v = []
+x_merid = []
+y_merid = []
+lat_merid = []
+lon_merid = []
 
 for idx in range(ym.shape[1]):
     if np.any(qlcs_obj[:,idx] > 0):
@@ -351,37 +444,13 @@ for idx in range(ym.shape[1]):
         elif v_sm < 0:
             jdy = np.where(qlcs_obj[:,idx]>0)[0][0]
         
-        x_ll_v.append(xm[jdy,idx])
-        y_ll_v.append(ym[jdy,idx])
-        idx_ll_v.append(idx)
-        jdy_ll_v.append(jdy)
-        lat_ll_v.append(latm[jdy,idx])
-        lon_ll_v.append(lonm[jdy,idx])
+        x_merid.append(xm[jdy,idx])
+        y_merid.append(ym[jdy,idx])
+        lat_merid.append(latm[jdy,idx])
+        lon_merid.append(lonm[jdy,idx])
 
 
-#%% Save leading line to pickles
-
-ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u, 'lat':lat_ll_u, 'lon':lon_ll_u}
-ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v, 'lat':lat_ll_v, 'lon':lon_ll_v}
-data = {'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
-
-dbfile = open(fp+'leading_line_test.pkl', 'wb')
-pickle.dump(data, dbfile)
-dbfile.close()
-
-
-
-data = {'xm':xm, 'ym':ym, 'latm':latm, 'lonm':lonm, 'cref_smooth':cref_smooth, 'qlcs_obj':qlcs_obj, 'x_centroid':x_centroid, 'y_centroid':y_centroid, 'qlcs_region':qlcs_region}
-dbfile = open(fp+'qlcs_object_test.pkl', 'wb')
-pickle.dump(data, dbfile)
-dbfile.close()
-
-
-
-
-#%% Find centerline
-
-
+#% Find centerline
 qlcs_obj_smooth = filters.gaussian(qlcs_obj, sigma=5/3)
 
 thres = np.percentile(qlcs_obj_smooth[(qlcs_obj_smooth>0)], 60) #could just use 5e-20? idk if the limits are universal
@@ -442,7 +511,7 @@ plt.show()
 
 
 
-if True:
+if False:
     data_cl = {'x':x_cl, 'y':y_cl, 'centerline':centerline, 'trimmed_centerline':trimmed_centerline}
     dbfile = open(fp+'centerline_test.pkl', 'wb')
     pickle.dump(data_cl, dbfile)
@@ -450,35 +519,10 @@ if True:
 
 
 
-#%% QC and smooth leading line points
+#% QC and smooth leading line points
 #   Find closest centerline point to each leading line point,
 #   create vector between centerline and leading line points,
 #   exclude any leading line points misaligned with expected SM
-
-
-
-dbfile = open(fp+'leading_line_test.pkl', 'rb')
-ll = pickle.load(dbfile)
-u_sm = ll['u_sm']
-v_sm = ll['v_sm']
-x_zonal = ll['zonal']['x']
-y_zonal = ll['zonal']['y']
-x_merid = ll['meridional']['x']
-y_merid = ll['meridional']['y']
-lat_zonal = ll['zonal']['lat']
-lon_zonal = ll['zonal']['lon']
-lat_merid = ll['meridional']['lat']
-lon_merid = ll['meridional']['lon']
-dbfile.close()
-
-
-dbfile = open(fp+'centerline_test.pkl', 'rb')
-cl = pickle.load(dbfile)
-x_cl = cl['x']
-y_cl = cl['y']
-dbfile.close()
-
-
 cl_points = np.column_stack( (x_cl, y_cl))
 zonal_points = np.column_stack( (x_zonal, y_zonal))
 merid_points = np.column_stack( (x_merid, y_merid))
@@ -575,14 +619,6 @@ elif abs(v_sm) > abs(u_sm):
 
 
 
-
-
-def distance(point1, point2):
-    return math.hypot(point2[0] - point1[0], point2[1] - point1[1])
-
-
-
-
 ll_points_cat = []
 ll_lonlat_cat = []
 seen = set()
@@ -670,21 +706,10 @@ plt.show()
 
 
 
-if True:
-    ll_zonal = {'x':x_ll_u, 'y':y_ll_u, 'i':idx_ll_u, 'j':jdy_ll_u,
-                'x_filtered':zonal_points_filtered[:,0], 'y_filtered':zonal_points_filtered[:,1]}
-    ll_meridional = {'x':x_ll_v, 'y':y_ll_v, 'i':idx_ll_v, 'j':jdy_ll_v,
-                     'x_filtered':merid_points_filtered[:,0], 'y_filtered':merid_points_filtered[:,1]}
-    data = {'ll_points':ll_points_smooth, 'll_lonlat':ll_lonlat_smooth, 'zonal':ll_zonal, 'meridional':ll_meridional, 'u_sm':u_sm, 'v_sm':v_sm}
-    
-    dbfile = open(fp+'leading_line_test_2.pkl', 'wb')
-    pickle.dump(data, dbfile)
-    dbfile.close()
 
 
 
-
-#%% Get inflow polygon
+#%% Get inflow polygon -- development
 
 dbfile = open(fp+'leading_line_test_2.pkl', 'rb')
 tmp = pickle.load(dbfile)
@@ -788,195 +813,6 @@ plt.show()
 
 
 
-#%% Load ERA5 data for inflow shear analysis
-
-# need to save lonm and latm to pickle probably. need those for era5
-fp2 = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/'
-
-# yyyyt = 2026
-# mmt = 8
-# ddt = 2
-hht = int(timestr[:2])
-# timestr = '161342'
-timt = f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000"
-
-fn_preslev = fp2 + f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_preslevs.nc"
-fn_singlev = fp2 + f"era5_{yyyyt}{mmt:02.0f}{ddt:02.0f}_singlevs.nc"
-
-datap = xr.open_dataset(fn_preslev)
-datas = xr.open_dataset(fn_singlev)
-
-latitude = datap['latitude'][:].values
-longitude = datap['longitude'][:].values
-
-lati = slice(np.argmin(abs(latitude-np.max(latm))), np.argmin(abs(latitude-np.min(latm)))+1)
-loni = slice(np.argmin(abs(longitude-np.min(lonm))), np.argmin(abs(longitude-np.max(lonm)))+1)
-latt = latitude[lati]
-lont = longitude[loni]
-
-data01 = datap.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
-data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
-
-datap.close()
-datas.close()
-
-p = data01.pressure_level.values
-z = data01['z'].values/9.81
-u = data01['u'].values
-v = data01['v'].values
-orog = data02['z'].values/9.81
-u10 = data02['u10'].values
-v10 = data02['v10'].values
-
-data01.close()
-data02.close()
-
-
-long,latg = np.meshgrid(lont, latt)
-x = np.zeros(long.shape, dtype=float)
-y = np.zeros(long.shape, dtype=float)
-
-for j in range(len(long)):
-    xtmp,ytmp = latlon2xy(latg[j,:], long[j,:], radar_lat, radar_lon)
-    x[j,:] = xtmp
-    y[j,:] = ytmp
-
-
-
-# gx = gate_x[:,(rng<=max_rng)].astype(np.float32)
-# gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
-# vals = cref[:,(rng<=max_rng)].data
-xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
-
-u_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
-v_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
-z_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
-
-for k in range(len(p)):
-    print(f"Pressure level {p[k]:.0f} hPa")
-    u_interp[k,:,:] = cressman_interpolation_dask(x, y, u[k,:,:], xm, ym, 62, chunk_size=3000)
-    v_interp[k,:,:] = cressman_interpolation_dask(x, y, v[k,:,:], xm, ym, 62, chunk_size=3000)
-    z_interp[k,:,:] = cressman_interpolation_dask(x, y, z[k,:,:], xm, ym, 62, chunk_size=3000)
-u10_interp = cressman_interpolation_dask(x, y, u10, xm, ym, 62, chunk_size=3000)
-v10_interp = cressman_interpolation_dask(x, y, v10, xm, ym, 62, chunk_size=3000)
-orog_interp = cressman_interpolation_dask(x, y, orog, xm, ym, 62, chunk_size=3000)
-
-#%%
-
-shear03 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 3000)
-shear01 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 1000)
-
-
-
-# ERA5 31-km resolution might be a problem here
-
-
-#%%
-
-
-
-dbfile = open(fp+'leading_line_test_2.pkl', 'rb')
-tmp = pickle.load(dbfile)
-ll_points = tmp['ll_points']
-dbfile.close()
-
-tree = KDTree(ll_points)
-
-
-points = np.column_stack( (xm.ravel(), ym.ravel()))
-shear03_vals = np.column_stack( (shear03[0].ravel(), shear03[1].ravel()))
-shear01_vals = np.column_stack( (shear01[0].ravel(), shear01[1].ravel()))
-
-
-mask = [False] * len(points)
-for i in range(len(points)):
-    point = Point(points[i])
-    mask[i] = inflow_polygon.covers(point)
-
-inflow_points = points[mask]
-inflow_shear03 = shear03_vals[mask]
-inflow_shear01 = shear01_vals[mask]
-
-dists,inds = tree.query(inflow_points) # Find nearest leading line point in tree to each inflow point
-
-#%%
-
-LN03 = np.zeros((len(ll_points),), dtype=float)
-LP01 = np.zeros((len(ll_points),), dtype=float)
-tort = np.zeros((len(ll_points),), dtype=float)
-qtor = np.zeros((len(ll_points),), dtype=float)
-
-for i in range(len(ll_points)):
-    if np.any(inds == i):
-        s03 = inflow_shear03[(inds==i)]
-        s01 = inflow_shear01[(inds==i)]
-        S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
-        S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
-        
-        orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)]
-        
-        lp01 = np.zeros((len(s03),), dtype=float)
-        ln03 = np.zeros((len(s03),), dtype=float)
-        for j in range(len(s03)):
-            s03_norm = s03[j] / S03[j]
-            s01_norm = s01[j] / S01[j]
-            lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
-            lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
-            
-            lp01[j] = lp01_percent * S01[j]
-            ln03_mag = (1 - lp03_percent) * S03[j]
-            ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
-            ln03[j] = ln03_mag * ln03_sgn
-        
-        LP01[i] = np.nanmean(lp01)
-        LN03[i] = np.nanmean(ln03)
-        
-        
-    # Tortuosity - moving block
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%% empty space here
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1052,11 +888,6 @@ fig,ax = plt.subplots(1, 1, figsize=(8,6))
 plot_cfill(xm, ym, cref_smooth_next, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
 ax.set_title('Gridded CRef, next')
 plt.show()
-
-
-
-
-
 
 
 

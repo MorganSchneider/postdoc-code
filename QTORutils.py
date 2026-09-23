@@ -17,28 +17,27 @@ import netCDF4 as nc
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
 import xarray as xr
+import pandas as pd
 # import sklearn
 from glob import glob
 import os
 from os.path import exists
 from matplotlib.ticker import MultipleLocator
-from scipy.ndimage import gaussian_filter
-from skimage import measure,morphology,filters
-from metpy.interpolate import interpolate_to_points
 from datetime import datetime
 
+from scipy.ndimage import gaussian_filter
+from skimage import measure,morphology,filters
+# from metpy.interpolate import interpolate_to_points
 from scipy.ndimage import gaussian_filter1d
 import math
 
-import shapely
+import shapely #install from conda-forge to get geos>=3.11
 from shapely.geometry import Polygon,Point,LineString,MultiLineString
 from shapely.plotting import plot_polygon
-# from centerline.geometry import Centerline
 from shapely.ops import linemerge,substring
+# from centerline.geometry import Centerline
 import networkx as nx
-
 from label_centerlines import get_centerline
-
 from scipy.spatial import KDTree
 
 
@@ -92,27 +91,94 @@ cmaps = {
 #%% Data processing and analysis functions
 
 
-# raster?
-def calc_QTor():
-    return
+# QTor!
+def calc_QTor(LN03, LP01, tortuosity):
+    LN_factor = LN03 / 10.0
+    LP_factor = LP01 / 8.0
+    LN_factor[(LN_factor<0.5)] = 0.5 #minimum of 0.5 for shear terms
+    LP_factor[(LP_factor<0.5)] = 0.5
+    LN_factor[(LN_factor>3.0)] = 3.0 #shear terms capped at 3.0
+    LP_factor[(LP_factor>3.0)] = 3.0
+    T_factor = np.where(tortuosity > 1.05, 2, 1)
+    
+    # Calculate QTor!
+    qtor = LN_factor * LP_factor * T_factor
+    
+    return qtor
 
 
 
-# Single point
-def get_local_tortuosity():
-    return
+def get_local_tortuosity(ll_points):
+    tortuosity = np.zeros((len(ll_points),), dtype=float)
+    for i in range(len(ll_points)):
+        inds_left = np.arange(i-5,i+1)
+        inds_right = np.arange(i,i+6)
+        
+        ileft = inds_left[(inds_left>=0)][0]
+        iright = inds_right[(inds_right<len(ll_points))][-1]
+        
+        segment_length = 0.0
+        for k in np.arange(ileft,iright):
+            segment_length += distance(ll_points[k], ll_points[k+1])
+        
+        endpoint_length = distance(ll_points[ileft], ll_points[iright])
+        
+        tortuosity[i] = segment_length / endpoint_length
+    
+    return tortuosity
 
 
 
-# Single point
-def get_line_parallel_shear(shear, theta_local, theta_norm):
-    return
+def get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, grid_points):
+    # shear: output from get_shear
+    # grid points: (Mx2) of grid_x.ravel, grid_y.ravel
+    
+    tree = KDTree(ll_points)
+    
+    shear03_flat = np.column_stack( (shear03[0].ravel(), shear03[1].ravel()))
+    shear01_flat = np.column_stack( (shear01[0].ravel(), shear01[1].ravel()))
+    
+    mask = [False] * len(grid_points)
+    for i in range(len(grid_points)):
+        point = Point(grid_points[i])
+        mask[i] = inflow_polygon.covers(point)
 
+    inflow_points = grid_points[mask]
+    inflow_shear03 = shear03_flat[mask]
+    inflow_shear01 = shear01_flat[mask]
 
+    dists,inds = tree.query(inflow_points) # Find nearest leading line point in tree to each inflow point
+    
+    LN03 = np.zeros((len(ll_points),), dtype=float)
+    LP01 = np.zeros((len(ll_points),), dtype=float)
+    
+    for i in range(len(ll_points)):
+        if np.any(inds == i):
+            s03 = inflow_shear03[(inds==i)]
+            s01 = inflow_shear01[(inds==i)]
+            S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
+            S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
+            
+            orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)] #line orientation to the left of normal vector
+            
+            lp01 = np.zeros((len(s03),), dtype=float)
+            ln03 = np.zeros((len(s03),), dtype=float)
+            for j in range(len(s03)):
+                s03_norm = s03[j] / S03[j]
+                s01_norm = s01[j] / S01[j]
+                lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
+                lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
+                
+                lp01[j] = lp01_percent * S01[j]
+                ln03_mag = (1 - lp03_percent) * S03[j]
+                ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
+                ln03[j] = ln03_mag * ln03_sgn
+            
+            LP01[i] = np.nanmean(lp01)
+            LN03[i] = np.nanmean(ln03)
+    
+    return LN03, LP01
 
-# Single point
-def get_line_normal_shear(shear, theta_local, theta_norm):
-    return
 
 
 
@@ -436,9 +502,9 @@ def get_storm_motion(centroid1, centroid2, time1, time2):
     # centroid1, centroid2:    array-like, [x_coordinate, y_coordinate] of centroids (in km)
     # time1, time2:    datetime objects - mean volume scan times
     
-    dt = (time2 - time1).total_seconds()
-    u_centroid = (centroid2[0] - centroid1[0])*1000 / dt
-    v_centroid = (centroid2[1] - centroid1[1])*1000 / dt
+    dt = (time1 - time2).total_seconds()
+    u_centroid = (centroid1[0] - centroid2[0])*1000 / dt
+    v_centroid = (centroid1[1] - centroid2[1])*1000 / dt
     
     # if time2 > time1:
     #     dt = (time2 - time1).total_seconds()
@@ -458,29 +524,29 @@ def get_centroid(region, grid_x, grid_y, reference_centroid=None):
     # region:    RegionsProps object or list of RegionProps objects
     # grid_x, grid_y:    x/y meshgrids
     # reference_centroid: array-like, [x_coordinate, y_coordinate] of reference centroid
-    if (len(region) > 1) and (reference_centroid is not None):
-        xc = np.zeros((len(region),))
-        yc = np.zeros((len(region),))
-        x_centroid_ref = reference_centroid[0]
-        y_centroid_ref = reference_centroid[1]
-        centroid_dist2 = np.zeros((len(region),))
-        for n in range(len(centroid_dist2)):
-            j_centroid,i_centroid = region[n].centroid
-            jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
-            j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
-            xc[n] = (1 - abs(i_centroid-ic1))*grid_x[j1,i1] + (1 - abs(i_centroid-ic2))*grid_x[j1,i2]
-            yc[n] = (1 - abs(j_centroid-jc1))*grid_y[j1,i1] + (1 - abs(j_centroid-jc2))*grid_y[j2,i1]
-            
-            centroid_dist2[n] = (xc[n] - x_centroid_ref)**2 + (yc[n] - y_centroid_ref)**2
-            
-        n_closest = np.argmin(centroid_dist2)
-        # qlcs_obj[(qlcs_labels == n_closest+1)] = 1
-        x_centroid = xc[n_closest]
-        y_centroid = yc[n_closest]
-        
-    elif (len(region) > 1) and (reference_centroid is None):
-        print("More than one region --> Need a reference centroid")
-        return
+    if (isinstance(region, list)) and (len(region) > 1):
+        if reference_centroid is None:
+            print("More than one region --> Need a reference centroid")
+            return
+        else:
+            xc = np.zeros((len(region),))
+            yc = np.zeros((len(region),))
+            x_centroid_ref = reference_centroid[0]
+            y_centroid_ref = reference_centroid[1]
+            centroid_dist2 = np.zeros((len(region),))
+            for n in range(len(centroid_dist2)):
+                j_centroid,i_centroid = region[n].centroid
+                jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
+                j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
+                xc[n] = (1 - abs(i_centroid-ic1))*grid_x[j1,i1] + (1 - abs(i_centroid-ic2))*grid_x[j1,i2]
+                yc[n] = (1 - abs(j_centroid-jc1))*grid_y[j1,i1] + (1 - abs(j_centroid-jc2))*grid_y[j2,i1]
+                
+                centroid_dist2[n] = (xc[n] - x_centroid_ref)**2 + (yc[n] - y_centroid_ref)**2
+                
+            n_closest = np.argmin(centroid_dist2)
+            # qlcs_obj[(qlcs_labels == n_closest+1)] = 1
+            x_centroid = xc[n_closest]
+            y_centroid = yc[n_closest]
     
     else:
         if isinstance(region, list):
@@ -587,8 +653,8 @@ def get_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, mi
         
         if lenecc_met:
             n = n+1
-            # isQLCS = True
-            qlcs_labels_final[(obj_labels_merged==i+1)] = n
+            # qlcs_labels_final[(obj_labels_merged==i+1)] = n
+            qlcs_labels_final[(obj_labels_merged==i+1)] = i+1
             qlcs_labels_final[(cref_bin_filtered==0)] = 0
             regions_final.append(i+1)
             
@@ -712,6 +778,7 @@ def cressman_interpolation_dask(obs_x, obs_y, data, grid_x, grid_y, radius, chun
 
 
 
+# Longest continuous branch - use with centerline package (not used anymore)
 def longest_continuous_branch(multilines):
     if not isinstance(multilines, MultiLineString):
         raise TypeError("Input must be a shapely MultiLineString")
@@ -747,6 +814,96 @@ def longest_continuous_branch(multilines):
 
 
 #%% Miscellaneous other functions
+
+
+# Read NEXRAD data
+def read_nexrad(filename, max_rng=300):
+    radar = pyart.io.read(filename)
+    gatefilter = pyart.filters.GateFilter(radar)
+    gatefilter.exclude_transition()
+    gatefilter.exclude_below('cross_correlation_ratio', 0.9)
+    cradar = pyart.retrieve.composite_reflectivity(radar, field='reflectivity', gatefilter=gatefilter)
+    cref = cradar.fields['composite_reflectivity']['data']
+    
+    radar_lat = cradar.latitude['data'][0]
+    radar_lon = cradar.longitude['data'][0]
+    gate_x = cradar.extract_sweeps([0]).gate_x['data']/1000
+    gate_y = cradar.extract_sweeps([0]).gate_y['data']/1000
+    rng = cradar.range['data']/1000
+    gate_lat = cradar.extract_sweeps([0]).gate_latitude['data']
+    gate_lon = cradar.extract_sweeps([0]).gate_longitude['data']
+    
+    time = datetime.strptime(radar.time['units'][-20:], "%Y-%m-%dT%H:%M:%SZ")
+    
+    gx = gate_x[:,(rng<=max_rng)].astype(np.float32) #limit gates to range <= max range
+    gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
+    glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
+    glon = gate_lon[:,(rng<=max_rng)].astype(np.float32)
+    
+    return cref[:,(rng<=max_rng)].data, time, radar_lat, radar_lon, gx, gy, glat, glon
+
+
+
+
+def read_eccc(filename, radar_name, max_rng=300):
+    df = pd.read_csv('C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/ECCC_radar_locations.csv',
+                     sep=",", header=0, usecols=["Call sign", "Latitude", "Longitude"], index_col="Call sign")
+    radar_lat = df.loc[radar_name]['Latitude']
+    radar_lon = df.loc[radar_name]['Longitude']
+    
+    return radar_lat, radar_lon
+
+
+
+
+def read_era5(time, filepath, latlims, lonlims):
+    # time: datetime
+    latmin, latmax = latlims[0], latlims[1]
+    lonmin, lonmax = lonlims[0], lonlims[1]
+    
+    fn_preslev = filepath + "era5_" + time.strftime("%Y%m%d") + "_preslevs.nc"
+    fn_singlev = filepath + "era5_" + time.strftime("%Y%m%d") + "_singlevs.nc"
+    timt = time.strftime("%Y-%m-%dT%H:00:00.000000000")
+    
+    datap = xr.open_dataset(fn_preslev)
+    datas = xr.open_dataset(fn_singlev)
+
+    latitude = datap['latitude'][:].values
+    longitude = datap['longitude'][:].values
+    
+    lati = slice(np.argmin(abs(latitude-latmax)), np.argmin(abs(latitude-latmin))+1)
+    loni = slice(np.argmin(abs(longitude-lonmin)), np.argmin(abs(longitude-lonmax))+1)
+    latt = latitude[lati]
+    lont = longitude[loni]
+
+    data01 = datap.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+    data02 = datas.sel(latitude=slice(latt[0],latt[-1]), longitude=slice(lont[0],lont[-1]), valid_time=timt)
+
+    datap.close()
+    datas.close()
+
+    p = data01.pressure_level.values
+    z = data01['z'].values/9.81
+    u = data01['u'].values
+    v = data01['v'].values
+    orog = data02['z'].values/9.81
+    u10 = data02['u10'].values
+    v10 = data02['v10'].values
+
+    data01.close()
+    data02.close()
+    
+    data = dict(p=p, z=z, u=u, v=v, orog=orog, u10=u10, v10=v10)
+    
+    return data, latt, lont
+
+
+
+def read_hrdps(filename):
+    ds = xr.load_dataset(filename, engine='cfgrib') #grib
+    
+    return ds
+
 
 
 
