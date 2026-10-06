@@ -107,15 +107,15 @@ def extract_data(latt,lont,timt,data,datas):
         dz75 = (z[(prs==700)] - z[(prs==500)])/1000
         lapse_rate = -1 * dt75/dz75
         
-        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=6000*units.m)
+        shear = mc.bulk_shear(p[z>orog], u[z>orog], v[z>orog], height=z[z>orog]*units.m, depth=6000*units.m)
         shear06 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
-        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=3000*units.m)
+        shear = mc.bulk_shear(p[z>orog], u[z>orog], v[z>orog], height=z[z>orog]*units.m, depth=3000*units.m)
         shear03 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
-        shear = mc.bulk_shear(p, u, v, height=z[z>orog]*units.m, depth=1000*units.m)
+        shear = mc.bulk_shear(p[z>orog], u[z>orog], v[z>orog], height=z[z>orog]*units.m, depth=1000*units.m)
         shear01 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
-        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u, v, depth=1000*units.m, storm_u=rightm[0]*units('m/s'), storm_v=rightm[1]*units('m/s'))
+        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u[z>orog], v[z>orog], depth=1000*units.m, storm_u=rightm[0], storm_v=rightm[1])
         srh01 = srh[2].magnitude
-        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u, v, depth=3000*units.m, storm_u=rightm[0]*units('m/s'), storm_v=rightm[1]*units('m/s'))
+        srh = mc.storm_relative_helicity(z[z>orog]*units.m, u[z>orog], v[z>orog], depth=3000*units.m, storm_u=rightm[0], storm_v=rightm[1])
         srh03 = srh[2].magnitude
         
         pp = np.array([sfcp] + list(prs[prs<sfcp]))*units.hPa
@@ -188,42 +188,42 @@ def extract_data(latt,lont,timt,data,datas):
                 # downp[j,i] = dc[1].magnitude[0]
                 downT[j,i] = dc[2].magnitude[0]
                 
-    
-        z = np.nanmean(z, axis=(1,2))
-        T = np.nanmean(T, axis=(1,2))
-        q = np.nanmean(q, axis=(1,2))
-        u = np.nanmean(u, axis=(1,2))
-        v = np.nanmean(v, axis=(1,2))
-        Td = np.nanmean(Td, axis=(1,2))
-        theta = np.nanmean(theta, axis=(1,2))
-        speed = np.nanmean(speed, axis=(1,2))
-        direc = np.nanmean(direc, axis=(1,2))
-        parcel_prof = np.nanmean(parcel_prof, axis=(1,2))
-        rightm = np.nanmean(rightm, axis=(1,2))
-        leftm = np.nanmean(leftm, axis=(1,2))
-        meanm = np.nanmean(meanm, axis=(1,2))
+        mask = (cape > 100)
+        z = np.nanmean(z[:,mask], axis=(1,2))
+        T = np.nanmean(T[:,mask], axis=(1,2))
+        q = np.nanmean(q[:,mask], axis=(1,2))
+        u = np.nanmean(u[:,mask], axis=(1,2))
+        v = np.nanmean(v[:,mask], axis=(1,2))
+        Td = np.nanmean(Td[:,mask], axis=(1,2))
+        theta = np.nanmean(theta[:,mask], axis=(1,2))
+        speed = np.nanmean(speed[:,mask], axis=(1,2))
+        direc = np.nanmean(direc[:,mask], axis=(1,2))
+        parcel_prof = np.nanmean(parcel_prof[:,mask], axis=(1,2))
+        rightm = np.nanmean(rightm[:,mask], axis=(1,2))
+        leftm = np.nanmean(leftm[:,mask], axis=(1,2))
+        meanm = np.nanmean(meanm[:,mask], axis=(1,2))
         
-        orog = np.nanmean(orog)
-        cape = np.nanmean(cape)
-        cin = np.nanmean(cin)
-        sfcp = np.nanmean(sfcp)
-        t2m = np.nanmean(t2m)
-        td2m = np.nanmean(td2m)
-        u10 = np.nanmean(u10)
-        v10 = np.nanmean(v10)
-        q2m = np.nanmean(q2m)
-        theta2m = np.nanmean(theta2m)
-        lcl_pressure = np.nanmean(lcl_pressure)
-        lcl_temperature = np.nanmean(lcl_temperature)
-        lcl_height = np.nanmean(lcl_height)
-        shear06 = np.nanmean(shear06)
-        shear03 = np.nanmean(shear03)
-        shear01 = np.nanmean(shear01)
-        srh03 = np.nanmean(srh03)
-        srh01 = np.nanmean(srh01)
-        lapse_rate = np.nanmean(lapse_rate)
-        dcape = np.nanmean(dcape)
-        downT = np.nanmean(downT)
+        orog = np.nanmean(orog[mask])
+        cape = np.nanmean(cape[mask])
+        cin = np.nanmean(cin[mask])
+        sfcp = np.nanmean(sfcp[mask])
+        t2m = np.nanmean(t2m[mask])
+        td2m = np.nanmean(td2m[mask])
+        u10 = np.nanmean(u10[mask])
+        v10 = np.nanmean(v10[mask])
+        q2m = np.nanmean(q2m[mask])
+        theta2m = np.nanmean(theta2m[mask])
+        lcl_pressure = np.nanmean(lcl_pressure[mask])
+        lcl_temperature = np.nanmean(lcl_temperature[mask])
+        lcl_height = np.nanmean(lcl_height[mask])
+        shear06 = np.nanmean(shear06[mask])
+        shear03 = np.nanmean(shear03[mask])
+        shear01 = np.nanmean(shear01[mask])
+        srh03 = np.nanmean(srh03[mask])
+        srh01 = np.nanmean(srh01[mask])
+        lapse_rate = np.nanmean(lapse_rate[mask])
+        dcape = np.nanmean(dcape[mask])
+        downT = np.nanmean(downT[mask])
     
     # Calculate the parcel profile.
     # calclow = 0
@@ -1224,7 +1224,7 @@ def getStormMotion(z, orog, u, v):
 
 
 
-
+# Based on the MetPy formulation, but works for a 3D grid
 def getSRH(z, orog, u, v, depth, u10, v10, bottom=None, storm_vector=None):
     
     if bottom is None:
@@ -1382,19 +1382,67 @@ def correct_datetime(year,month,day,hour):
 
 
 
-def plot_violin(data, ax, fc='w', ec='k', lw=1, **kwargs):
+def plot_violin(data, ax, fc='w', ec='k', lw=1, mc=None, **kwargs):
     v = ax.violinplot(data, **kwargs)
     for vb in v['bodies']:
         vb.set_facecolor(fc)
         vb.set_edgecolor(ec)
         vb.set_alpha(1)
-    for key in list(v.keys())[1:]:
+    for i,key in enumerate(list(v.keys())[1:]):
         v[key].set_linewidths(lw)
-        v[key].set_colors(ec)
+        if (key == "cmeans") & (mc is not None):
+            v[key].set_colors(mc)
+        else:
+            v[key].set_colors(ec)
     
     return v
 
 
+
+# Add statistical significance brackets for pairwise testing
+def add_brackets(ax, ustats, pos, y, h, sig=True):
+    if sig:
+        p1 = ustats['out_sigsub'][1]
+        p2 = ustats['out_nonsig'][1]
+        p3 = ustats['out_null'][1]
+        p4 = ustats['sigsub_nonsig'][1]
+        p5 = ustats['sigsub_null'][1]
+        p6 = ustats['nonsig_null'][1]
+        
+        if p1 < 0.05:
+            ax.plot([pos[0], pos[0], pos[1], pos[1]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p2 < 0.05:
+            ax.plot([pos[0], pos[0], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p3 < 0.05:
+            ax.plot([pos[0], pos[0], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p4 < 0.05:
+            ax.plot([pos[1], pos[1], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p5 < 0.05:
+            ax.plot([pos[1], pos[1], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p6 < 0.05:
+            ax.plot([pos[2], pos[2], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+    else:
+        p1 = ustats['out_sub'][1]
+        p2 = ustats['out_null'][1]
+        p3 = ustats['sub_null'][1]
+        
+        if p1 < 0.05:
+            ax.plot([pos[0], pos[0], pos[1], pos[1]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p2 < 0.05:
+            ax.plot([pos[0], pos[0], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+        if p3 < 0.05:
+            ax.plot([pos[1], pos[1], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
+            y = y + 1.5*h
+    
+    return
 
 
 

@@ -13,7 +13,7 @@ import xarray as xr
 import pandas as pd
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize, BoundaryNorm
-from matplotlib import  cm
+from matplotlib import cm
 from matplotlib.colors import ListedColormap
 import matplotlib.colors as colors
 
@@ -21,6 +21,7 @@ import metpy.calc as mc
 from metpy.cbook import get_test_data
 from metpy.plots import Hodograph, SkewT
 from metpy.units import units
+from scipy.stats import kruskal,mannwhitneyu
 # from metpy.calc import dewpoint_from_relative_humidity,specific_humidity_from_dewpoint
 # from metpy.calc import potential_temperature,temperature_from_potential_temperature
 # from metpy.calc import wind_speed, wind_direction,bunkers_storm_motion
@@ -523,8 +524,8 @@ locs = pickle.load(dbfile)
 # locs = locs_all[f"{yyyy}{mm:02.0f}{dd:02.0f}"]
 dbfile.close()
 
-events = ["20210811", "20250623", "20210907",
-          "20220530", "20220521", "20260630",
+events = ["20210811", "20250623", "20210907", #"20220802",
+          "20220530", "20220521", "20260630", #"20260902", "20260903",
           "20250724", "20260703", "20260802"]
 
 t2m = np.zeros((len(events),))
@@ -928,7 +929,10 @@ plt.show()
 
 from era5utils import *
 
-fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+username = os.environ.get("USERNAME")
+# fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+# fp = "C:/Users/mesch/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+fp = f"C:/Users/{username}/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
 # yyyy = 2025
 # mm = 6
@@ -944,13 +948,17 @@ events = ["20210811", "20250623", "20210907", "20220802",
           "20220530", "20220521", "20260630", "20260902", "20260903",
           "20250724", "20260703", "20260802"]
 
-# lats = []
-# lons = []
-# timt = []
-# yyyyt = []
-# mmt = []
-# ddt = []
-# hht = []
+dbfile = open(fp+"storm_tracks.pkl", 'rb')
+pts = pickle.load(dbfile)
+dbfile.close()
+
+latpoints = pts['latpoints']
+lonpoints = pts['lonpoints']
+hourpoints = pts['hourpoints']
+daypoints = pts['daypoints']
+
+
+
 
 data_all = dict()
 
@@ -976,7 +984,6 @@ for i in range(len(events)):
     #         yyyyt,mmt,ddt,hht = correct_datetime(yyyyt,mmt,ddt,hht)
         
     #     timt.append(f"{yyyyt}-{mmt:02.0f}-{ddt:02.0f}T{hht:02.0f}:00:00.000000000")
-    
     
     [yyyyt,mmt,dayt] = locs[events[i]][f"loc1"]['date_ymd']
     
@@ -1026,8 +1033,10 @@ for i in range(len(events)):
         
         lati = np.argmin(np.abs(latitude-lat))
         loni = np.argmin(np.abs(longitude-lon))
-        latt = latitude[lati-1:lati+2]
-        lont = longitude[loni-1:loni+2]
+        # latt = latitude[lati-1:lati+2]
+        # lont = longitude[loni-1:loni+2]
+        latt = latitude[lati] #don't spatial average for the distributions
+        lont = longitude[loni]
         
         # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
         data = extract_data(latt,lont,tim,datap,datas)
@@ -1052,21 +1061,39 @@ for i in range(len(events)):
         dcape[k] = data['dcape']
         downT[k] = data['downT'].magnitude
     
-    t2m = t2m[~np.isnan(t2m)]
-    td2m = td2m[~np.isnan(td2m)]
-    cape = cape[~np.isnan(cape)]
-    cin = cin[~np.isnan(cin)]
-    lclp = lclp[~np.isnan(lclp)]
-    shear06 = shear06[~np.isnan(shear06)]
-    shear03 = shear03[~np.isnan(shear03)]
-    shear01 = shear01[~np.isnan(shear01)]
-    srh03 = srh03[~np.isnan(srh03)]
-    srh01 = srh01[~np.isnan(srh01)]
-    lr = lr[~np.isnan(lr)]
-    sfcp = sfcp[~np.isnan(sfcp)]
-    lclz = lclz[~np.isnan(lclz)]
-    dcape = dcape[~np.isnan(dcape)]
-    downT = downT[~np.isnan(downT)]
+    mask = (cape > 100) & ~np.isnan(cin)
+    t2m = t2m[mask]
+    td2m = td2m[mask]
+    cape = cape[mask]
+    cin = cin[mask]
+    lclp = lclp[mask]
+    shear06 = shear06[mask]
+    shear03 = shear03[mask]
+    shear01 = shear01[mask]
+    srh03 = srh03[mask]
+    srh01 = srh01[mask]
+    lr = lr[mask]
+    sfcp = sfcp[mask]
+    lclz = lclz[mask]
+    dcape = dcape[mask]
+    downT = downT[mask]
+    
+    
+    # t2m = np.ma.masked_array(t2m, np.isnan(t2m))
+    # td2m = np.ma.masked_array(td2m, np.isnan(td2m))
+    # cape = np.ma.masked_array(cape, np.isnan(cape))
+    # cin = cin[~np.isnan(cin)]
+    # lclp = np.ma.masked_array(lclp, np.isnan(lclp))
+    # shear06 = np.ma.masked_array(shear06, np.isnan(shear06))
+    # shear03 = np.ma.masked_array(shear03, np.isnan(shear03))
+    # shear01 = np.ma.masked_array(shear01, np.isnan(shear01))
+    # srh03 = np.ma.masked_array(srh03, np.isnan(srh03))
+    # srh01 = np.ma.masked_array(srh01, np.isnan(srh01))
+    # lr = np.ma.masked_array(lr, np.isnan(lr))
+    # sfcp = np.ma.masked_array(sfcp, np.isnan(sfcp))
+    # lclz = np.ma.masked_array(lclz, np.isnan(lclz))
+    # dcape = np.ma.masked_array(dcape, np.isnan(dcape))
+    # downT = np.ma.masked_array(downT, np.isnan(downT))
     
     
     dat = dict(p=p, sfcp=sfcp, t2m=t2m, td2m=td2m, cape=cape, cin=cin, lclp=lclp, lclz=lclz, lr=lr,
@@ -1275,10 +1302,10 @@ plt.show()
 
 
 
-#%% Box plots - overall distributions for each event type
-# Currently- outbreak (n=71), sub-outbreak (n=63), null (n=63)
+#%% Overall distributions for each event type
+# Currently- outbreak (n=75), total sub-outbreak (n=91), sig sub-outbreak (n=43), nonsig sub-outbreak (n=48), null (n=61)
 
-fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
+# fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/era5/tor_outbreaks/"
 
 dbfile = open(fp+"tornado_locs.pkl", 'rb')
 locs = pickle.load(dbfile)
@@ -1292,73 +1319,189 @@ events = ["20210811", "20250623", "20210907", "20220802",
 # nulls = [events[i] for i in range(len(events)) if locs[events[i]]['type']=='null']
 
 
+separate_sig = False
+
 figsave = False
 
 
+if separate_sig:
+    shear01_type = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    shear03_type = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    shear06_type = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cape_type = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cin_type = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
+    lclz_type = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    srh01_type = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    srh03_type = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    t2m_type = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    td2m_type = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    downT_type = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    tdepr_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    lr_type = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    
+    labels = ['Outbreaks', 'Sub-outbreaks\n (EF2+) ', 'Sub-outbreaks\n (No EF2+) ', 'Nulls']
+    labels_none = ['', '', '', '']
+    pos = [0, 0.33, 0.66, 1.0]
+    bw = 0.18
+    boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
+    whiskerprops=dict(color='k', linewidth=1)
+    capprops=dict(color='k', linewidth=1)
+    medianprops=dict(color='k', linewidth=1)
+    meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
+    figsize=(7,4)
+    xlim = [-0.3, 1.3]
+    
+else:
+    shear01_type = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    shear03_type = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    shear06_type = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cape_type = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cin_type = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
+    lclz_type = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    srh01_type = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    srh03_type = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    t2m_type = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    td2m_type = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    downT_type = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    tdepr_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    lr_type = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    
+    labels = ['Outbreaks', 'Sub-outbreaks', 'Nulls']
+    labels_none = ['', '', '']
+    pos = [0, 0.5, 1.0]
+    bw = 0.25
+    boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
+    whiskerprops=dict(color='k', linewidth=1)
+    capprops=dict(color='k', linewidth=1)
+    medianprops=dict(color='k', linewidth=1)
+    meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
+    figsize=(6,4)
+    xlim = [-0.4, 1.4]
 
-shear01_type = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-shear03_type = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-shear06_type = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-cape_type = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-cin_type = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-            -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-            -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
-lclz_type = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-srh01_type = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-srh03_type = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-t2m_type = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-            np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-            np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-td2m_type = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-             np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-downT_type = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-tdepr_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-            np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-            np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-              np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-lr_type = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-           np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-           np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+
+#%% Plot violin plots
+
+figsave = False
+
+dbfile = open(fp+'environment_stats.pkl', 'rb')
+stats = pickle.load(dbfile)
+dbfile.close()
 
 
 
 
-labels = ['Outbreaks', 'Sub-outbreaks', 'Nulls']
-labels_none = ['', '', '']
-bw = 0.25
-pos = [0, 0.5, 1.0]
-boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
-whiskerprops=dict(color='k', linewidth=1)
-capprops=dict(color='k', linewidth=1)
-medianprops=dict(color='k', linewidth=1)
-meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
-figsize=(6,4)
-xlim = [-0.4, 1.4]
+if separate_sig:
+    labels = ['Outbreaks', 'Sub-outbreaks\n (EF2+) ', 'Sub-outbreaks\n (No EF2+) ', 'Nulls']
+    labels_none = ['', '', '', '']
+    pos = [0, 0.33, 0.66, 1.0]
+    bw = 0.18
+    boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
+    whiskerprops=dict(color='k', linewidth=1)
+    capprops=dict(color='k', linewidth=1)
+    medianprops=dict(color='k', linewidth=1)
+    meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
+    figsize=(7,4)
+    xlim = [-0.3, 1.3]
+    
+    kstats = stats['kstats_sig']
+    ustats = stats['ustats_sig']
+else:
+    labels = ['Outbreaks', 'Sub-outbreaks', 'Nulls']
+    labels_none = ['', '', '']
+    pos = [0, 0.5, 1.0]
+    bw = 0.25
+    boxprops=dict(facecolor='lightskyblue', color='k', linewidth=1)
+    whiskerprops=dict(color='k', linewidth=1)
+    capprops=dict(color='k', linewidth=1)
+    medianprops=dict(color='k', linewidth=1)
+    meanprops=dict(marker='o', markerfacecolor='k', markeredgecolor='k')
+    figsize=(6,4)
+    xlim = [-0.4, 1.4]
+    
+    kstats = stats['kstats_all']
+    ustats = stats['ustats_all']
 
-
-
+lw = 1.5
+fc = 'lightblue'
 
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
@@ -1374,22 +1517,35 @@ xlim = [-0.4, 1.4]
 # ax.yaxis.set_major_locator(MultipleLocator(5))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_shear01.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_shear01_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_shear01.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(shear01_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(shear01_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-1 km bulk wind difference')
+ax.set_title('0-1 km bulk shear')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([0,20])
+ax.set_ylim([0,25])
 ax.yaxis.set_major_locator(MultipleLocator(5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.min(shear01_type[i])-1, f"Median: {np.median(shear01_type[i]):.1f} m/s", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.min(shear01_type[i])-1.75, f"Mean: {np.mean(shear01_type[i]):.1f} m/s", color='r', fontsize=8, ha='center')
+# l1, = ax.plot([-10,-10], [0,1], '-k', linewidth=1.5)
+# l2, = ax.plot([-10,-10], [0,1], '-r', linewidth=1.5)
+# ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], v3['bodies'][0], l1, l2], labels=['0-1 km', '0-3 km', '0-6 km', 'Median', 'Mean'], loc='upper right', fontsize=10)
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['shear01'], pos, 20.5, 0.5, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_shear01.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_shear01_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_shear01.png', dpi=300)
 
-
+#%
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(shear03_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
 #                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
@@ -1403,20 +1559,30 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(5))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_shear03.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_shear03_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_shear03.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(shear03_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(shear03_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-3 km bulk wind difference')
+ax.set_title('0-3 km bulk shear')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([0,30])
+ax.set_ylim([0,37])
 ax.yaxis.set_major_locator(MultipleLocator(5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.min(shear03_type[i])-1.5, f"Median: {np.median(shear03_type[i]):.1f} m/s", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.min(shear03_type[i])-2.75, f"Mean: {np.mean(shear03_type[i]):.1f} m/s", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['shear03'], pos, 30.5, 0.75, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_shear03.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_shear03_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_shear03.png', dpi=300)
 
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
@@ -1432,23 +1598,33 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(5))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_shear06.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_shear06_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_shear06.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(shear06_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(shear06_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-6 km bulk wind difference')
+ax.set_title('0-6 km bulk shear')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([0,40])
+ax.set_ylim([0,47])
 ax.yaxis.set_major_locator(MultipleLocator(5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.min(shear06_type[i])-2, f"Median: {np.median(shear06_type[i]):.1f} m/s", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.min(shear06_type[i])-3.5, f"Mean: {np.mean(shear06_type[i]):.1f} m/s", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['shear06'], pos, 39, 1, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_shear06.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_shear06_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_shear06.png', dpi=300)
 
 
-
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(cape_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1463,20 +1639,30 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(250))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_cape.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_cape_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_cape.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(cape_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(cape_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('CAPE [J/kg]')
-ax.set_title('MLCAPE')
+ax.set_title('Mixed-layer CAPE')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([0,2500])
-ax.yaxis.set_major_locator(MultipleLocator(250))
-# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_ylim([0,6500])
+ax.yaxis.set_major_locator(MultipleLocator(1000))
+ax.yaxis.set_minor_locator(MultipleLocator(500))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(cape_type[i])+400, f"Median: {np.median(cape_type[i]):.0f} J/kg", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(cape_type[i])+150, f"Mean: {np.mean(cape_type[i]):.0f} J/kg", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['cape'], pos, 5550, 110, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_cape.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_cape_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_cape.png', dpi=300)
 
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
@@ -1492,21 +1678,31 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(100))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_cin.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_cin_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_cin.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(cin_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(cin_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('CIN [J/kg]')
-ax.set_title('MLCIN')
+ax.set_title('Mixed-layer CIN')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([-500,0])
-ax.yaxis.set_major_locator(MultipleLocator(100))
-# ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_ylim([-550,50])
+ax.yaxis.set_major_locator(MultipleLocator(50))
+# ax.yaxis.set_minor_locator(MultipleLocator(50))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(cin_type[i])+40, f"Median: {np.median(cin_type[i]):.0f} J/kg", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(cin_type[i])+15, f"Mean: {np.mean(cin_type[i]):.0f} J/kg", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['cin'], pos, 10, 5, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_cin.png', dpi=300)
-
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_cin_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_cin.png', dpi=300)
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(dcape_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1521,9 +1717,12 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(200))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_dcape.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_dcape_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_dcape.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(dcape_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(dcape_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('DCAPE [J/kg]')
 ax.set_title('Downdraft CAPE')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
@@ -1531,11 +1730,18 @@ ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
 ax.set_ylim([200,1400])
 ax.yaxis.set_major_locator(MultipleLocator(200))
-# ax.yaxis.set_minor_locator(MultipleLocator(1))
+# ax.yaxis.set_minor_locator(MultipleLocator(100))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(dcape_type[i])+75, f"Median: {np.median(dcape_type[i]):.0f} J/kg", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(dcape_type[i])+25, f"Mean: {np.mean(dcape_type[i]):.0f} J/kg", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['dcape'], pos, 1280, 25, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_dcape.png', dpi=300)
-
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_dcape_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_dcape.png', dpi=300)
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(lr_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1550,23 +1756,33 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(0.5))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_lapserate.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_lapserate_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_lapserate.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(lr_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(lr_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Lapse rate [K/km]')
-ax.set_title('Mid-level lapse rate (700-500 mb)')
+ax.set_title('700-500 mb lapse rate')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
 ax.set_ylim([5,8])
 ax.yaxis.set_major_locator(MultipleLocator(0.5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(lr_type[i])+0.2, f"Median: {np.median(lr_type[i]):.1f} K/km", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(lr_type[i])+0.075, f"Mean: {np.mean(lr_type[i]):.1f} K/km", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['lapse_rate'], pos, 7.5, 0.05, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_lapserate.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_lapserate_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_lapserate.png', dpi=300)
 
 
-
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(srh01_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1581,21 +1797,31 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(50))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_srh01.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_srh01_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_srh01.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(srh01_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(srh01_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('0-1 km SRH')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([-50,400])
+ax.set_ylim([-50,500])
 ax.yaxis.set_major_locator(MultipleLocator(50))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(srh01_type[i])+40, f"Median: {np.median(srh01_type[i]):.0f} m2/s2", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(srh01_type[i])+15, f"Mean: {np.mean(srh01_type[i]):.0f} m2/s2", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['srh01'], pos, 430, 10, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_srh01.png', dpi=300)
-
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_srh01_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_srh01.png', dpi=300)
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(srh03_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1610,23 +1836,33 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(50))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_srh03.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_srh03_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_srh03.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(srh03_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(srh03_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('0-3 km SRH')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([0,500])
+ax.set_ylim([0,560])
 ax.yaxis.set_major_locator(MultipleLocator(50))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(srh03_type[i])+40, f"Median: {np.median(srh03_type[i]):.0f} m2/s2", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(srh03_type[i])+15, f"Mean: {np.mean(srh03_type[i]):.0f} m2/s2", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['srh03'], pos, 490, 10, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_srh03.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_srh03_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_srh03.png', dpi=300)
 
 
-
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(lclz_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1641,9 +1877,12 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(200))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_lcl_height.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_lcl_height_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_lcl_height.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(lclz_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(lclz_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Height [m]')
 ax.set_title('LCL height')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
@@ -1652,10 +1891,17 @@ ax.set_xlim(xlim)
 ax.set_ylim([0,1800])
 ax.yaxis.set_major_locator(MultipleLocator(200))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(lclz_type[i])+100, f"Median: {np.median(lclz_type[i]):.0f} m", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(lclz_type[i])+30, f"Mean: {np.mean(lclz_type[i]):.0f} m", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['lcl_height'], pos, 1500, 32, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_lcl_height.png', dpi=300)
-
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_lcl_height_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_lcl_height.png', dpi=300)
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(tdepr_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1670,21 +1916,31 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(2))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_dewpt_depression.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_dewpt_depression_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_dewpt_depression.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(tdepr_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
+v = plot_violin(tdepr_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Temperature [C]')
-ax.set_title('Dewpoint depression (T - Td)')
+ax.set_title('2-m dewpoint depression')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
 ax.set_ylim([0,12])
 ax.yaxis.set_major_locator(MultipleLocator(2))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.max(tdepr_type[i])+0.75, f"Median: {np.median(tdepr_type[i]):.1f} C", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.max(tdepr_type[i])+0.25, f"Mean: {np.mean(tdepr_type[i]):.1f} C", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['dewpt_depr'], pos, 9.5, 0.25, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_dewpt_depression.png', dpi=300)
-
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_dewpt_depression_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_dewpt_depression.png', dpi=300)
+#%
 
 # fig,ax = plt.subplots(figsize=figsize, layout='constrained')
 # b = ax.boxplot(cpt_type, tick_labels=labels, patch_artist=True, positions=pos, widths=bw, showmeans=True,
@@ -1699,141 +1955,219 @@ if figsave:
 # ax.yaxis.set_major_locator(MultipleLocator(2))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
-#     plt.savefig(fp+'figs/boxplot_coldpool.png', dpi=300)
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_coldpool_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_coldpool.png', dpi=300)
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v = plot_violin(cpt_type, ax, fc='lightblue', ec='k', lw=1, positions=pos, widths=bw, showmedians=True)
-ax.set_ylabel('Temperature [C]')
-ax.set_title('Predicted cold pool temperature deficit')
+v = plot_violin(cpt_type, ax, fc=fc, ec='k', lw=lw, positions=pos, widths=bw, showmedians=True, showmeans=True, mc='r')
+ax.set_ylabel('Temperature deficit [C]')
+ax.set_title('Cold pool strength')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([-16,0])
+ax.set_ylim([-18,0])
 ax.yaxis.set_major_locator(MultipleLocator(2))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# for i in range(len(pos)):
+#     ax.text(pos[i], np.min(cpt_type[i])-0.7, f"Median: {np.median(cpt_type[i]):.1f} C", color='k', fontsize=8, ha='center')
+#     ax.text(pos[i], np.min(cpt_type[i])-1.4, f"Mean: {np.mean(cpt_type[i]):.1f} C", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
+add_brackets(ax, ustats['coldpool'], pos, -1.8, 0.3, sig=separate_sig)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_coldpool.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_coldpool_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_coldpool.png', dpi=300)
 
 
-#%%
+
+
+
+#%% Combined box/violin plots for shear and SRH
 #####
 
+
+if separate_sig:
+    pos1 = [0.0, 1.0, 2.0, 3.0]
+    pos2 = [0.25, 1.25, 2.25, 3.25]
+    pos3 = [0.5, 1.5, 2.5, 3.5]
+    xlim = [-0.3, 3.8]
+    figsize = (7,4)
+else:
+    pos1 = [0.0, 1.0, 2.0]
+    pos2 = [0.25, 1.25, 2.25]
+    pos3 = [0.5, 1.5, 2.5]
+    xlim = [-0.3, 2.8]
+    figsize = (6,4)
 
 
 
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-b1 = ax.boxplot(shear01_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,1.0,2.0], widths=0.2, #showmeans=True,
+b1 = ax.boxplot(shear01_type, tick_labels=labels_none, patch_artist=True, positions=pos1, widths=0.2, #showmeans=True,
                boxprops=dict(facecolor='white', color='k', linewidth=1),
                whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
-b2 = ax.boxplot(shear03_type, tick_labels=labels, patch_artist=True, positions=[0.25,1.25,2.25], widths=0.2, #showmeans=True,
+b2 = ax.boxplot(shear03_type, tick_labels=labels, patch_artist=True, positions=pos2, widths=0.2, #showmeans=True,
                boxprops=dict(facecolor='lightgray', color='k', linewidth=1),
                whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
-b3 = ax.boxplot(shear06_type, tick_labels=labels_none, patch_artist=True, positions=[0.5,1.5,2.5], widths=0.2, #showmeans=True,
+b3 = ax.boxplot(shear06_type, tick_labels=labels_none, patch_artist=True, positions=pos3, widths=0.2, #showmeans=True,
                boxprops=dict(facecolor='gray', color='k', linewidth=1),
                whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Shear [m/s]')
 ax.set_title('Bulk wind shear')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,2.8])
+ax.set_xlim(xlim)
 ax.set_ylim([0,40])
 ax.yaxis.set_major_locator(MultipleLocator(5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.legend(handles=[b1['boxes'][0], b2['boxes'][0], b3['boxes'][0]], labels=['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
 if figsave:
-    plt.savefig(fp+'figs/boxplot_shear.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/boxplot_shear_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/boxplot_shear.png', dpi=300)
+
 
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v1 = plot_violin(shear01_type, ax, fc='white', ec='k', lw=1, positions=[0.0,1.0,2.0], widths=0.2, showmedians=True)
-v2 = plot_violin(shear03_type, ax, fc='lightgray', ec='k', lw=1, positions=[0.25,1.25,2.25], widths=0.2, showmedians=True)
-v3 = plot_violin(shear06_type, ax, fc='gray', ec='k', lw=1, positions=[0.5,1.5,2.5], widths=0.2, showmedians=True)
+v1 = plot_violin(shear01_type, ax, fc='white', ec='k', lw=1.5, positions=pos1, widths=0.2, showmedians=True, showmeans=True, mc='r')
+v2 = plot_violin(shear03_type, ax, fc='lightgray', ec='k', lw=1.5, positions=pos2, widths=0.2, showmedians=True, showmeans=True, mc='r')
+v3 = plot_violin(shear06_type, ax, fc='gray', ec='k', lw=1.5, positions=pos3, widths=0.2, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('Shear [m/s]')
 ax.set_title('Bulk wind shear')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,2.8])
+ax.set_xlim(xlim)
 ax.set_ylim([0,40])
 ax.yaxis.set_major_locator(MultipleLocator(5))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
-ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], v3['bodies'][0]], labels=['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
-ax.set_xticks([0.25,1.25,2.25], labels)
+l1, = ax.plot([-10,-10], [0,1], '-k', linewidth=1.5)
+l2, = ax.plot([-10,-10], [0,1], '-r', linewidth=1.5)
+ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], v3['bodies'][0], l1, l2], labels=['0-1 km', '0-3 km', '0-6 km', 'Median', 'Mean'], loc='upper right', fontsize=10)
+ax.set_xticks(pos2, labels)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_shear.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_shear_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_shear.png', dpi=300)
 
 
-#%%
+#%
+
+if separate_sig:
+    pos1 = [0.0, 0.8, 1.6, 2.4]
+    pos2 = [0.3, 1.1, 1.9, 2.7]
+    pos3 = [0.15, 0.95, 1.75, 2.55]
+    xlim = [-0.3, 3.0]
+    figsize = (7,4)
+else:
+    pos1 = [0.0, 0.8, 1.6]
+    pos2 = [0.3, 1.1, 1.9]
+    pos3 = [0.15, 0.95, 1.75]
+    xlim = [-0.3, 2.2]
+    figsize = (6,4)
 
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-b1 = ax.boxplot(srh01_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,0.8,1.6], widths=0.2, #showmeans=True,
+b1 = ax.boxplot(srh01_type, tick_labels=labels_none, patch_artist=True, positions=pos1, widths=0.2, #showmeans=True,
                boxprops=dict(facecolor='white', color='k', linewidth=1),
                whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
-b2 = ax.boxplot(srh03_type, tick_labels=labels_none, patch_artist=True, positions=[0.3,1.1,1.9], widths=0.2, #showmeans=True,
+b2 = ax.boxplot(srh03_type, tick_labels=labels_none, patch_artist=True, positions=pos2, widths=0.2, #showmeans=True,
                boxprops=dict(facecolor='silver', color='k', linewidth=1),
                whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('Storm-relative helicity')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,2.2])
+ax.set_xlim(xlim)
 ax.set_ylim([-50,500])
 ax.yaxis.set_major_locator(MultipleLocator(50))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.legend(handles=[b1['boxes'][0], b2['boxes'][0]], labels=['0-1 km', '0-3 km'], loc='upper right')
-ax.set_xticks([0.15, 0.95, 1.75], labels)
+ax.set_xticks(pos3, labels)
 if figsave:
-    plt.savefig(fp+'figs/boxplot_srh.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/boxplot_srh_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/boxplot_srh.png', dpi=300)
 
 fig,ax = plt.subplots(figsize=figsize, layout='constrained')
-v1 = plot_violin(srh01_type, ax, fc='white', ec='k', lw=1, positions=[0.0,0.8,1.6], widths=0.2, showmedians=True)
-v2 = plot_violin(srh03_type, ax, fc='silver', ec='k', lw=1, positions=[0.3,1.1,1.9], widths=0.2, showmedians=True)
+v1 = plot_violin(srh01_type, ax, fc='white', ec='k', lw=1.5, positions=pos1, widths=0.2, showmedians=True, showmeans=True, mc='r')
+v2 = plot_violin(srh03_type, ax, fc='silver', ec='k', lw=1.5, positions=pos2, widths=0.2, showmedians=True, showmeans=True, mc='r')
 ax.set_ylabel('SRH [m2/s2]')
 ax.set_title('Storm-relative helicity')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,2.2])
+ax.set_xlim(xlim)
 ax.set_ylim([-50,500])
 ax.yaxis.set_major_locator(MultipleLocator(50))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
-ax.legend(handles=[v1['bodies'][0], v2['bodies'][0]], labels=['0-1 km', '0-3 km'], loc='upper right')
-ax.set_xticks([0.15, 0.95, 1.75], labels)
+l1, = ax.plot([-10,-10], [0,1], '-k', linewidth=1.5)
+l2, = ax.plot([-10,-10], [0,1], '-r', linewidth=1.5)
+ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], l1, l2], labels=['0-1 km', '0-3 km', 'Median', 'Mean'], loc='upper right', fontsize=10)
+ax.set_xticks(pos3, labels)
 if figsave:
-    plt.savefig(fp+'figs/violinplot_srh.png', dpi=300)
+    if separate_sig:
+        plt.savefig(fp+'figs/violinplot_srh_sig.png', dpi=300)
+    else:
+        plt.savefig(fp+'figs/violinplot_srh.png', dpi=300)
 
 
 
 
-fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
-b1 = ax.boxplot(cape_type, tick_labels=labels, patch_artist=True, positions=[0.0,0.5,1.0], widths=0.3, #showmeans=True,
-               boxprops=dict(facecolor='white', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
-b2 = ax.boxplot(cin_type, tick_labels=labels_none, patch_artist=True, positions=[0.0,0.5,1.0], widths=0.3, #showmeans=True,
-               boxprops=dict(facecolor='silver', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
-ax.set_ylabel('CAPE/CIN [J/kg]')
-ax.set_title('Mixed-layer CAPE/CIN')
-ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
-ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,1.3])
-ax.set_ylim([-500,2500])
-ax.yaxis.set_major_locator(MultipleLocator(250))
-# ax.yaxis.set_minor_locator(MultipleLocator(1))
-ax.legend(handles=[b1['boxes'][0], b2['boxes'][0]], labels=['MLCAPE', 'MLCIN'], loc='upper right')
-if figsave:
-    plt.savefig(fp+'figs/boxplot_capecin.png', dpi=300)
+# if separate_sig:
+#     pos1 = [0.0, 0.33, 0.67, 1.0]
+#     pos2 = [-0.1, 0.23, 0.57, 0.9]
+#     xlim = [-0.3, 1.3]
+#     wid = 0.2
+#     figsize = (5,6)
+# else:
+#     pos1 = [0.0, 0.5, 1.0]
+#     xlim = [-0.3, 1.3]
+#     wid = 0.3
+#     figsize = (4,6)
 
-fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
-v1 = plot_violin(cape_type, ax, fc='white', ec='k', lw=1, positions=[0.0,0.5,1.0], widths=0.3, showmedians=True)
-v2 = plot_violin(cin_type, ax, fc='silver', ec='k', lw=1, positions=[0.0,0.5,1.0], widths=0.3, showmedians=True)
-ax.set_ylabel('CAPE/CIN [J/kg]')
-ax.set_title('Mixed-layer CAPE/CIN')
-ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
-ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
-ax.set_xlim([-0.3,1.3])
-ax.set_ylim([-500,2500])
-ax.yaxis.set_major_locator(MultipleLocator(250))
-# ax.yaxis.set_minor_locator(MultipleLocator(1))
-ax.legend(handles=[v1['bodies'][0], v2['bodies'][0]], labels=['MLCAPE', 'MLCIN'], loc='upper right')
-ax.set_xticks([0.0, 0.5, 1.0], labels)
-if figsave:
-    plt.savefig(fp+'figs/violinplot_capecin.png', dpi=300)
+
+# fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
+# b1 = ax.boxplot(cape_type, tick_labels=labels, patch_artist=True, positions=pos1, widths=wid, #showmeans=True,
+#                boxprops=dict(facecolor='white', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# b2 = ax.boxplot(cin_type, tick_labels=labels_none, patch_artist=True, positions=pos1, widths=wid, #showmeans=True,
+#                boxprops=dict(facecolor='silver', color='k', linewidth=1), whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
+# ax.set_ylabel('CAPE/CIN [J/kg]')
+# ax.set_title('Mixed-layer CAPE/CIN')
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([-500,3000])
+# ax.yaxis.set_major_locator(MultipleLocator(250))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# ax.legend(handles=[b1['boxes'][0], b2['boxes'][0]], labels=['MLCAPE', 'MLCIN'], loc='upper right')
+# ax.set_xticks(pos1, labels, rotation=40, ha='right')
+# if figsave:
+#     if separate_sig:
+#         plt.savefig(fp+'figs/boxplot_capecin_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/boxplot_capecin.png', dpi=300)
+
+# fig,ax = plt.subplots(figsize=(4,6), layout='constrained')
+# v1 = plot_violin(cape_type, ax, fc='white', ec='k', lw=1.5, positions=pos1, widths=wid, showmedians=True, showmeans=True, mc='r')
+# v2 = plot_violin(cin_type, ax, fc='silver', ec='k', lw=1.5, positions=pos1, widths=wid, showmedians=True, showmeans=True, mc='r')
+# ax.set_ylabel('CAPE/CIN [J/kg]')
+# ax.set_title('Mixed-layer CAPE/CIN')
+# ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
+# ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
+# ax.set_xlim(xlim)
+# ax.set_ylim([-500,3000])
+# ax.yaxis.set_major_locator(MultipleLocator(250))
+# # ax.yaxis.set_minor_locator(MultipleLocator(1))
+# l1, = ax.plot([-10,-10], [0,1], '-k', linewidth=1.5)
+# l2, = ax.plot([-10,-10], [0,1], '-r', linewidth=1.5)
+# ax.legend(handles=[v1['bodies'][0], v2['bodies'][0], l1, l2], labels=['MLCAPE', 'MLCIN', 'Median', 'Mean'], loc='upper left', fontsize=10)
+# ax.set_xticks(pos1, labels, rotation=40)
+# if figsave:
+#     if separate_sig:
+#         plt.savefig(fp+'figs/violinplot_capecin_sig.png', dpi=300)
+#     else:
+#         plt.savefig(fp+'figs/violinplot_capecin.png', dpi=300)
 
 
 
@@ -1842,8 +2176,251 @@ if figsave:
 plt.show()
 
 
+#%% Calculate stats for distributions - Kruskal-Wallis and Mann-Whitney U test
+
+from scipy.stats import kruskal,mannwhitneyu
+
+shear01_type_sig = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear03_type_sig = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear06_type_sig = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cape_type_sig = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cin_type_sig = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
+lclz_type_sig = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh01_type_sig = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh03_type_sig = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+t2m_type_sig = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+td2m_type_sig = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+downT_type_sig = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+tdepr_type_sig = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cpt_type_sig = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+dcape_type_sig = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+lr_type_sig = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+
+data_type_sig = {'shear01':shear01_type_sig, 'shear03':shear03_type_sig, 'shear06':shear06_type_sig, 'srh01':srh01_type_sig, 'srh03':srh03_type_sig,
+                 'cape':cape_type_sig, 'cin':cin_type_sig, 'dcape':dcape_type_sig, 'lcl_height':lclz_type_sig, 'lapse_rate':lr_type_sig,
+                 'dewpt_depr':tdepr_type_sig, 'coldpool':cpt_type_sig}
+
+shear01_type_all = [np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear03_type_all = [np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+shear06_type_all = [np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                    np.concatenate(tuple([data_all[events[i]]['shear06'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cape_type_all = [np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['cape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cin_type_all = [-1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                -1*np.concatenate(tuple([data_all[events[i]]['cin'] for i in range(len(events)) if locs[events[i]]['type']=='null'])),]
+lclz_type_all = [np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['lclz'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh01_type_all = [np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh01'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+srh03_type_all = [np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['srh03'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+t2m_type_all = [np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+td2m_type_all = [np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                 np.concatenate(tuple([data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+downT_type_all = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+tdepr_type_all = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cpt_type_all = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+dcape_type_all = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                  np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+lr_type_all = [np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+               np.concatenate(tuple([data_all[events[i]]['lr'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+
+data_type_all = {'shear01':shear01_type_all, 'shear03':shear03_type_all, 'shear06':shear06_type_all, 'srh01':srh01_type_all, 'srh03':srh03_type_all,
+                 'cape':cape_type_all, 'cin':cin_type_all, 'dcape':dcape_type_all, 'lcl_height':lclz_type_all, 'lapse_rate':lr_type_all,
+                 'dewpt_depr':tdepr_type_all, 'coldpool':cpt_type_all}
+
+### All sub-outbreaks
+
+keys = ['shear01', 'shear03', 'shear06', 'srh01', 'srh03', 'cape', 'cin', 'dcape', 'lcl_height', 'lapse_rate', 'dewpt_depr', 'coldpool']
+
+kstats_all = dict(shear01={}, shear03={}, shear06={}, srh01={}, srh03={}, cape={}, cin={}, dcape={}, lcl_height={}, lapse_rate={}, dewpt_depr={}, coldpool={})
+ustats_all = dict(shear01={}, shear03={}, shear06={}, srh01={}, srh03={}, cape={}, cin={}, dcape={}, lcl_height={}, lapse_rate={}, dewpt_depr={}, coldpool={})
+kstats_sig = dict(shear01={}, shear03={}, shear06={}, srh01={}, srh03={}, cape={}, cin={}, dcape={}, lcl_height={}, lapse_rate={}, dewpt_depr={}, coldpool={})
+ustats_sig = dict(shear01={}, shear03={}, shear06={}, srh01={}, srh03={}, cape={}, cin={}, dcape={}, lcl_height={}, lapse_rate={}, dewpt_depr={}, coldpool={})
 
 
+for key in keys:
+    ### All sub-outbreaks
+    sample1 = np.asarray(data_type_all[key][0])
+    sample2 = np.asarray(data_type_all[key][1])
+    sample3 = np.asarray(data_type_all[key][2])
+    kstat, pval = kruskal(sample1, sample2, sample3)
+    kstats_all[key] = np.asarray([kstat, pval])
+
+    ustat12, pval12 = mannwhitneyu(sample1, sample2)
+    ustat23, pval23 = mannwhitneyu(sample2, sample3)
+    ustat13, pval13 = mannwhitneyu(sample1, sample3)
+    ustat_t_nt, pval_t_nt = mannwhitneyu(np.append(sample1, sample2, axis=0), sample3)
+    ustats_all[key].update({'out_sub': np.asarray([ustat12, pval12])})
+    ustats_all[key].update({'sub_null': np.asarray([ustat23, pval23])})
+    ustats_all[key].update({'out_null': np.asarray([ustat13, pval13])})
+    ustats_all[key].update({'tor_null': np.asarray([ustat_t_nt, pval_t_nt])})
+
+
+    ### Sig/nonsig outbreaks
+    sample1 = np.asarray(data_type_sig[key][0])
+    sample2 = np.asarray(data_type_sig[key][1])
+    sample3 = np.asarray(data_type_sig[key][2])
+    sample4 = np.asarray(data_type_sig[key][3])
+    kstat, pval = kruskal(sample1, sample2, sample3, sample4)
+    kstats_sig[key] = np.asarray([kstat, pval])
+
+    ustat12, pval12 = mannwhitneyu(sample1, sample2)
+    ustat13, pval13 = mannwhitneyu(sample1, sample3)
+    ustat14, pval14 = mannwhitneyu(sample1, sample4)
+    ustat23, pval23 = mannwhitneyu(sample2, sample3)
+    ustat24, pval24 = mannwhitneyu(sample2, sample4)
+    ustat34, pval34 = mannwhitneyu(sample3, sample4)
+    ustat_s_ns, pval_s_ns = mannwhitneyu(np.append(sample1, sample2, axis=0), sample3)
+    ustats_sig[key].update({'out_sigsub': np.asarray([ustat12, pval12])})
+    ustats_sig[key].update({'out_nonsig': np.asarray([ustat13, pval13])})
+    ustats_sig[key].update({'out_null': np.asarray([ustat14, pval14])})
+    ustats_sig[key].update({'sigsub_nonsig': np.asarray([ustat23, pval23])})
+    ustats_sig[key].update({'sigsub_null': np.asarray([ustat24, pval24])})
+    ustats_sig[key].update({'nonsig_null': np.asarray([ustat34, pval34])})
+    ustats_sig[key].update({'sig_nonsig': np.asarray([ustat_s_ns, pval_s_ns])})
+
+
+# print("ALL SUB-OUTBREAKS")
+# for key in keys:
+#     print()
+#     if kstats_all[key][1] < 0.05:
+#         print(key + ': Kruskal test SIGNIFICANT')
+        
+#         if ustats_all[key]['out_sub'][1] < 0.05:
+#             print('...Outbreak vs. sub-outbreak... SIGNIFICANT')
+#         else:
+#             print('...Outbreak vs. sub-outbreak... NOT significant')
+        
+#         if ustats_all[key]['sub_null'][1] < 0.05:
+#             print('...Sub-outbreak vs. null... SIGNIFICANT')
+#         else:
+#             print('...Sub-outbreak vs. null... NOT significant')
+        
+#         # if ustats_all[key]['out_null'][1] < 0.05:
+#         #     print('...Outbreak vs. null... SIGNIFICANT')
+#         # else:
+#         #     print('...Outbreak vs. null... NOT significant')
+        
+#         if ustats_all[key]['tor_null'][1] < 0.05:
+#             print('...Tornadic vs. nontornadic... SIGNIFICANT')
+#         else:
+#             print('...Tornadic vs. nontornadic... NOT significant')
+        
+#     else:
+#         print(key + ': Kruskal test NOT significant')
+
+# print(" ---------- ")
+# print("...SIG/NONSIG SUB-OUTBREAKS...")
+
+# for key in keys:
+#     if kstats_sig[key][1] < 0.05:
+#         print(key + ': Kruskal test SIGNIFICANT')
+        
+#         if ustats_sig[key]['out_sigsub'][1] < 0.05:
+#             print('...Outbreak vs. sig-sub... SIGNIFICANT')
+#         else:
+#             print('...Outbreak vs. sig-sub... NOT significant')
+        
+#         if ustats_sig[key]['sigsub_nonsig'][1] < 0.05:
+#             print('...Sig-sub vs. nonsig-sub... SIGNIFICANT')
+#         else:
+#             print('...Sig-sub vs. nonsig-sub... NOT significant')
+        
+#         if ustats_sig[key]['nonsig_null'][1] < 0.05:
+#             print('...Nonsig-sub vs. null... SIGNIFICANT')
+#         else:
+#             print('...Nonsig-sub vs. null... NOT significant')
+        
+#         # if ustats_sig[key]['out_nonsig'][1] < 0.05:
+#         #     print('...Outbreak vs. nonsig-sub... SIGNIFICANT')
+#         # else:
+#         #     print('...Outbreak vs. nonsig-sub... NOT significant')
+        
+#         # if ustats_sig[key]['sigsub_null'][1] < 0.05:
+#         #     print('...Sig-sub vs. null... SIGNIFICANT')
+#         # else:
+#         #     print('...Sig-sub vs. null... NOT significant')
+        
+#         if ustats_sig[key]['sig_nonsig'][1] < 0.05:
+#             print('...Sig vs. nonsig... SIGNIFICANT')
+#         else:
+#             print('...Sig vs. nonsig... NOT significant')
+#     else:
+#         print(key + ': Kruskal test NOT significant')
+
+
+stats = {'kstats_all':kstats_all, 'ustats_all':ustats_all, 'kstats_sig':kstats_sig, 'ustats_sig':ustats_sig}
+
+dbfile = open(fp+'environment_stats.pkl', 'wb')
+pickle.dump(stats, dbfile)
+dbfile.close()
 
 
 
@@ -1855,15 +2432,12 @@ fp = "C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/e
 # mm = 6
 # dd = 23
 
-leadtime = 1
+# leadtime = 1
 
-dbfile = open(fp+"tornado_locs.pkl", 'rb')
-locs = pickle.load(dbfile)
-dbfile.close()
 
-events = ["20210811", "20250623", "20210907",
-          "20220530", "20220521", "20260630", 
-          "20250724", "20260703", "20260802"]
+# events = ["20210811", "20250623", "20210907", "20220802",
+#           "20220530", "20220521", "20260630", "20260902", "20260903",
+#           "20250724", "20260703", "20260802"]
 
 
 # August 11 2021
@@ -1879,11 +2453,11 @@ hours_1 = [19, 19, 19, 19, 19, 19,
 days_1 = [11, 11, 11, 11, 11, 11,
           11, 11, 11, 11, 11, 11, 11, 11, 11,
           11, 11, 11, 11, 11, 11, 11]
-latlont1 = []
-for lat,lon,t in zip(lats_1,lons_1,hours_1):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont1.append([t,latr,lonr])
+# latlont1 = []
+# for lat,lon,t in zip(lats_1,lons_1,hours_1):
+#     latr = np.round(lat/0.25) * 0.25
+#     lonr = np.round(lon/0.25) * 0.25
+#     latlont1.append([t,latr,lonr])
 
 
 # June 23 2025
@@ -1911,11 +2485,6 @@ days_2 = [23, 23, 23, 23,
           23, 23, 23, 23, 23,
           24, 24, 24, 24, 24,
           24, 24, 24, 24, 24]
-latlont2 = []
-for lat,lon,t in zip(lats_2,lons_2,hours_2):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont2.append([t,latr,lonr])
 
 
 # May 30 2022
@@ -1927,35 +2496,21 @@ hours_3 = [0, 0, 0, 0, 0, 0, 0, 0,
            1, 1, 1, 1, 1, 1, 1, 1]
 days_3 = [31, 31, 31, 31, 31, 31, 31, 31,
           31, 31, 31, 31, 31, 31, 31, 31]
-latlont3 = []
-for lat,lon,t in zip(lats_3,lons_3,hours_3):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont3.append([t,latr,lonr])
 
 
 # May 21 2022
-lats_4 = [42.5, 42.5, 42.75, 43.0,
-          43.0179, 42.9217, 43.0, 42.75, 43.25, 42.74, 43.0, 43.5,
-          43.5, 43.25, 43.75, 43.5, 43.75, 43.5,
+lats_4 = [43.0179, 42.9217, 43.0, 42.75, 43.25, 42.74, 43.0, 43.5,
+          # 43.5, 43.25, 43.75, 43.5, 43.75, 43.5,
           44.1058, 44.1755, 44.25, 44.0, 43.75, 44.0, 44.25, 44.0, 44.25]
-lons_4 = [-83.0, -82.5, -82.75, -82.25,
-          -81.2216, -81.1977, -81.75, -82.0, -81.5, -81.5, -81.0, -81.0,
-          -80.5, -80.75, -80.25, -80.0, -79.75, -79.75,
+lons_4 = [-81.2216, -81.1977, -81.75, -82.0, -81.5, -81.5, -81.0, -81.0,
+          # -80.5, -80.75, -80.25, -80.0, -79.75, -79.75,
           -79.1458, -78.7722, -79.25, -79.5, -79.25, -79.0, -79.0, -78.75, -78.75]
-hours_4 = [14, 14, 14, 14,
-           15, 15, 15, 15, 15, 15, 15, 15,
-           16, 16, 16, 16, 16, 16,
+hours_4 = [15, 15, 15, 15, 15, 15, 15, 15,
+           # 16, 16, 16, 16, 16, 16,
            17, 17, 17, 17, 17, 17, 17, 17, 17]
-days_4 = [21, 21, 21, 21,
-          21, 21, 21, 21, 21, 21, 21, 21,
-          21, 21, 21, 21, 21, 21,
+days_4 = [21, 21, 21, 21, 21, 21, 21, 21,
+          # 21, 21, 21, 21, 21, 21,
           21, 21, 21, 21, 21, 21, 21, 21, 21]
-latlont4 = []
-for lat,lon,t in zip(lats_4,lons_4,hours_4):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont4.append([t,latr,lonr])
 
 
 # June 30 2026
@@ -1971,11 +2526,6 @@ hours_5 = [16, 16, 16, 16, 16, 16, 16,
 days_5 = [30, 30, 30, 30, 30, 30, 30,
           30, 30, 30, 30, 30, 30, 30, 30, 30,
           30, 30, 30, 30]
-latlont5 = []
-for lat,lon,t in zip(lats_5,lons_5,hours_5):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont5.append([t,latr,lonr])
 
 
 # July 24 2025
@@ -1995,11 +2545,6 @@ days_6 = [24, 24, 24, 24, 24, 24, 24,
           24, 24, 24, 24, 24, 24,
           24, 24, 24, 24, 24, 24, 24, 24, 24,
           25, 25, 25, 25, 25, 25, 25]
-latlont6 = []
-for lat,lon,t in zip(lats_6,lons_6,hours_6):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont6.append([t,latr,lonr])
 
 
 # July 3 2026
@@ -2015,11 +2560,6 @@ hours_7 = [22, 22, 22, 22, 22, 22, 22, 22, 22,
 days_7 = [3, 3, 3, 3, 3, 3, 3, 3, 3,
           3, 3, 3, 3, 3, 3, 3, 3,
           4, 4, 4, 4, 4]
-latlont7 = []
-for lat,lon,t in zip(lats_7,lons_7,hours_7):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont7.append([t,latr,lonr])
 
 
 # September 7 2021
@@ -2035,11 +2575,6 @@ hours_8 = [20, 20, 20, 20, 20,
 days_8 = [7, 7, 7, 7, 7,
           7, 7, 7, 7, 7, 7, 7, 7, 7,
           7, 7, 7, 7, 7, 7, 7]
-latlont8 = []
-for lat,lon,t in zip(lats_8,lons_8,hours_8):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont8.append([t,latr,lonr])
 
 
 # August 2 2026
@@ -2055,51 +2590,36 @@ hours_9 = [15, 15, 15,
 days_9 = [2, 2, 2,
           2, 2, 2, 2, 2,
           2, 2, 2, 2]
-latlont9 = []
-for lat,lon,t in zip(lats_9,lons_9,hours_9):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont9.append([t,latr,lonr])
 
 
 # August 2-3 2022
-lats_10 = [50.4961, 50.5822, 50.6197, 50.6461,
-           50.6542, 50.6856]
-lons_10 = [-94.1375, -94.0039, -94.0122, -93.9406,
-           -93.8642, -93.7758]
-hours_10 = [1, 1, 1, 1,
-            2, 2]
-days_10 = [3, 3, 3, 3,
-           3, 3]
-latlont10 = []
-for lat,lon,t in zip(lats_10,lons_10,hours_10):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont10.append([t,latr,lonr])
+lats_10 = [50.4961, 50.5822, 50.6197, 50.6461, 50.25, 50.25, 50.5,
+           50.6542, 50.6856, 50.5, 50.25, 50.5, 50.25, 50.25, 50.5]
+lons_10 = [-94.1375, -94.0039, -94.0122, -93.9406, -94.25, -94.5, -93.75,
+           -93.8642, -93.7758, -93.75, -94.0, -93.5, -93.75, -93.5, -93.25]
+hours_10 = [1, 1, 1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2, 2, 2, 2]
+days_10 = [3, 3, 3, 3, 3, 3, 3,
+           3, 3, 3, 3, 3, 3, 3, 3]
 
 
 # September 2 2026
-lats_11 = [43.6092, 43.3277, 43.3481, 43.4910]
-lons_11 = [-81.2014, -80.8992, -80.8193, -80.8012]
-hours_11 = [21, 21, 21, 21]
-days_11 = [2, 2, 2, 2]
-latlont11 = []
-for lat,lon,t in zip(lats_11,lons_11,hours_11):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont11.append([t,latr,lonr])
+lats_11 = [43.5, 43.5, 43.25, 43.75, 43.75, 
+           43.6092, 43.3277, 43.3481, 43.4910, 43.25, 43.25, 43.5, 43.25, 43.25, 43.5]
+lons_11 = [-81.5, -81.75, -81.75, -81.5, -81.75, 
+           -81.2014, -80.8992, -80.8193, -80.8012, -81.25, -81.5, -81.0, -81.0, -80.5, -80.5]
+hours_11 = [20, 20, 20, 20, 20,
+            21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
+days_11 = [2, 2, 2, 2, 2,
+           2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
 
 # September 3 2026
-lats_12 = [42.3310, 42.1168]
-lons_12 = [-82.9762, -82.4868]
-hours_12 = [20, 20]
-days_12 = [3, 3]
-latlont12 = []
-for lat,lon,t in zip(lats_12,lons_12,hours_12):
-    latr = np.round(lat/0.25) * 0.25
-    lonr = np.round(lon/0.25) * 0.25
-    latlont12.append([t,latr,lonr])
+lats_12 = [42.5, 42.25, 42.25, 42.3310, 42.1808, 42.1168, 42.5, 42.25, 42.0, 42.0, 42.25, 42.0, 42.25]
+lons_12 = [-83.25, -83.5, -83.25, -82.9762, -83.0690, -82.4868, -83.0, -82.75, -82.75, -83.0, -82.5, -82.5, -83.25]
+hours_12 = [19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+days_12 = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+
 
 
 
@@ -2119,19 +2639,12 @@ daypoints = {"20210811":days_1, "20250623":days_2, "20210907":days_8, "20220802"
              "20220530":days_3, "20220521":days_4, "20260630":days_5, "20260902":days_11, "20260903":days_12,
              "20250724":days_6, "20260703":days_7, "20260802":days_9}
 
+#%%
+data = {'latpoints':latpoints, 'lonpoints':lonpoints, 'hourpoints':hourpoints, 'daypoints':daypoints}
 
-
-
-
-
-
-
-
-
-
-
-
-
+dbfile = open(fp+"storm_tracks.pkl", 'wb')
+pickle.dump(data, dbfile)
+dbfile.close()
 
 
 

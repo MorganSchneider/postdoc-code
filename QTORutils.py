@@ -17,7 +17,9 @@ import netCDF4 as nc
 import pyart #need an earlier version of xarray -> 0.20.2 or earlier
 import pickle
 import xarray as xr
+import cfgrib
 import pandas as pd
+import h5py as h5
 # import sklearn
 from glob import glob
 import os
@@ -25,6 +27,7 @@ from os.path import exists
 from matplotlib.ticker import MultipleLocator
 from datetime import datetime
 
+from scipy.interpolate import griddata
 from scipy.ndimage import gaussian_filter
 from skimage import measure,morphology,filters
 # from metpy.interpolate import interpolate_to_points
@@ -139,9 +142,12 @@ def get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, 
     shear01_flat = np.column_stack( (shear01[0].ravel(), shear01[1].ravel()))
     
     mask = [False] * len(grid_points)
-    for i in range(len(grid_points)):
-        point = Point(grid_points[i])
+    for i,gp in enumerate(grid_points):
+        point = Point(gp)
         mask[i] = inflow_polygon.covers(point)
+    # for i in range(len(grid_points)):
+    #     point = Point(grid_points[i])
+    #     mask[i] = inflow_polygon.covers(point)
 
     inflow_points = grid_points[mask]
     inflow_shear03 = shear03_flat[mask]
@@ -152,30 +158,54 @@ def get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, 
     LN03 = np.zeros((len(ll_points),), dtype=float)
     LP01 = np.zeros((len(ll_points),), dtype=float)
     
-    for i in range(len(ll_points)):
+    for i,theta in enumerate(theta_norm):
         if np.any(inds == i):
             s03 = inflow_shear03[(inds==i)]
             s01 = inflow_shear01[(inds==i)]
             S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
             S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
             
-            orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)] #line orientation to the left of normal vector
+            orientation_local = [np.cos(theta+np.pi/2), np.sin(theta+np.pi/2)] #line orientation to the left of normal vector
             
             lp01 = np.zeros((len(s03),), dtype=float)
             ln03 = np.zeros((len(s03),), dtype=float)
-            for j in range(len(s03)):
-                s03_norm = s03[j] / S03[j]
-                s01_norm = s01[j] / S01[j]
+            for j,(s3,S3,s1,S1) in enumerate(zip(s03, S03, s01, S01)):
+                s03_norm = s3 / S3
+                s01_norm = s1 / S1
                 lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
                 lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
                 
-                lp01[j] = lp01_percent * S01[j]
-                ln03_mag = (1 - lp03_percent) * S03[j]
+                lp01[j] = lp01_percent * S1
+                ln03_mag = (1 - lp03_percent) * S3
                 ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
                 ln03[j] = ln03_mag * ln03_sgn
             
             LP01[i] = np.nanmean(lp01)
             LN03[i] = np.nanmean(ln03)
+    # for i in range(len(ll_points)):
+    #     if np.any(inds == i):
+    #         s03 = inflow_shear03[(inds==i)]
+    #         s01 = inflow_shear01[(inds==i)]
+    #         S03 = np.sqrt(s03[:,0]**2 + s03[:,1]**2)
+    #         S01 = np.sqrt(s01[:,0]**2 + s01[:,1]**2)
+            
+    #         orientation_local = [np.cos(theta_norm[i]+np.pi/2), np.sin(theta_norm[i]+np.pi/2)] #line orientation to the left of normal vector
+            
+    #         lp01 = np.zeros((len(s03),), dtype=float)
+    #         ln03 = np.zeros((len(s03),), dtype=float)
+    #         for j in range(len(s03)):
+    #             s03_norm = s03[j] / S03[j]
+    #             s01_norm = s01[j] / S01[j]
+    #             lp03_percent = np.abs(np.dot(orientation_local, s03_norm))
+    #             lp01_percent = np.abs(np.dot(orientation_local, s01_norm))
+                
+    #             lp01[j] = lp01_percent * S01[j]
+    #             ln03_mag = (1 - lp03_percent) * S03[j]
+    #             ln03_sgn = np.sign(np.cross(s03_norm, orientation_local))
+    #             ln03[j] = ln03_mag * ln03_sgn
+            
+    #         LP01[i] = np.nanmean(lp01)
+    #         LN03[i] = np.nanmean(ln03)
     
     return LN03, LP01
 
@@ -217,7 +247,8 @@ def get_shear(z, orog, u, v, u10, v10, depth, bottom=None):
     u_interp = u
     v_interp = v
     
-    if top not in z_interp:
+    # if top not in z_interp:
+    if True:
         top_arr = top * np.ones(shape=orog.shape)
         z1 = np.append(z_interp, top_arr[np.newaxis,:], axis=0)
         sort_inds1 = np.argsort(z1[:,0,0])
@@ -279,7 +310,7 @@ def get_inflow_polygon(ll_points, storm_motion):
     x_proj = np.zeros((len(ll_points),), dtype=float)
     y_proj = np.zeros((len(ll_points),), dtype=float)
     dist = 40 #km, near-field distance
-
+    
     for i in range(len(ll_points)):
         if i == 0:
             theta_local[i] = np.arctan2(y_ll[i+1]-y_ll[i], x_ll[i+1]-x_ll[i])
@@ -293,44 +324,69 @@ def get_inflow_polygon(ll_points, storm_motion):
             theta_local[i] = dist2/(dist1+dist2)*theta1 + dist1/(dist1+dist2)*theta2
 
     # Determine whether to add or subtract 90 deg from local angle to get normal angle
-    for i in range(len(theta_local)):
+    for i,theta in enumerate(theta_local):
         if abs(u_storm) > abs(v_storm):
             if u_storm > 0:
-                theta_norm[i] = theta_local[i] + np.pi/2
+                theta_norm[i] = theta + np.pi/2
             elif u_storm < 0:
-                theta_norm[i] = theta_local[i] - np.pi/2
+                theta_norm[i] = theta - np.pi/2
         elif abs(v_storm) > abs(u_storm):
             if v_storm > 0:
-                theta_norm[i] = theta_local[i] + np.pi/2
+                theta_norm[i] = theta + np.pi/2
             elif v_storm < 0:
-                theta_norm[i] = theta_local[i] - np.pi/2
+                theta_norm[i] = theta - np.pi/2
+    # for i in range(len(theta_local)):
+    #     if abs(u_storm) > abs(v_storm):
+    #         if u_storm > 0:
+    #             theta_norm[i] = theta_local[i] + np.pi/2
+    #         elif u_storm < 0:
+    #             theta_norm[i] = theta_local[i] - np.pi/2
+    #     elif abs(v_storm) > abs(u_storm):
+    #         if v_storm > 0:
+    #             theta_norm[i] = theta_local[i] + np.pi/2
+    #         elif v_storm < 0:
+    #             theta_norm[i] = theta_local[i] - np.pi/2
         
         x_proj[i] = x_ll[i] + dist*np.cos(theta_norm[i])
         y_proj[i] = y_ll[i] + dist*np.sin(theta_norm[i])
     
     # QC polygon - make sure all projection points are ahead of leading line
     qc_points = ll_points.tolist()
-    qc_points.append([-300,-300])
+    qc_points.append([-300,0])
     qc_polygon = Polygon(qc_points)
 
     theta_norm_qc = np.zeros((len(ll_points),))
     x_proj_qc = np.zeros((len(ll_points),))
     y_proj_qc = np.zeros((len(ll_points),))
-
-    for i in range(len(ll_points)):
-        point = Point(x_proj[i], y_proj[i])
+    
+    for i,(xp,yp,xl,yl,theta) in enumerate(zip(x_proj, y_proj, x_ll, y_ll, theta_norm)):
+        point = Point(xp, yp)
         is_inside = qc_polygon.contains(point)
         if is_inside:
-            if theta_norm[i] > 0:
-                theta_norm_qc[i] = theta_norm[i] - np.pi
+            if theta > 0:
+                theta_norm_qc[i] = theta - np.pi
             else:
-                theta_norm_qc[i] = theta_norm[i] + np.pi
-            x_proj_qc = x_ll[i] + dist*np.cos(theta_norm_qc[i])
-            y_proj_qc = y_ll[i] + dist*np.sin(theta_norm_qc[i])
+                theta_norm_qc[i] = theta + np.pi
+            x_proj_qc[i] = xl + dist*np.cos(theta_norm_qc[i])
+            y_proj_qc[i] = yl + dist*np.sin(theta_norm_qc[i])
         else:
-            theta_norm_qc[i] = theta_norm[i]
-            x_proj_qc[i] = x_proj[i]
-            y_proj_qc[i] = y_proj[i]
+            theta_norm_qc[i] = theta
+            x_proj_qc[i] = xp
+            y_proj_qc[i] = yp
+    # for i in range(len(ll_points)):
+    #     point = Point(x_proj[i], y_proj[i])
+    #     is_inside = qc_polygon.contains(point)
+    #     if is_inside:
+    #         if theta_norm[i] > 0:
+    #             theta_norm_qc[i] = theta_norm[i] - np.pi
+    #         else:
+    #             theta_norm_qc[i] = theta_norm[i] + np.pi
+    #         x_proj_qc = x_ll[i] + dist*np.cos(theta_norm_qc[i])
+    #         y_proj_qc = y_ll[i] + dist*np.sin(theta_norm_qc[i])
+    #     else:
+    #         theta_norm_qc[i] = theta_norm[i]
+    #         x_proj_qc[i] = x_proj[i]
+    #         y_proj_qc[i] = y_proj[i]
 
     leading_points = ll_points.tolist()
     proj_points = [[x_proj_qc[i], y_proj_qc[i]] for i in range(len(ll_points))][::-1]
@@ -425,16 +481,21 @@ def get_leading_line(qlcs_obj, storm_motion, grid_x, grid_y, grid_lat, grid_lon)
     vector_zonal = zonal_points - cl_points_matched_zonal
     vector_merid = merid_points - cl_points_matched_merid
     
-    if abs(u_storm) > abs(v_storm):
-        zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0),:]
-        merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0),:]
-        zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0),:]
-        merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0),:]
-    elif abs(v_storm) > abs(u_storm):
-        zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_storm > 0),:]
-        merid_points_filtered = merid_points[(vector_merid[:,1]/v_storm > 0),:]
-        zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_storm > 0),:]
-        merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_storm > 0),:]
+    zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0) & (vector_zonal[:,1]/v_storm > 0),:]
+    merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0) & (vector_merid[:,1]/v_storm > 0),:]
+    zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0) & (vector_zonal[:,1]/v_storm > 0),:]
+    merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0) & (vector_merid[:,1]/v_storm > 0),:]
+    
+    # if abs(u_storm) > abs(v_storm):
+    #     zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0),:]
+    #     merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0),:]
+    #     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0),:]
+    #     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0),:]
+    # elif abs(v_storm) > abs(u_storm):
+    #     zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_storm > 0),:]
+    #     merid_points_filtered = merid_points[(vector_merid[:,1]/v_storm > 0),:]
+    #     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_storm > 0),:]
+    #     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_storm > 0),:]
     
     
     # Merge zonal and meridional points
@@ -460,15 +521,16 @@ def get_leading_line(qlcs_obj, storm_motion, grid_x, grid_y, grid_lat, grid_lon)
     points_tmp.remove(start_point)
     start_lonlat = ll_lonlat_cat[ind]
     lonlat_tmp.remove(start_lonlat)
-    # query_point = start_point
+    query_point = start_point
     ll_points_merged.append(start_point)
     ll_lonlat_merged.append(start_lonlat)
 
     for i in range(len(ll_points_cat)-1):
         tree = KDTree(np.asarray(points_tmp))
-        dist,ind = tree.query(start_point)
-        # dist2,ind2 = tree.query(query_point)
+        # dist,ind = tree.query(start_point)
+        dist,ind = tree.query(query_point)
         ll_points_merged.append(points_tmp[ind])
+        query_point = points_tmp[ind]
         points_tmp.remove(points_tmp[ind])
         ll_lonlat_merged.append(lonlat_tmp[ind])
         lonlat_tmp.remove(lonlat_tmp[ind])
@@ -476,23 +538,36 @@ def get_leading_line(qlcs_obj, storm_motion, grid_x, grid_y, grid_lat, grid_lon)
     ll_points_sorted = [item for item in ll_points_merged]
     ll_lonlat_sorted = [item for item in ll_lonlat_merged]
     # fix messed up points
-    for i in range(1, len(ll_points_cat)-1):
-        d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
-        d2 = distance(ll_points_sorted[i], ll_points_sorted[i+1])
-        d3 = distance(ll_points_sorted[i-1], ll_points_sorted[i+1])
+    # for i in range(1, len(ll_points_cat)-1):
+    #     d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
+    #     d2 = distance(ll_points_sorted[i], ll_points_sorted[i+1])
+    #     d3 = distance(ll_points_sorted[i-1], ll_points_sorted[i+1])
         
-        if (d1>d3) & (d2>d3):
-            ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
-            ll_lonlat_sorted[i], ll_lonlat_sorted[i+1] = ll_lonlat_merged[i+1], ll_lonlat_merged[i]
+    #     if (d1>d3) & (d2>d3):
+    #         ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
+    #         ll_lonlat_sorted[i], ll_lonlat_sorted[i+1] = ll_lonlat_merged[i+1], ll_lonlat_merged[i]
+    
+    # ll_dists = ((ll_points_sorted[1:,0] - ll_points_sorted[:-1,0])**2 + (ll_points_sorted[1:,1] - ll_points_sorted[:-1,1])**2)**0.5
     
     # Smooth leading line
     ll_points_sorted = np.asarray(ll_points_sorted, dtype=float)
-    ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=2/3, axis=0)
+    ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=5/3, axis=0)
+    
+    ll_grad = np.abs(np.gradient(ll_points_smooth, axis=0))
+    ll_dists = np.sqrt(ll_grad[:,0]**2 + ll_grad[:,1]**2)
+    q1 = np.percentile(ll_dists, 25)
+    q3 = np.percentile(ll_dists, 75)
+    iqr = q3 - q1
+    upper_bound = q3 + 2*iqr
+    mask = (ll_dists <= upper_bound)
+    ll_points_smooth = ll_points_smooth[mask,:]
+    
     
     ll_lonlat_sorted = np.asarray(ll_lonlat_sorted, dtype=float)
-    ll_lonlat_smooth = gaussian_filter1d(ll_lonlat_sorted, sigma=2/3, axis=0)
+    ll_lonlat_smooth = gaussian_filter1d(ll_lonlat_sorted, sigma=5/3, axis=0)
+    # ll_lonlat_smooth = ll_lonlat_smooth[mask,:]
     
-    return ll_points_smooth, ll_lonlat_smooth
+    return ll_points_smooth, ll_lonlat_smooth, obj_contour
 
 
 
@@ -534,8 +609,8 @@ def get_centroid(region, grid_x, grid_y, reference_centroid=None):
             x_centroid_ref = reference_centroid[0]
             y_centroid_ref = reference_centroid[1]
             centroid_dist2 = np.zeros((len(region),))
-            for n in range(len(centroid_dist2)):
-                j_centroid,i_centroid = region[n].centroid
+            for n,reg in enumerate(region):
+                j_centroid,i_centroid = reg.centroid
                 jc1,ic1,jc2,ic2 = np.floor(j_centroid), np.floor(i_centroid), np.ceil(j_centroid), np.ceil(i_centroid)
                 j1,i1,j2,i2 = int(jc1), int(ic1), int(jc2), int(ic2)
                 xc[n] = (1 - abs(i_centroid-ic1))*grid_x[j1,i1] + (1 - abs(i_centroid-ic2))*grid_x[j1,i2]
@@ -616,9 +691,7 @@ def get_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, mi
     cref_bin_filtered[(obj_labels_filtered>0)] = True
     
     # Dilate binarized objects to merge objects within merge_distance of each other
-    merge_len_oneway = 0.5*merge_distance / hres #convert to number of pixels
-    if np.mod(0.5*merge_distance, hres) != 0:
-        merge_len_oneway = np.round(merge_len_oneway)
+    merge_len_oneway = np.round(0.5*merge_distance / hres) #convert to number of pixels
     merge_len = int(2*merge_len_oneway + 1)
     footprint = morphology.footprint_rectangle((merge_len, merge_len))
     cref_bin_dilated = morphology.binary_dilation(cref_bin_filtered, footprint=footprint)
@@ -637,10 +710,10 @@ def get_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, mi
     qlcs_regions_final = []
     
     n = 0
-    for i in range(len(regions_merged)):
+    for i,reg in enumerate(regions_merged):
         # area = regions_merged[i].area
-        axis_major = regions_merged[i].axis_major_length
-        ecc = regions_merged[i].eccentricity
+        axis_major = reg.axis_major_length
+        ecc = reg.eccentricity
         
         # print(f"Region {i+1} major axis= {axis_major:.1f} pixels ({axis_major*3:.1f} km) , ecc={ecc:.2f}")
         
@@ -658,7 +731,7 @@ def get_qlcs_objects(cref, hres, min_cref=40, max_cref=45, merge_distance=12, mi
             qlcs_labels_final[(cref_bin_filtered==0)] = 0
             regions_final.append(i+1)
             
-            qlcs_regions_final.append(regions_merged[i])
+            qlcs_regions_final.append(reg)
     
     return qlcs_labels_final, qlcs_regions_final
 
@@ -813,7 +886,7 @@ def longest_continuous_branch(multilines):
         return None, 0.0
 
 
-#%% Miscellaneous other functions
+#%% Reading data files
 
 
 # Read NEXRAD data
@@ -844,19 +917,174 @@ def read_nexrad(filename, max_rng=300):
 
 
 
+# Read ECCC radar xata - tbd (to be developed) once I have the data
+def read_eccc_hdf5(filename, grid_x, grid_y, max_rng=300, radius=3):
+    # Text header block needs t be removed from HDF5 files (first 34 bytes)
+    file_ext_ind = filename.find('.h')
+    filename_stripped = filename[:file_ext_ind] + "_stripped" + filename[file_ext_ind:]
+    header_length = 34
+    chunk_size = 1024*1024
+    
+    # with open(filename, 'rb') as src, open(filename_stripped, 'wb') as dst:
+    #     src.seek(header_length)
+    #     while True:
+    #         chunk = src.read(chunk_size)
+    #         if not chunk:
+    #             break
+    #         dst.write(chunk)
+    
+    fp = os.path.dirname(filename)
+    h5_files = [f.replace("\\", "/") for f in glob(fp + "/*")]
+    if filename_stripped not in h5_files:
+        with open(filename, 'rb') as src, open(filename_stripped, 'wb') as dst:
+            src.seek(header_length)
+            while True:
+                chunk = src.read(chunk_size)
+                if not chunk:
+                    break
+                dst.write(chunk)
+    
+    print("Stripped file name: " + os.path.basename(filename_stripped))
+    # Read file with header removed
+    radar = pyart.aux_io.read_odim_h5(filename_stripped)
+    
+    radar.init_gate_x_y_z()
+    radar.init_gate_longitude_latitude()
+    radar.init_gate_altitude()
+    radar.init_rays_per_sweep()
+    
+    time = datetime.strptime(radar.time['units'][-20:], "%Y-%m-%dT%H:%M:%SZ")
+    rng = radar.range['data']/1000
+    radar_lat = radar.latitude['data'][0]
+    radar_lon = radar.longitude['data'][0]
+    nsweeps = radar.nsweeps
+    
+    # Fix unmasked nans in dbz and 
+    dbz = radar.fields['reflectivity_horizontal']['data']
+    # clean_dbz_data = np.where(np.isnan(dbz.data), dbz.fill_value, dbz.data)
+    # # clean_dbz_mask = (dbz.mask) & (~np.isnan(dbz.data))
+    # clean_dbz_mask = (dbz.mask) | (clean_dbz_data == dbz.fill_value)
+    # clean_dbz = np.ma.masked_array(clean_dbz_data, mask=clean_dbz_mask)
+    # radar.fields['reflectivity_horizontal']['data'] = clean_dbz
+    
+    # Have to Cressman interpolate to the grid to calculate cref myself because it doesn't work with pyart!!! :D
+    # grid_x,grid_y = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, radius))
+    dbz_grid = np.zeros((nsweeps, grid_x.shape[0], grid_y.shape[1]))
+    
+    for n in range(nsweeps):
+        sweep = radar.extract_sweeps([n])
+        print(f"...Processing sweep {n} - {sweep.elevation['data'][0]:.1f} deg")
+        obs_x = sweep.gate_x['data']/1000
+        obs_y = sweep.gate_y['data']/1000
+        obs_lat = sweep.gate_latitude['data']
+        obs_lon = sweep.gate_longitude['data']
+        obs_dbz = sweep.fields['reflectivity_horizontal']['data'].data
+        gx = obs_x[:,(rng<=max_rng)].astype(np.float32)
+        gy = obs_y[:,(rng<=max_rng)].astype(np.float32)
+        glat = obs_lat[:,(rng<=max_rng)].astype(np.float32)
+        glon = obs_lon[:,(rng<=max_rng)].astype(np.float32)
+        data = obs_dbz[:,(rng<=max_rng)]
+        dbz1 = cressman_interpolation_dask(gx, gy, data, grid_x, grid_y, radius, chunk_size=5000)
+        dbz_grid[n,:,:] = dbz1
+        
+    cref = np.nanmax(dbz_grid, axis=0)
+    cref_masked = np.ma.masked_array(cref, np.isnan(cref))
+    
+    return cref, time, radar_lat, radar_lon, gx, gy, glat, glon, dbz_grid
+    
+'''
+### Resource: https://data.eol.ucar.edu/zinc/file/download/54E3335CD84EE/OPERA2014_O4_ODIM_H5-v2.2.pdf ###
 
-def read_eccc(filename, radar_name, max_rng=300):
+# Entire HDF structure (f, level 0) --> subgroups 'dataset1'-'dataset17' + metadata 'where'], 'what', and 'how'
+f['where'] --> radar location
+        attributes ['height', 'lat', 'lon']
+f['what'] --> 
+        attributes ['date', 'object', 'source', 'time', 'version']
+f['how'] --> radar operating parameters
+        attributes ['L_UPDATED_TASK', 'RXlossH', 'RXlossV', 'TXlossH', 'TXlossV', 'TXtype', '_creator_program', '_orig_file_format', '_orig_sensor_id', '_orig_sensor_name',
+                    'antgainH', 'antgainV', 'beamwH', 'beamwV', 'beamwidth', 'frequency', 'polmode', 'poltype', 'radomelossH', 'radomelossV', 'scan_count', 'simulated',
+                    'software', 'sw_version', 'system', 'task', 'time_accuracy_downgrade']
+
+# Groups (level 1) 'dataset1'-'dataset17' --> these are the individual sweeps
+# Note: ECCC radar volumes start at the highest tilt, not the lowest!
+ ['datasetn'] --> subgroups 'data1'-'data10' + metadata groups 'what', 'where', and 'how'
+ ['datasetn']['where']
+       attributes ['a1gate', 'elangle', 'nbins', 'nrays', 'rscale', 'rstart'] --> access via f['datasetn']['where'].attrs[key]
+ ['datasetn']['what']
+       attributes ['enddate', 'endtime', 'product', 'startdate', 'starttime']
+ ['datasetn']['how']
+       attributes ['CSR', 'LOG', 'NEZH', 'NEZH_A', 'NEZV', 'NEZV_A', 'NI', 'SQI', 'TXcalpowkwH', 'TXcalpowkwV', 'TXpower', 'Vsamples', 'anglesync', 'anglesyncRes',
+                    'antspeed', 'astart', 'avgpwr', 'azangles', 'azmethod', 'base_1km_hc', 'base_1km_vc', 'binmethod', 'binmethod_avg', 'clutterType', 'comment',
+                    'dataflag', 'dielectic_factor', 'dual-pol_TXpower', 'dual-pol_avgpwr', 'dual-pol_peakpwr', 'elangles', 'highprf', 'lowprf', 'malfunc', 'numpulses',
+                    'peakpwr', 'phasediff', 'pol_of_txpower', 'pulsewidth', 'radar_msg', 'radconstH', 'radconstV', 'scan_index', 'single-pol_TXpower', 'single-pol_avgpwr',
+                    'single-pol_peakpwr', 'startT', 'startazA', 'startelA', 'stopazA', 'stopelA', 'zcalH', 'zcalV', 'zdrcal']
+
+# Sub-groups (level 2) 'data1'-'data10' --> these are the different variables
+['datasetn']['datan'] --> subgroups 'data', 'what'
+['datasetn']['datan']['data'][:] --> actual data array
+['datasetn']['datan']['what'].attrs = ['gain', 'nodata', 'offset', 'quantity', 'undetect']
+    Variable names stored in ['datasetn']['datan']['what'].attrs['quantity']
+    data1  = DBZH    - Corrected horizontal reflectivity factor (dBZ)
+    data2  = RHOHV   - Correlation coefficient (0-1)
+    data3  = UPHIDP  - Uncorrected PHIDP
+    data4  = WRADH   - Spectrum width (horizontal)
+    data5  = PHIDP   - Differential phase (deg)
+    data6  = ZDR     - Differential reflectivity (dBZ? or dB?)
+    data7  = KDP     - Specific differential phase (deg/km)
+    data8  = SQIH    - Horizontal signal quality index (0-1)
+    data9  = VRADH   - Velocity (horizontal) (m/s)
+    data10 = TH      - Total uncorrected horizontal reflectivity factor (dBZ)
+
+
+volume_date = f['what'].attrs['date'].decode('utf-8')
+volume_time = f['what'].attrs['time'].decode('utf-8')
+time = datetime.strptime(volume_date + volume_time, '%Y%m%d%H%M%S')
+
+radar_height = f['where'].attrs['height']
+radar_lat = f['where'].attrs['lat']
+radar_lon = f['where'].attrs['lon']
+
+for i in range(17):
+    dat = f[f"dataset{i+1}"]
+    
+    elev_angle = dat['where'].attrs['elangle']
+    nbins = dat['where'].attrs['nbins']
+    nrays = dat['where'].attrs['nrays']
+    dr = dat['where'].attrs['rscale'] #range resolution (m)
+    
+    az_angles = dat['how'].attrs['azangles']
+    
+    dbz = dat['data1']['data'][:]
+    dbz_gain = dat['data1']['what'].attrs['gain'] # a in y=ax+b used to convert to unit?
+    dbz_offset = dat['data1']['what'].attrs['offset'] # b in y=ax+b used to convert to unit?
+    dbz_name = dat['data1']['what'].attrs['quantity'].decode('utf-8')
+    
+    vel = dat['data9']['data'][:]
+    zdr = dat['data6']['data'][:]
+    rhohv = dat['data2']['data'][:]
+    kdp = dat['data7']['data'][:]
+    sw = dat['data4']['data'][:]
+
+
+'''
+
+
+
+
+
+
+def read_eccc_geojson(filename, radar_name, max_rng=300):
     df = pd.read_csv('C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/ECCC_radar_locations.csv',
                      sep=",", header=0, usecols=["Call sign", "Latitude", "Longitude"], index_col="Call sign")
     radar_lat = df.loc[radar_name]['Latitude']
     radar_lon = df.loc[radar_name]['Longitude']
-    
+
     return radar_lat, radar_lon
 
 
 
-
-def read_era5(time, filepath, latlims, lonlims):
+# Read ERA5 netcdf files. Can also be adapted to grib
+def read_era5_netcdf(time, filepath, latlims, lonlims):
     # time: datetime
     latmin, latmax = latlims[0], latlims[1]
     lonmin, lonmax = lonlims[0], lonlims[1]
@@ -899,12 +1127,141 @@ def read_era5(time, filepath, latlims, lonlims):
 
 
 
-def read_hrdps(filename):
-    ds = xr.load_dataset(filename, engine='cfgrib') #grib
+def read_hrdps(time, model_run, fcst_hour, filepath, latlims, lonlims):
+    # time: datetime
+    latmin, latmax = latlims[0], latlims[1]
+    lonmin, lonmax = lonlims[0], lonlims[1]
+    datestr = time.strftime("%Y%m%d")
     
-    return ds
+    pres_levs = np.asarray([1015, 1000, 985, 970, 950, 925, 900, 875, 850, 800, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 275, 250, 225, 200, 175, 150, 100, 50])
+    
+    # hgt_files = list(glob(filepath + "*_HGT_ISBL_*.grib2")) + list(glob(filepath + "_HGT_Sfc_*.grib2"))
+    # ugrd_files = list(glob(filepath + "*_UGRD_ISBL_*.grib2")) + list(glob(filepath + "_UGRD_AGL-10m_*.grib2"))
+    # vgrd_files = list(glob(filepath + "*_VGRD_ISBL_*.grib2")) + list(glob(filepath + "_VGRD_AGL-10m_*.grib2"))
+    
+    ds = xr.load_dataset(filepath + f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_HGT_Sfc_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2", engine='cfgrib')
+    latitude = ds.latitude.data
+    longitude = ds.longitude.data
+    orog = ds.orog.data
+    ds.close()
+    
+    ds = xr.load_dataset(filepath + f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_UGRD_AGL-10m_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2", engine='cfgrib')
+    u10 = ds.u10.data
+    ds.close()
+    
+    ds = xr.load_dataset(filepath + f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_VGRD_AGL-10m_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2", engine='cfgrib')
+    v10 = ds.v10.data
+    ds.close()
+    
+    ds = xr.load_dataset(filepath + f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_PRES_Sfc_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2", engine='cfgrib')
+    sfcp = ds.sp.data / 100
+    ds.close()
+    
+    # ds = xr.load_dataset(filepath + f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_PRMSL_MSL_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2", engine='cfgrib')
+    # mslp = ds.prmsl.data / 100
+    # ds.close()
+    
+    nlats = orog.shape[0]
+    nlons = orog.shape[1]
+    
+    hgt = np.zeros((len(pres_levs), nlats, nlons), dtype=float)
+    u = np.zeros((len(pres_levs), nlats, nlons), dtype=float)
+    v = np.zeros((len(pres_levs), nlats, nlons), dtype=float)
+    
+    for i,p in enumerate(pres_levs):
+        hgt_fn = f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_HGT_ISBL_{p:04.0f}_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2"
+        u_fn = f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_UGRD_ISBL_{p:04.0f}_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2"
+        v_fn = f"{datestr}T{model_run:02.0f}Z_MSC_HRDPS_VGRD_ISBL_{p:04.0f}_RLatLon0.0225_PT{fcst_hour:03.0f}H.grib2"
+        
+        ds = xr.load_dataset(filepath + hgt_fn, engine='cfgrib')
+        htmp = ds.gh.data
+        ds.close()
+        
+        ds = xr.load_dataset(filepath + u_fn, engine='cfgrib')
+        utmp = ds.u.data
+        ds.close()
+        
+        ds = xr.load_dataset(filepath + v_fn, engine='cfgrib')
+        vtmp = ds.v.data
+        ds.close()
+        
+        hgt[i,:,:] = htmp
+        u[i,:,:] = utmp
+        v[i,:,:] = vtmp
+    
+    mask = (latitude>=latmin) & (latitude<=latmax) & (longitude>=lonmin) & (longitude<=lonmax)
+    
+    ileft = np.min(np.where(mask)[1])-5
+    iright = np.max(np.where(mask)[1])+6
+    jbot = np.min(np.where(mask)[0])-5
+    jtop = np.max(np.where(mask)[0])+6
+    jdy = slice(jbot, jtop)
+    idx = slice(ileft, iright)
+    
+    latt = latitude[jdy,idx]
+    lont = longitude[jdy,idx]
+    
+    data = dict(p=pres_levs, z=hgt[:,jdy,idx], u=u[:,jdy,idx], v=v[:,jdy,idx], orog=orog[jdy,idx], u10=u10[jdy,idx], v10=v10[jdy,idx])
+    
+    return data, latt, lont
 
 
+
+
+def read_hrrr(time, model_run, fcst_hour, filepath, latlims, lonlims):
+    # time: datetime
+    latmin, latmax = latlims[0], latlims[1]
+    lonmin, lonmax = lonlims[0], lonlims[1]
+    datestr = time.strftime("%Y%m%d")
+    
+    # fn_prs = f"hrrr.t{model_run:02.0f}z.wrfprsf{fcst_hour:02.0f}.grib2"
+    # fn_sfc = f"hrrr.t{model_run:02.0f}z.wrfsfcf{fcst_hour:02.0f}.grib2"
+    files = list(glob(filepath + f"subset_*_hrrr.t{model_run:02.0f}z.*{fcst_hour:02.0f}.grib2"))
+    fn_prs = files[0]
+    fn_sfc = files[1]
+    # fn_prs = [f for f in files if "prs" in files[i]][0]
+    # fn_sfc = [f for f in files if "sfc" in files[i]][0]
+
+    ds = xr.load_dataset(fn_prs, engine='cfgrib', filter_by_keys={'typeOfLevel': 'isobaricInhPa', 'shortName': 'gh'})
+    pres_levs = ds.isobaricInhPa.data
+    latitude = ds.latitude.data
+    longitude = ds.longitude.data
+    hgt = ds.gh.data
+    ds.close()
+    
+    ds = xr.load_dataset(fn_prs, engine='cfgrib', filter_by_keys={'typeOfLevel': 'isobaricInhPa', 'units': 'm s**-1'})
+    u = ds.u.data
+    v = ds.v.data
+    ds.close()
+    
+    ds = xr.load_dataset(fn_sfc, engine='cfgrib', filter_by_keys={'typeOfLevel': 'heightAboveGround', 'level': 10})
+    u10 = ds.u10.data
+    v10 = ds.v10.data
+    ds.close()
+    
+    ds = xr.load_dataset(fn_sfc, engine='cfgrib', filter_by_keys={'typeOfLevel': 'surface'})
+    orog = ds.orog.data
+    ds.close()
+    
+    mask = (latitude>=latmin) & (latitude<=latmax) & (longitude>=lonmin) & (longitude<=lonmax)
+    
+    ileft = np.min(np.where(mask)[1])-5
+    iright = np.max(np.where(mask)[1])+6
+    jbot = np.min(np.where(mask)[0])-5
+    jtop = np.max(np.where(mask)[0])+6
+    jdy = slice(jbot, jtop)
+    idx = slice(ileft, iright)
+    
+    latt = latitude[jdy,idx]
+    lont = longitude[jdy,idx]
+    
+    data = dict(p=pres_levs, z=hgt[:,jdy,idx], u=u[:,jdy,idx], v=v[:,jdy,idx], orog=orog[jdy,idx], u10=u10[jdy,idx], v10=v10[jdy,idx])
+    
+    return data, latt, lont
+
+
+
+#%% Miscellaneous other functions
 
 
 # Convert lat/lon coordinates to x/y distances relative to an origin point (in km)
@@ -1074,21 +1431,215 @@ def plot_cfill(x, y, data, field, ax, datalims=None, xlims=None, ylims=None,
 #%%
 
 
-def reduce_floats(variables, nbits=32):
-    # variables: list of floats and/or floating point arrays
-    # nbits: scalar, default 32
+# # Find leading line
+# def get_leading_line_v2(qlcs_obj, storm_motion, grid_x, grid_y, grid_lat, grid_lon):
+#     # qlcs_obj: array-like, bool of object
+#     # storm_motion: array-like, [u_velocity, v_velocity] of storm object
+#     # grid_x, grid_y: x/y meshgrids
+#     # grid_lat, grid_lon: lat/lon meshgrids
     
-    reduced_variables = []
     
-    for v in variables:
-        if nbits == 32:
-            reduced_variables.append( v.astype(np.float32) )
-        elif nbits == 16:
-            reduced_variables.append( v.astype(np.float16) )
-    
-    return reduced_variables
+#     # Find centerline
+#     qlcs_obj_smooth = filters.gaussian(qlcs_obj, sigma=5/3)
+#     thres = np.percentile(qlcs_obj_smooth[(qlcs_obj_smooth>0)], 50) #could just use 5e-20? idk if the limits are universal
+#     obj_smooth_bin = np.where(qlcs_obj_smooth>thres, 1, 0)
 
+#     contours = measure.find_contours(obj_smooth_bin.astype(bool), level=0.99, fully_connected='low')
+#     ind = np.asarray([len(contours[n]) for n in range(len(contours))])
+#     contour = contours[np.argmax(ind)]
+#     obj_contour_int = np.round(contour).astype(int)
+#     obj_contour = np.array([ [grid_x[j,i], grid_y[j,i]] for j,i in zip(obj_contour_int[:,0], obj_contour_int[:,1]) ])
+    
+#     polygon = Polygon(obj_contour)
+#     centerline = get_centerline(polygon)
+#     trimmed_centerline = substring(centerline, 0.05*centerline.length, 0.95*centerline.length)
+#     x_cl,y_cl = trimmed_centerline.xy
+    
+#     # QC leading line
+#     cl_points = np.column_stack( (x_cl, y_cl))
+#     obj_x = obj_contour[:,0]
+#     obj_y = obj_contour[:,1]
+    
+    
+#     u_storm = storm_motion[0]
+#     v_storm = storm_motion[1]
+    
+    
+#     x_ll = np.zeros((len(cl_points),), dtype=float)
+#     y_ll = np.zeros((len(cl_points),), dtype=float)
+    
+#     # Find nearest obj_point to each centerline point in zonal and meridional direction
+#     for i,point in enumerate(cl_points):
+#         xc = point[0]
+#         yc = point[1]
+        
+#         if (u_storm > 0) & (v_storm > 0):
+#             mask = (obj_x >= xc) & (obj_y >= yc)
+#         elif (u_storm > 0) & (v_storm < 0):
+#             mask = (obj_x >= xc) & (obj_y <= yc)
+#         elif (u_storm < 0) & (v_storm > 0):
+#             mask = (obj_x <= xc) & (obj_y >= yc)
+#         elif (u_storm < 0) & (v_storm < 0):
+#             mask = (obj_x <= xc) & (obj_y <= yc)
+        
+#         obj_points = obj_contour[mask,:]
+#         tree_obj = KDTree(obj_points)
+        
+#         dist,ind = tree_obj.query(point)
+#         x_ll[i] = obj_points[ind,0]
+#         y_ll[i] = obj_points[ind,1]
+        
+        
+        
+        
+    
+    
+    
+    
+    
+#     # Initial leading line first guess
+    
+    
+#     # E-W search
+#     x_ll_zonal = []
+#     y_ll_zonal = []
+#     lon_ll_zonal = []
+#     lat_ll_zonal = []
+#     for jdy in range(grid_x.shape[0]):
+#         if np.any(qlcs_obj[jdy,:] > 0):
+#             if u_storm > 0:
+#                 idx = np.where(qlcs_obj[jdy,:]>0)[0][-1]
+#             elif u_storm < 0:
+#                 idx = np.where(qlcs_obj[jdy,:]>0)[0][0]
+#             x_ll_zonal.append(grid_x[jdy,idx])
+#             y_ll_zonal.append(grid_y[jdy,idx])
+#             lon_ll_zonal.append(grid_lon[jdy,idx])
+#             lat_ll_zonal.append(grid_lat[jdy,idx])
+            
 
+#     # N-S search
+#     x_ll_merid = []
+#     y_ll_merid = []
+#     lon_ll_merid = []
+#     lat_ll_merid = []
+#     for idx in range(grid_y.shape[1]):
+#         if np.any(qlcs_obj[:,idx] > 0):
+#             if v_storm > 0:
+#                 jdy = np.where(qlcs_obj[:,idx]>0)[0][-1]
+#             elif v_storm < 0:
+#                 jdy = np.where(qlcs_obj[:,idx]>0)[0][0]
+#             x_ll_merid.append(grid_x[jdy,idx])
+#             y_ll_merid.append(grid_y[jdy,idx])
+#             lon_ll_merid.append(grid_lon[jdy,idx])
+#             lat_ll_merid.append(grid_lat[jdy,idx])
+    
+    
+    
+    
+    
+    
+#     zonal_points = np.column_stack( (x_ll_zonal, y_ll_zonal))
+#     merid_points = np.column_stack( (x_ll_merid, y_ll_merid))
+#     zonal_lonlat = np.column_stack( (lon_ll_zonal, lat_ll_zonal))
+#     merid_lonlat = np.column_stack( (lon_ll_merid, lat_ll_merid))
+    
+#     tree_cl = KDTree(cl_points)
+#     dist_zonal,inds_zonal = tree_cl.query(zonal_points) # Find nearest centerline point in tree_cl to each zonal point
+#     dist_merid,inds_merid = tree_cl.query(merid_points) # Find nearest centerline point in tree_cl to each meridional point
+
+#     cl_points_matched_zonal = np.array([cl_points[inds_zonal[i]] for i in range(len(inds_zonal))])
+#     cl_points_matched_merid = np.array([cl_points[inds_merid[i]] for i in range(len(inds_merid))])
+
+#     vector_zonal = zonal_points - cl_points_matched_zonal
+#     vector_merid = merid_points - cl_points_matched_merid
+    
+#     zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0) & (vector_zonal[:,1]/v_storm > 0),:]
+#     merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0) & (vector_merid[:,1]/v_storm > 0),:]
+#     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0) & (vector_zonal[:,1]/v_storm > 0),:]
+#     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0) & (vector_merid[:,1]/v_storm > 0),:]
+    
+#     # if abs(u_storm) > abs(v_storm):
+#     #     zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_storm > 0),:]
+#     #     merid_points_filtered = merid_points[(vector_merid[:,0]/u_storm > 0),:]
+#     #     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_storm > 0),:]
+#     #     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_storm > 0),:]
+#     # elif abs(v_storm) > abs(u_storm):
+#     #     zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_storm > 0),:]
+#     #     merid_points_filtered = merid_points[(vector_merid[:,1]/v_storm > 0),:]
+#     #     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_storm > 0),:]
+#     #     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_storm > 0),:]
+    
+    
+#     # Merge zonal and meridional points
+#     ll_points_cat = []
+#     ll_lonlat_cat = []
+#     seen = set()
+#     for item,item2 in zip(zonal_points_filtered.tolist() + merid_points_filtered.tolist(), zonal_lonlat_filtered.tolist() + merid_lonlat_filtered.tolist()):
+#         # if tuple(ll_points_cat[i]) not in seen:
+#         if tuple(item) not in seen:
+#             seen.add(tuple(item))
+#             ll_points_cat.append(item)
+#             ll_lonlat_cat.append(item2)
+
+#     ll_points_merged = []
+#     ll_lonlat_merged = []
+#     # query_point = [-300, 300]
+#     points_tmp = [item for item in ll_points_cat]
+#     lonlat_tmp = [item for item in ll_lonlat_cat]
+#     # is_sorted = [False] * len(ll_points_cat)
+#     tree_ll = KDTree(np.asarray(ll_points_cat))
+#     dist,ind = tree_ll.query([-300,300])
+#     start_point = ll_points_cat[ind]
+#     points_tmp.remove(start_point)
+#     start_lonlat = ll_lonlat_cat[ind]
+#     lonlat_tmp.remove(start_lonlat)
+#     query_point = start_point
+#     ll_points_merged.append(start_point)
+#     ll_lonlat_merged.append(start_lonlat)
+
+#     for i in range(len(ll_points_cat)-1):
+#         tree = KDTree(np.asarray(points_tmp))
+#         # dist,ind = tree.query(start_point)
+#         dist,ind = tree.query(query_point)
+#         ll_points_merged.append(points_tmp[ind])
+#         query_point = points_tmp[ind]
+#         points_tmp.remove(points_tmp[ind])
+#         ll_lonlat_merged.append(lonlat_tmp[ind])
+#         lonlat_tmp.remove(lonlat_tmp[ind])
+
+#     ll_points_sorted = [item for item in ll_points_merged]
+#     ll_lonlat_sorted = [item for item in ll_lonlat_merged]
+#     # fix messed up points
+#     # for i in range(1, len(ll_points_cat)-1):
+#     #     d1 = distance(ll_points_sorted[i-1], ll_points_sorted[i])
+#     #     d2 = distance(ll_points_sorted[i], ll_points_sorted[i+1])
+#     #     d3 = distance(ll_points_sorted[i-1], ll_points_sorted[i+1])
+        
+#     #     if (d1>d3) & (d2>d3):
+#     #         ll_points_sorted[i], ll_points_sorted[i+1] = ll_points_merged[i+1], ll_points_merged[i]
+#     #         ll_lonlat_sorted[i], ll_lonlat_sorted[i+1] = ll_lonlat_merged[i+1], ll_lonlat_merged[i]
+    
+#     # ll_dists = ((ll_points_sorted[1:,0] - ll_points_sorted[:-1,0])**2 + (ll_points_sorted[1:,1] - ll_points_sorted[:-1,1])**2)**0.5
+    
+#     # Smooth leading line
+#     ll_points_sorted = np.asarray(ll_points_sorted, dtype=float)
+#     ll_points_smooth = gaussian_filter1d(ll_points_sorted, sigma=5/3, axis=0)
+    
+#     ll_grad = np.abs(np.gradient(ll_points_smooth, axis=0))
+#     ll_dists = np.sqrt(ll_grad[:,0]**2 + ll_grad[:,1]**2)
+#     q1 = np.percentile(ll_dists, 25)
+#     q3 = np.percentile(ll_dists, 75)
+#     iqr = q3 - q1
+#     upper_bound = q3 + 2*iqr
+#     mask = (ll_dists <= upper_bound)
+#     ll_points_smooth = ll_points_smooth[mask,:]
+    
+    
+#     ll_lonlat_sorted = np.asarray(ll_lonlat_sorted, dtype=float)
+#     ll_lonlat_smooth = gaussian_filter1d(ll_lonlat_sorted, sigma=5/3, axis=0)
+#     # ll_lonlat_smooth = ll_lonlat_smooth[mask,:]
+    
+#     return ll_points_smooth, ll_lonlat_smooth
 
 
 

@@ -58,6 +58,59 @@ jun23_25 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6,
 
 
 
+# September 7 2021
+t1 = {'name':"Kingsbridge-Lucknow EF2",
+      'date_ymd':[2021,9,7], 'time_utc':'2035', 'lat':43.9421, 'lon':-81.7239,
+      'lat_end':43.9314, 'lon_end':-81.4884, 'lat_worst':43.9405, 'lon_worst':-81.7021}
+t2 = {'name':"Goderich EF0",
+      'date_ymd':[2021,9,7], 'time_utc':'2047', 'lat':43.7095, 'lon':-81.7057,
+      'lat_end':43.6962, 'lon_end':-81.5512, 'lat_worst':43.6949, 'lon_worst':-81.5813}
+t3 = {'name':"Harriston-Kenilworth EF2",
+      'date_ymd':[2021,9,7], 'time_utc':'2117', 'lat':43.9027, 'lon':-80.9030,
+      'lat_end':43.8770, 'lon_end':-80.5776, 'lat_worst':43.8837, 'lon_worst':-80.6207}
+t4 = {'name':"Monkton EF0",
+      'date_ymd':[2021,9,7], 'time_utc':'2129', 'lat':43.5713, 'lon':-81.1098,
+      'lat_end':43.5671, 'lon_end':-81.1054, 'lat_worst':43.5701, 'lon_worst':-81.1087}
+t5 = {'name':"Kuhryville EF0",
+      'date_ymd':[2021,9,7], 'time_utc':'2138', 'lat':43.5399, 'lon':-81.0055,
+      'lat_end':43.5265, 'lon_end':-80.9751, 'lat_worst':43.5352, 'lon_worst':-80.9927}
+t6 = {'name':"Vaughan EF0",
+      'date_ymd':[2021,9,7], 'time_utc':'2241', 'lat':43.9187, 'lon':-79.4874,
+      'lat_end':43.9211, 'lon_end':-79.4793, 'lat_worst':43.9211, 'lon_worst':-79.4788}
+sep07_21 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6,
+            'type':'outbreak', 'maxEF':2}
+
+
+
+# August 2-3 2022
+t1 = {'name':"Campfire Lake EF2",
+      'date_ymd':[2022,8,3], 'time_utc':'0150', 'lat':50.4961, 'lon':-94.1375,
+      'lat_end':50.4906, 'lon_end':-93.8964, 'lat_worst':50.4947, 'lon_worst':-94.0206}
+t2 = {'name':"Conifer Lake (1) EF2",
+      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.5822, 'lon':-94.0039,
+      'lat_end':50.6497, 'lon_end':-93.8678, 'lat_worst':50.6225, 'lon_worst':-93.9006}
+t3 = {'name':"Conifer Lake (2) EF1",
+      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.6197, 'lon':-94.0122,
+      'lat_end':50.6294, 'lon_end':-93.9311, 'lat_worst':50.6236, 'lon_worst':-93.9653}
+t4 = {'name':"Sumach Lake EF1",
+      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.6461, 'lon':-93.9406,
+      'lat_end':50.6414, 'lon_end':-93.9167, 'lat_worst':50.6425, 'lon_worst':-93.9247}
+t5 = {'name':"Overnight Lake (1) EF2",
+      'date_ymd':[2022,8,3], 'time_utc':'0200', 'lat':50.6542, 'lon':-93.8642,
+      'lat_end':50.6872, 'lon_end':-93.6269, 'lat_worst':50.6644, 'lon_worst':-93.7928}
+t6 = {'name':"Overnight Lake (2) EF1",
+      'date_ymd':[2022,8,3], 'time_utc':'0210', 'lat':50.6856, 'lon':-93.7758,
+      'lat_end':50.6769, 'lon_end':-93.7333, 'lat_worst':50.6828, 'lon_worst':-93.7631}
+t7 = {'name':"Virginian Lake EF1",
+      'date_ymd':[2022,8,3], 'time_utc':'0510', 'lat':50.4392, 'lon':-90.3164,
+      'lat_end':50.4575, 'lon_end':-90.2464, 'lat_worst':50.4553, 'lon_worst':-90.2597}
+aug02_22 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6,
+            'type':'outbreak', 'maxEF':2}
+
+
+
+
+
 # May 30 2022
 t1 = {'name':"Crozier EF1",
       'date_ymd':[2022,5,31], 'time_utc':'0045', 'lat':48.6148, 'lon':-93.5304,
@@ -119,6 +172,41 @@ jun30_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3,
 
 
 
+# 9/2/26 sub-outbreak - SW ON
+# https://www.uwo.ca/ntp/blog/2026/two_tornadoes_and_a_downburst_in_sw_on_on_sep_2.html
+t1 = {'name':"Monkton EF1", #1710 EDT, 4910 m, 50 m
+      'date_ymd':[2026,9,2], 'time_utc':'2110', 'lat':43.6092, 'lon':-81.2014,
+      'lat_end':43.6111, 'lon_end':-81.1412, 'lat_worst':43.6122, 'lon_worst':-81.1507}
+t2 = {'name':"Tavistock EF0", #1723 EDT, 6240 m, 410 m
+      'date_ymd':[2026,9,2], 'time_utc':'2123', 'lat':43.3277, 'lon':-80.8992,
+      'lat_end':43.3184, 'lon_end':-80.8239, 'lat_worst':43.3199, 'lon_worst':-80.8440}
+t3 = {'name':"Shakespeare EF1", #1725 EDT, 8290 m, 420 m
+      'date_ymd':[2026,9,2], 'time_utc':'2125', 'lat':43.3481, 'lon':-80.8193,
+      'lat_end':43.3225, 'lon_end':-80.7282, 'lat_worst':43.3333, 'lon_worst':-80.7533}
+t4 = {'name':"Wellesley EF1", #1725 EDT, 6110 m, 490 m
+      'date_ymd':[2026,9,2], 'time_utc':'2125', 'lat':43.4910, 'lon':-80.8012,
+      'lat_end':43.4966, 'lon_end':-80.7272, 'lat_worst':43.4965, 'lon_worst':-80.7586}
+sep02_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4,
+            'type':'sub-outbreak', 'maxEF':1}
+
+
+
+# 9/3/26 sub-outbreak - SW ON (Windsor)
+# https://www.uwo.ca/ntp/blog/2026/two_tornadoes_and_a_downburst_in_sw_on_on_sep_3.html
+t1 = {'name':"Windsor (Riverside) EF1", #1618 EDT, 7000 m, 1100 m
+      'date_ymd':[2026,9,3], 'time_utc':'2018', 'lat':42.3310, 'lon':-82.9762,
+      'lat_end':42.2924, 'lon_end':-82.9146, 'lat_worst':42.3303, 'lon_worst':-82.9756}
+t2 = {'name':"River Canard EF0", #1619 EDT, 5100 m, 200 m
+      'date_ymd':[2026,9,3], 'time_utc':'2019', 'lat':42.1808, 'lon':-83.0906,
+      'lat_end':42.1425, 'lon_end':-83.0564, 'lat_worst':42.1621, 'lon_worst':-83.0690}
+t3 = {'name':"Wheatley EF1", #1648 EDT, 6300 m, 450 m
+      'date_ymd':[2026,9,3], 'time_utc':'2048', 'lat':42.1168, 'lon':-82.4868,
+      'lat_end':42.1097, 'lon_end':-82.4119, 'lat_worst':42.1122, 'lon_worst':-82.4245}
+sep03_26 = {'loc1':t1, 'loc2':t2, 'loc':t3,
+            'type':'sub-outbreak', 'maxEF':1}
+
+
+
 # July 24 2025
 t1 = {'name':"Mitchell downburst", #EF1
       'date_ymd':[2025,7,24], 'time_utc':'2312', 'lat':43.4561, 'lon':-81.2220}
@@ -145,11 +233,21 @@ jul03_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4,
 
 
 
+# August 2 2026
+# https://www.uwo.ca/ntp/blog/2026/ef0_downburst_in_niagara_region_on_aug_2.html
+t1 = {'name':"Fonthill downburst", #1225 EDT, EF0, 10700 m long, 2800 m wide
+      'date_ymd':[2026,8,2], 'time_utc':'1625', 'lat':43.0784, 'lon':-79.2324}
+aug02_26 = {'loc1':t1,
+            'type':'null'}
+
+
+
 # April 15 2026
 t1 = {'name':"LaSalle (Windsor) mesovortex",
       'date_ymd':[2026,4,15], 'time_utc':'0622', 'lat':42.2393, 'lon':-83.0576}
 t2 = {'name':"Essex (Windsor) mesovortex",
       'date_ymd':[2026,4,15], 'time_utc':'0630', 'lat':42.2423, 'lon':-82.8484}
+
 t3 = {'name':"Albee Township MI EF1", #2353 EDT, 6120 m, 800 m
       'date_ymd':[2026,4,14], 'time_utc':'0353', 'lat':43.2498, 'lon':-84.0715,
       'lat_end':43.2735, 'lon_end':-84.0059}
@@ -169,63 +267,7 @@ apr15_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4}
 
 
 
-# September 7 2021
-t1 = {'name':"Kingsbridge-Lucknow EF2",
-      'date_ymd':[2021,9,7], 'time_utc':'2035', 'lat':43.9421, 'lon':-81.7239,
-      'lat_end':43.9314, 'lon_end':-81.4884, 'lat_worst':43.9405, 'lon_worst':-81.7021}
-t2 = {'name':"Goderich EF0",
-      'date_ymd':[2021,9,7], 'time_utc':'2047', 'lat':43.7095, 'lon':-81.7057,
-      'lat_end':43.6962, 'lon_end':-81.5512, 'lat_worst':43.6949, 'lon_worst':-81.5813}
-t3 = {'name':"Harriston-Kenilworth EF2",
-      'date_ymd':[2021,9,7], 'time_utc':'2117', 'lat':43.9027, 'lon':-80.9030,
-      'lat_end':43.8770, 'lon_end':-80.5776, 'lat_worst':43.8837, 'lon_worst':-80.6207}
-t4 = {'name':"Monkton EF0",
-      'date_ymd':[2021,9,7], 'time_utc':'2129', 'lat':43.5713, 'lon':-81.1098,
-      'lat_end':43.5671, 'lon_end':-81.1054, 'lat_worst':43.5701, 'lon_worst':-81.1087}
-t5 = {'name':"Kuhryville EF0",
-      'date_ymd':[2021,9,7], 'time_utc':'2138', 'lat':43.5399, 'lon':-81.0055,
-      'lat_end':43.5265, 'lon_end':-80.9751, 'lat_worst':43.5352, 'lon_worst':-80.9927}
-t6 = {'name':"Vaughan EF0",
-      'date_ymd':[2021,9,7], 'time_utc':'2241', 'lat':43.9187, 'lon':-79.4874,
-      'lat_end':43.9211, 'lon_end':-79.4793, 'lat_worst':43.9211, 'lon_worst':-79.4788}
-sep07_21 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6,
-            'type':'outbreak', 'maxEF':2}
 
-
-
-# August 2-3 2022
-t1 = {'name':"Campfire Lake EF2",
-      'date_ymd':[2022,8,3], 'time_utc':'0150', 'lat':50.4961, 'lon':-94.1375,
-      'lat_end':50.4906, 'lon_end':-93.8964, 'lat_worst':50.4947, 'lon_worst':-94.0206}
-t2 = {'name':"Conifer Lake (1) EF2",
-      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.5822, 'lon':-94.0039,
-      'lat_end':50.6497, 'lon_end':-93.8678, 'lat_worst':50.6225, 'lon_worst':-93.9006}
-t3 = {'name':"Conifer Lake (2) EF1",
-      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.6197, 'lon':-94.0122,
-      'lat_end':50.6294, 'lon_end':-93.9311, 'lat_worst':50.6236, 'lon_worst':-93.9653}
-t4 = {'name':"Sumach Lake EF1",
-      'date_ymd':[2022,8,3], 'time_utc':'0155', 'lat':50.6461, 'lon':-93.9406,
-      'lat_end':50.6414, 'lon_end':-93.9167, 'lat_worst':50.6425, 'lon_worst':-93.9247}
-t5 = {'name':"Overnight Lake (1) EF2",
-      'date_ymd':[2022,8,3], 'time_utc':'0200', 'lat':50.6542, 'lon':-93.8642,
-      'lat_end':50.6872, 'lon_end':-93.6269, 'lat_worst':50.6644, 'lon_worst':-93.7928}
-t6 = {'name':"Overnight Lake (2) EF1",
-      'date_ymd':[2022,8,3], 'time_utc':'0210', 'lat':50.6856, 'lon':-93.7758,
-      'lat_end':50.6769, 'lon_end':-93.7333, 'lat_worst':50.6828, 'lon_worst':-93.7631}
-t7 = {'name':"Virginian Lake EF1",
-      'date_ymd':[2022,8,3], 'time_utc':'0510', 'lat':50.4392, 'lon':-90.3164,
-      'lat_end':50.4575, 'lon_end':-90.2464, 'lat_worst':50.4553, 'lon_worst':-90.2597}
-aug02_22 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4, 'loc5':t5, 'loc6':t6,
-            'type':'outbreak', 'maxEF':2}
-
-
-
-# August 2 2026
-# https://www.uwo.ca/ntp/blog/2026/ef0_downburst_in_niagara_region_on_aug_2.html
-t1 = {'name':"Fonthill downburst", #1225 EDT, EF0, 10700 m long, 2800 m wide
-      'date_ymd':[2026,8,2], 'time_utc':'1625', 'lat':43.0784, 'lon':-79.2324}
-aug02_26 = {'loc1':t1,
-            'type':'null'}
 
 
 
@@ -383,34 +425,7 @@ sep05_25 = {'loc1':t1, 'loc2':t2,
 
 
 
-# 9/2/26 sub-outbreak? - SW ON
-# https://www.uwo.ca/ntp/blog/2026/two_tornadoes_and_a_downburst_in_sw_on_on_sep_2.html
-t1 = {'name':"Monkton EF1", #1710 EDT, 4910 m, 50 m
-      'date_ymd':[2026,9,2], 'time_utc':'2110', 'lat':43.6092, 'lon':-81.2014,
-      'lat_end':43.6111, 'lon_end':-81.1412, 'lat_worst':43.6122, 'lon_worst':-81.1507}
-t2 = {'name':"Tavistock EF0", #1723 EDT, 6240 m, 410 m
-      'date_ymd':[2026,9,2], 'time_utc':'2123', 'lat':43.3277, 'lon':-80.8992,
-      'lat_end':43.3184, 'lon_end':-80.8239, 'lat_worst':43.3199, 'lon_worst':-80.8440}
-t3 = {'name':"Shakespeare EF1", #1725 EDT, 8290 m, 420 m
-      'date_ymd':[2026,9,2], 'time_utc':'2125', 'lat':43.3481, 'lon':-80.8193,
-      'lat_end':43.3225, 'lon_end':-80.7282, 'lat_worst':43.3333, 'lon_worst':-80.7533}
-t4 = {'name':"Wellesley EF1", #1725 EDT, 6110 m, 490 m
-      'date_ymd':[2026,9,2], 'time_utc':'2125', 'lat':43.4910, 'lon':-80.8012,
-      'lat_end':43.4966, 'lon_end':-80.7272, 'lat_worst':43.4965, 'lon_worst':-80.7586}
-sep02_26 = {'loc1':t1, 'loc2':t2, 'loc3':t3, 'loc4':t4,
-            'type':'sub-outbreak', 'maxEF':1}
 
-
-# 9/3/26 sub-outbreak? - SW ON (Windsor)
-# https://www.uwo.ca/ntp/blog/2026/two_tornadoes_and_a_downburst_in_sw_on_on_sep_3.html
-t1 = {'name':"Windsor (Riverside) EF1", #1618 EDT, 7000 m, 1100 m
-      'date_ymd':[2026,9,3], 'time_utc':'2018', 'lat':42.3310, 'lon':-82.9762,
-      'lat_end':42.2924, 'lon_end':-82.9146, 'lat_worst':42.3303, 'lon_worst':-82.9756}
-t2 = {'name':"Wheatley EF1", #1648 EDT, 6300 m, 450 m
-      'date_ymd':[2026,9,3], 'time_utc':'2048', 'lat':42.1168, 'lon':-82.4868,
-      'lat_end':42.1097, 'lon_end':-82.4119, 'lat_worst':42.1122, 'lon_worst':-82.4245}
-sep03_26 = {'loc1':t1, 'loc2':t2,
-            'type':'sub-outbreak', 'maxEF':1}
 
 
 

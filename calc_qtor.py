@@ -37,14 +37,15 @@ from QTORutils import *
 # get_line_normal_and_parallel_shear
 # get_local_tortuosity
 # calc_QTor
-
 # read_nexrad
-# read_era5
+# read_era5_netcdf
+# read_hrdps
+# read_hrrr (not tested yet)
 
 
 ### Functions to write
-# read_eccc
-# read_hrdps
+# read_eccc_radar
+# read_conus404?
 
 
 
@@ -53,69 +54,82 @@ from QTORutils import *
 
 fp = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/qlcs_tornado_outbreaks/'
 
-radar_name = 'KBUF'
-volume_time = datetime(2026, 8, 2, 16, 28, 24)
+radar_name = 'CASET'
+volume_time = datetime(2026, 9, 2, 21, 12, 0)
 
 max_rng = 300 #set max range, km
-
-# Load data files
-
-if radar_name[0] == 'K':
-    # Analysis volume
-    filename = fp + f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_{timestr}_V06.ar2v"
-    print(f"...Reading {filename}")
-    cref, time, radar_lat, radar_lon, gx, gy, glat, glon = read_nexrad(filename, max_rng=max_rng)
-    
-    # Previous volume for storm motion estimation
-    filenames = glob(fp+f"{radar_name}/{radar_name}{yyyyt}{mmt:02.0f}{ddt:02.0f}_*_V06.ar2v")
-    ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
-    print(f"...Reading {filenames[ind-1]}")
-    cref_prev, time_prev, _, _, _, _, _, _ = read_nexrad(filenames[ind-1], max_rng=max_rng)
-
-elif radar_name[0] == 'C':
-    df = pd.read_csv('C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/ECCC_radar_locations.csv',
-                     sep=",", header=0, usecols=["Call sign", "Latitude", "Longitude"], index_col="Call sign")
-    radar_lat = df.loc[radar_name]['Latitude']
-    radar_lon = df.loc[radar_name]['Longitude']
-
-
-
-#%%
-
 # Cressman filtering
 hres = 3 #gridded resolution, km
 radius = 3 #Cressman radius of influence, km
 
-# gx = gate_x[:,(rng<=max_rng)].astype(np.float32) #limit gates to range <= max range
-# gy = gate_y[:,(rng<=max_rng)].astype(np.float32)
-# glat = gate_lat[:,(rng<=max_rng)].astype(np.float32)
-# glon = gate_lon[:,(rng<=max_rng)].astype(np.float32)
-## xy and lat/lon meshgrids
 xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, radius))
+
+use_hdf5 = True
+
+
+# Load data files
+
+# ECCC
+if radar_name[0] == 'C':
+    datestr = volume_time.strftime("%Y%m%d")
+    timestr = volume_time.strftime("%H%M")
+    if use_hdf5:
+        # Analysis volume
+        filename = fp + f"{radar_name}/{datestr}T{timestr}Z_MSC_Radar-VolumeScans_{radar_name}.hdf5"
+        print(f"...Reading {os.path.basename(filename)}")
+        cref_smooth, time, radar_lat, radar_lon, gx, gy, glat, glon, dbz = read_eccc_hdf5(filename, xm, ym, max_rng=max_rng, radius=radius)
+        
+        # Previous volume for storm motion estimation
+        filenames = glob(fp+f"{radar_name}/{datestr}T*_{radar_name}.hdf5")
+        ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
+        print(f"...Reading {os.path.basename(filenames[ind-1])}")
+        cref_smooth_prev, time_prev, _, _, _, _, _, _, dbz_prev = read_eccc_hdf5(filenames[ind-1], xm, ym, max_rng=max_rng, radius=radius)
+    else:
+        filename = fp + f"{radar_name}/*.geojson"
+        
+        
+# NEXRAD
+elif radar_name[0] == 'K':
+    datestr = volume_time.strftime("%Y%m%d")
+    timestr = volume_time.strftime("%H%M%S")
+    # Analysis volume
+    filename = fp + f"{radar_name}/{radar_name}{datestr}_{timestr}_V06.ar2v"
+    print(f"...Reading {os.path.basename(filename)}")
+    cref, time, radar_lat, radar_lon, gx, gy, glat, glon = read_nexrad(filename, max_rng=max_rng)
+    
+    # Previous volume for storm motion estimation
+    filenames = glob(fp+f"{radar_name}/{radar_name}{datestr}_*_V06.ar2v")
+    ind = [i for i in range(len(filenames)) if timestr in filenames[i]][0]
+    print(f"...Reading {os.path.basename(filenames[ind-1])}")
+    cref_prev, time_prev, _, _, _, _, _, _ = read_nexrad(filenames[ind-1], max_rng=max_rng)
+    
+    print(f"...Cressman filtering analysis volume")
+    cref_smooth = cressman_interpolation_dask(gx, gy, cref, xm, ym, radius, chunk_size=5000)
+
+    print(f"...Cressman filtering previous volume")
+    cref_smooth_prev = cressman_interpolation_dask(gx, gy, cref_prev, xm, ym, radius, chunk_size=5000)
+
+
 lonm,latm = np.meshgrid(np.linspace(np.min(glon), np.max(glon), len(xm)), np.linspace(np.min(glat), np.max(glat), len(xm))) #gate lat/lon mesh
 
-print(f"...Cressman filtering analysis volume")
-cref_smooth = cressman_interpolation_dask(gx, gy, cref, xm, ym, radius, chunk_size=5000)
-
-print(f"...Cressman filtering previous volume")
-cref_smooth_prev = cressman_interpolation_dask(gx, gy, cref_prev, xm, ym, radius, chunk_size=5000)
 
 
-
-# # Originally used Gaussian interpolation until I figured out Dask
-# pts = np.array([gate_x[:,(rng<=max_rng)].ravel(), gate_y[:,(rng<=max_rng)].ravel()]).transpose()
-# vals = cref[:,(rng<=max_rng)].ravel().data
-# xm,ym = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
-# xi = np.array([xm.ravel(), ym.ravel()]).transpose()
-# cref_interp_flat = interpolate_to_points(pts, vals, xi, interp_type='linear', search_radius=hres)
-# cref_interp = cref_interp_flat.reshape(xm.shape)
-# cref_smooth = filters.gaussian(cref_interp, sigma=0.8)
+# df = pd.read_csv('C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/ECCC_radar_locations.csv',
+#                  sep=",", header=0, usecols=["Call sign", "Latitude", "Longitude"], index_col="Call sign")
+# radar_lat = df.loc[radar_name]['Latitude']
+# radar_lon = df.loc[radar_name]['Longitude']
+#%%
 
 
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-# ax.set_title('Cressman interpolated cref')
-# plt.show()
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+ax.set_title('Cressman interpolated cref')
+plt.show()
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth_prev, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+ax.set_title('Cressman interpolated cref, previous')
+plt.show()
 
 
 #%% Retrieve QLCS object ID for analysis and previous volumes
@@ -139,16 +153,6 @@ else:
     qlcs_region = qlcs_regions[0]
 
 
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
-# ax.set_title('Final QLCS objects\n filtered for max dBZ, merged, and filtered for length and eccentricity ')
-# plt.show()
-
-# fig,ax = plt.subplots(1, 1, figsize=(8,6))
-# plot_cfill(xm, ym, qlcs_obj, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
-# ax.set_title('Final QLCS object\n Object with highest dBZ ')
-# plt.show()
 
 
 
@@ -216,12 +220,43 @@ if False:
 
 
 
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, qlcs_labels, 'dbz', ax, datalims=[0,len(qlcs_regions)], cmap='HomeyerRainbow')
+ax.set_title('QLCS objects')
+plt.show()
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, qlcs_obj, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
+ax.scatter(x_centroid, y_centroid, marker='.', s=5, c='k')
+ax.set_title('Final QLCS object with highest dbz')
+plt.show()
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, qlcs_labels_prev, 'dbz', ax, datalims=[0,1], cmap='HomeyerRainbow')
+ax.scatter(x_centroid_prev, y_centroid_prev, marker='.', s=5, c='k')
+ax.set_title('QLCS objects, previous')
+plt.show()
+
+
 
 #%% Get leading line and inflow polygon
 
-ll_points, ll_lonlat = get_leading_line(qlcs_obj, [u_sm, v_sm], xm, ym, latm, lonm)
+ll_points, ll_lonlat, obj_contour = get_leading_line(qlcs_obj, [u_sm, v_sm], xm, ym, latm, lonm)
 
 inflow_polygon, theta_norm, theta_local = get_inflow_polygon(ll_points, [u_sm, v_sm])
+
+obj_polygon = Polygon(obj_contour)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+plot_polygon(obj_polygon, ax=ax, add_points=False, facecolor=None, edgecolor='w', linewidth=1)
+plot_polygon(inflow_polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+ax.scatter(ll_points[:,0], ll_points[:,1], marker='.', s=3, c='w')
+ax.set_title(f"Inflow polygon")
+ax.set_xlim([-300,300])
+ax.set_ylim([-300,300])
+plt.show()
 
 
 #%% Load ERA5 data for inflow shear analysis
@@ -231,7 +266,7 @@ fp2 = 'C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/
 
 latlims = [np.min(latm), np.max(latm)]
 lonlims = [np.min(lonm), np.max(lonm)]
-data, latt, lont = read_era5(time, fp2, latlims, lonlims)
+data, latt, lont = read_era5_netcdf(time, fp2, latlims, lonlims)
 
 p = data['p']
 z = data['z']
@@ -246,14 +281,15 @@ lonm2,latm2 = np.meshgrid(lont, latt)
 x = np.zeros(lonm2.shape, dtype=float)
 y = np.zeros(lonm2.shape, dtype=float)
 
-for j in range(len(long)):
+for j in range(len(lonm2)):
     xtmp,ytmp = latlon2xy(latm2[j,:], lonm2[j,:], radar_lat, radar_lon)
     x[j,:] = xtmp
     y[j,:] = ytmp
 
 
 
-#%%
+#%% Rough downscale of ERA5 data
+
 xm2,ym2 = np.meshgrid(np.arange(-max_rng, max_rng+hres, hres), np.arange(-max_rng, max_rng+hres, hres))
 
 u_interp = np.zeros(shape=(len(p),xm.shape[1],xm.shape[0]), dtype=float)
@@ -270,33 +306,138 @@ v10_interp = cressman_interpolation_dask(x, y, v10, xm, ym, 62, chunk_size=3000)
 orog_interp = cressman_interpolation_dask(x, y, orog, xm, ym, 62, chunk_size=3000)
 
 
-#%% Calculate QTor!!!
-
 shear03 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 3000)
 shear01 = get_shear(z_interp, orog_interp, u_interp, v_interp, u10_interp, v10_interp, 1000)
 
+points = np.column_stack( (xm.ravel(), ym.ravel()))
+LN03, LP01 = get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, points)
 
+
+#%% Load HRDPS data
+
+# HGT_ISBL and HGT_Sfc
+# UGRD_ISBL, UGRD_AGL-10m
+# VGRD_ISBL, VGRD_AGL-10m
+
+
+datestr = time.strftime("%Y%m%d")
+model_run = 18
+fcst_hour = time.hour - model_run
+
+latlims = [np.min(latm), np.max(latm)]
+lonlims = [np.min(lonm), np.max(lonm)]
+
+fp2 = f"C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/qlcs_tornado_outbreaks/hrdps/{datestr}/{model_run:02.0f}z/T{fcst_hour:03.0f}/"
+
+data, latt, lont = read_hrdps(time, model_run, fcst_hour, fp2, latlims, lonlims)
+
+p = data['p']
+z = data['z']
+orog = data['orog']
+u = data['u']
+v = data['v']
+u10 = data['u10']
+v10 = data['v10']
+
+x = np.zeros(lont.shape, dtype=float)
+y = np.zeros(lont.shape, dtype=float)
+
+for j in range(lont.shape[0]):
+    xtmp,ytmp = latlon2xy(latt[j,:], lont[j,:], radar_lat, radar_lon)
+    x[j,:] = xtmp
+    y[j,:] = ytmp
+
+#%
+
+shear03 = get_shear(z, orog, u, v, u10, v10, 3000)
+shear01 = get_shear(z, orog, u, v, u10, v10, 1000)
+
+
+
+ushear03 = cressman_interpolation_dask(x, y, shear03[0], xm, ym, radius, chunk_size=3000)
+vshear03 = cressman_interpolation_dask(x, y, shear03[1], xm, ym, radius, chunk_size=3000)
+ushear01 = cressman_interpolation_dask(x, y, shear01[0], xm, ym, radius, chunk_size=3000)
+vshear01 = cressman_interpolation_dask(x, y, shear01[1], xm, ym, radius, chunk_size=3000)
+
+shear03 = (ushear03, vshear03)
+shear01 = (ushear01, vshear01)
 
 points = np.column_stack( (xm.ravel(), ym.ravel()))
-
-
 LN03, LP01 = get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, points)
+
+
+#%% Load HRRR data
+
+datestr = time.strftime("%Y%m%d")
+model_run = 18
+fcst_hour = time.hour - model_run
+
+latlims = [np.min(latm), np.max(latm)]
+lonlims = [np.min(lonm), np.max(lonm)]
+
+fp2 = f"C:/Users/mschne28/OneDrive - The University of Western Ontario/Documents/qlcs_tornado_outbreaks/hrrr/{datestr}/{model_run:02.0f}z/"
+
+data, latt, lont = read_hrrr(time, model_run, fcst_hour, fp2, latlims, lonlims)
+
+p = data['p']
+z = data['z']
+orog = data['orog']
+u = data['u']
+v = data['v']
+u10 = data['u10']
+v10 = data['v10']
+
+x = np.zeros(lont.shape, dtype=float)
+y = np.zeros(lont.shape, dtype=float)
+
+for j in range(lont.shape[0]):
+    xtmp,ytmp = latlon2xy(latt[j,:], lont[j,:], radar_lat, radar_lon)
+    x[j,:] = xtmp
+    y[j,:] = ytmp
+
+#%
+
+shear03 = get_shear(z, orog, u, v, u10, v10, 3000)
+shear01 = get_shear(z, orog, u, v, u10, v10, 1000)
+
+
+
+ushear03 = cressman_interpolation_dask(x, y, shear03[0], xm, ym, radius, chunk_size=3000)
+vshear03 = cressman_interpolation_dask(x, y, shear03[1], xm, ym, radius, chunk_size=3000)
+ushear01 = cressman_interpolation_dask(x, y, shear01[0], xm, ym, radius, chunk_size=3000)
+vshear01 = cressman_interpolation_dask(x, y, shear01[1], xm, ym, radius, chunk_size=3000)
+
+shear03 = (ushear03, vshear03)
+shear01 = (ushear01, vshear01)
+
+points = np.column_stack( (xm.ravel(), ym.ravel()))
+LN03, LP01 = get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, points)
+
+
+# points = np.column_stack( (x.ravel(), y.ravel()))
+# LN03, LP01 = get_line_normal_and_parallel_shear(shear03, shear01, ll_points, theta_norm, inflow_polygon, points)
+
+
+#%% Calculate QTor!!!
+
+
 tortuosity = get_local_tortuosity(ll_points)
 qtor = calc_QTor(LN03, LP01, tortuosity)
 
-
-
-#%%
-
-from scipy.interpolate import griddata
-
 qtor_grid = griddata(ll_points, qtor, (xm,ym), fill_value=0, method='cubic')
+
 
 fig,ax = plt.subplots(1, 1, figsize=(8,6))
 # plot_cfill(gx, gy, cref, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
 plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
-ax.contour(xm, ym, qtor_grid, levels=[0.5,1.0], colors=['k'], linewidths=[0.5,1])
-ax.set_title('Original composite reflectivity + QTor')
+cs = ax.contour(xm, ym, qtor_grid, levels=[0.5,3.0], colors=['k'], linewidths=[0.5,1])
+ax.clabel(cs, inline=True, fontsize=8, fmt="%.1f")
+ax.quiver(xm[::8,::8], ym[::8,::8], shear03[0][::8,::8], shear03[1][::8,::8], pivot='middle', scale=300, color='k')
+ax.quiver(xm[::8,::8], ym[::8,::8], shear01[0][::8,::8], shear01[1][::8,::8], pivot='middle', scale=300, color='w')
+ax.set_title('Original composite reflectivity + QTor -- HRDPS winds')
+ax.set_xlim([-150,150])
+ax.set_ylim([-150,150])
+
 plt.show()
 
 
@@ -450,6 +591,28 @@ for idx in range(ym.shape[1]):
         lon_merid.append(lonm[jdy,idx])
 
 
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+ax.scatter(x_zonal, y_zonal, marker='.', s=1, c='k')
+ax.set_title(f"Leading line zonal points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+plt.show()
+
+fig,ax = plt.subplots(1, 1, figsize=(8,6))
+plot_cfill(xm, ym, cref_smooth, 'dbz', ax, datalims=[0,70], cmap='HomeyerRainbow')
+# plot_polygon(polygon, ax=ax, add_points=False, facecolor=None, edgecolor='k', linewidth=1)
+# ax.plot(x_cl, y_cl, 'k', linewidth=1.5)
+ax.scatter(x_merid, y_merid, marker='.', s=1, c='k')
+ax.set_title(f"Leading line meridional points")
+# ax.set_xlim([-200,100])
+# ax.set_ylim([-100,200])
+plt.show()
+
+#%%
+
 #% Find centerline
 qlcs_obj_smooth = filters.gaussian(qlcs_obj, sigma=5/3)
 
@@ -574,31 +737,34 @@ vector_merid = merid_points - cl_points_matched_merid
 # ax.set_ylim([-100,200])
 # plt.show()
 
+zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_sm > 0) & (vector_zonal[:,1]/v_sm > 0),:]
+merid_points_filtered = merid_points[(vector_merid[:,0]/u_sm > 0) & (vector_merid[:,1]/v_sm > 0),:]
+zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_sm > 0) & (vector_zonal[:,1]/v_sm > 0),:]
+merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_sm > 0) & (vector_merid[:,1]/v_sm > 0),:]
 
-
-if abs(u_sm) > abs(v_sm):
-    # zonal_points_filtered = zonal_points[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
-    # merid_points_filtered = merid_points[((vector_merid[:,0]/u_sm > 0) & (abs(vector_merid[:,0])>abs(vector_merid[:,1]))),:]
-    # cl_points_filtered_zonal = cl_points_matched_zonal[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
-    zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_sm > 0),:]
-    merid_points_filtered = merid_points[(vector_merid[:,0]/u_sm > 0),:]
-    zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_sm > 0),:]
-    merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_sm > 0),:]
-    idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,0]/u_sm > 0)]
-    jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,0]/u_sm > 0)]
-    idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,0]/u_sm > 0)]
-    jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,0]/u_sm > 0)]
-elif abs(v_sm) > abs(u_sm):
-    # zonal_points_filtered = zonal_points[((vector_zonal[:,1]/v_sm > 0) & (abs(vector_zonal[:,1])>abs(vector_zonal[:,0]))),:]
-    # merid_points_filtered = merid_points[((vector_merid[:,1]/v_sm > 0) & (abs(vector_merid[:,1])>abs(vector_merid[:,0]))),:]
-    zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_sm > 0),:]
-    merid_points_filtered = merid_points[(vector_merid[:,1]/v_sm > 0),:]
-    zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_sm > 0),:]
-    merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_sm > 0),:]
-    idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,1]/v_sm > 0)]
-    jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,1]/v_sm > 0)]
-    idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,1]/v_sm > 0)]
-    jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,1]/v_sm > 0)]
+# if abs(u_sm) > abs(v_sm):
+#     # zonal_points_filtered = zonal_points[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
+#     # merid_points_filtered = merid_points[((vector_merid[:,0]/u_sm > 0) & (abs(vector_merid[:,0])>abs(vector_merid[:,1]))),:]
+#     # cl_points_filtered_zonal = cl_points_matched_zonal[((vector_zonal[:,0]/u_sm > 0) & (abs(vector_zonal[:,0])>abs(vector_zonal[:,1]))),:]
+#     zonal_points_filtered = zonal_points[(vector_zonal[:,0]/u_sm > 0),:]
+#     merid_points_filtered = merid_points[(vector_merid[:,0]/u_sm > 0),:]
+#     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,0]/u_sm > 0),:]
+#     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,0]/u_sm > 0),:]
+#     idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,0]/u_sm > 0)]
+#     jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,0]/u_sm > 0)]
+#     idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,0]/u_sm > 0)]
+#     jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,0]/u_sm > 0)]
+# elif abs(v_sm) > abs(u_sm):
+#     # zonal_points_filtered = zonal_points[((vector_zonal[:,1]/v_sm > 0) & (abs(vector_zonal[:,1])>abs(vector_zonal[:,0]))),:]
+#     # merid_points_filtered = merid_points[((vector_merid[:,1]/v_sm > 0) & (abs(vector_merid[:,1])>abs(vector_merid[:,0]))),:]
+#     zonal_points_filtered = zonal_points[(vector_zonal[:,1]/v_sm > 0),:]
+#     merid_points_filtered = merid_points[(vector_merid[:,1]/v_sm > 0),:]
+#     zonal_lonlat_filtered = zonal_lonlat[(vector_zonal[:,1]/v_sm > 0),:]
+#     merid_lonlat_filtered = merid_lonlat[(vector_merid[:,1]/v_sm > 0),:]
+#     idx_zonal_filtered = np.asarray(ll['zonal']['i'])[(vector_zonal[:,1]/v_sm > 0)]
+#     jdy_zonal_filtered = np.asarray(ll['zonal']['j'])[(vector_zonal[:,1]/v_sm > 0)]
+#     idx_merid_filtered = np.asarray(ll['meridional']['i'])[(vector_merid[:,1]/v_sm > 0)]
+#     jdy_merid_filtered = np.asarray(ll['meridional']['j'])[(vector_merid[:,1]/v_sm > 0)]
 
 
 

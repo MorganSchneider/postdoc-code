@@ -78,7 +78,7 @@ ds.close()
 
 #%% Set criteria
 
-# try calculating precipitaiton loading - evaporative cooling
+# try calculating precipitation loading - evaporative cooling
 # RIJ - downward acceleration
 # parcels - try
 # tlv criteria pull out
