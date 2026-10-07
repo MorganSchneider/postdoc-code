@@ -1319,7 +1319,7 @@ events = ["20210811", "20250623", "20210907", "20220802",
 # nulls = [events[i] for i in range(len(events)) if locs[events[i]]['type']=='null']
 
 
-separate_sig = False
+separate_sig = True
 
 figsave = False
 
@@ -1934,7 +1934,10 @@ ax.yaxis.set_major_locator(MultipleLocator(2))
 #     ax.text(pos[i], np.max(tdepr_type[i])+0.75, f"Median: {np.median(tdepr_type[i]):.1f} C", color='k', fontsize=8, ha='center')
 #     ax.text(pos[i], np.max(tdepr_type[i])+0.25, f"Mean: {np.mean(tdepr_type[i]):.1f} C", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
-add_brackets(ax, ustats['dewpt_depr'], pos, 9.5, 0.25, sig=separate_sig)
+if separate_sig:
+    add_brackets(ax, ustats['dewpt_depr'], pos, 9.5, 0.25, sig=separate_sig)
+else:
+    add_brackets(ax, ustats['dewpt_depr'], pos, 10.4, 0.25, sig=separate_sig)
 if figsave:
     if separate_sig:
         plt.savefig(fp+'figs/violinplot_dewpt_depression_sig.png', dpi=300)
