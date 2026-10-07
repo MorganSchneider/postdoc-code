@@ -6,77 +6,79 @@ Created on Thu Apr 16 17:00:12 2026
 """
 
 from CM1utils import *
+import xarray as xr
 
-#%% Load and save data
+#%% Load data and save criteria
 
 fp = 'D:/brooks/era5-1_125m_final/'
 
-ds = nc.Dataset(fp+f"cm1out_000049.nc")
 
-time = ds.variables['time'][:].data[0]
-xh = ds.variables['xh'][:].data
-yh = ds.variables['yh'][:].data
-zh = ds.variables['zh'][:].data
+ds = xr.open_dataset(fp+f"cm1out_000049.nc")
+time = ds['time'][:].values[0]
+xh = ds['xh'][:].values
+yh = ds['yh'][:].values
+zh = ds['zh'][:].values
 
-# get z indices
 ix1 = np.argmin(abs(xh+50))
 ix2 = np.argmin(abs(xh-50))
 iy1 = np.argmin(abs(yh+50))
 iy2 = np.argmin(abs(yh-50))
-ix = slice(ix1,ix2+1)
-iy = slice(iy1,iy2+1)
 
-xf = xh[ix]
-yf = yh[iy]
+xf = xh[ix1:ix2+1]
+yf = yh[iy1:iy2+1]
 
-iz2 = np.argmin(abs(zh-2))
-iz80 = np.argmin(abs(zh-0.07))
-iz05 = np.argmin(abs(zh-0.5))
-iz1 = np.argmin(abs(zh-1))
-iz5 = np.argmin(abs(zh-10))
+iz_80m = np.argmin(abs(zh-0.08))
+iz_500m = np.argmin(abs(zh-0.5))
+iz_1km = np.argmin(abs(zh-1))
+iz_2km = np.argmin(abs(zh-2))
+iz_5km = np.argmin(abs(zh-5))
+iz_10km = np.argmin(abs(zh-10))
 
 
-dbz = np.mean(ds.variables['dbz'][:].data[0,iz80:iz80+2,:,:], axis=0)
-# umove = ds.variables['umove'][:].data[0]
-# vmove = ds.variables['vmove'][:].data[0]
+umove = ds['umove'].values
+vmove = ds['vmove'].values
 
-# # 80-m wind criteria
-# u80m = np.mean(ds.variables['uinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['umove'][:].data[0], axis=0)
-# v80m = np.mean(ds.variables['vinterp'][:].data[0,iz80:iz80+2,:,:] + ds.variables['vmove'][:].data[0], axis=0)
-# V80m = np.sqrt(u80m**2 + v80m**2)
+# 80-m wind criteria
+u80m = np.mean(ds.sel(time=time, zh=slice(zh[iz_80m],zh[iz_80m+2]))['uinterp'][:].values + umove, axis=0)
+v80m = np.mean(ds.sel(time=time, zh=slice(zh[iz_80m],zh[iz_80m+2]))['vinterp'][:].values + vmove, axis=0)
+V80m = np.sqrt(u80m**2 + v80m**2)
 
-# # RIJ criteria
-# u2km = ds.variables['uinterp'][:].data[0,iz2,:,:] + ds.variables['umove'][:].data[0]
-# v2km = ds.variables['vinterp'][:].data[0,iz2,:,:] + ds.variables['vmove'][:].data[0]
-# V2km = np.sqrt(u2km**2 + v2km**2)
-# w2km = np.mean(ds.variables['winterp'][:].data[0,iz05:iz2+1,:,:], axis=0)
+# RIJ criteria
+u2km = ds.sel(time=time, zh=zh[iz_2km])['uinterp'][:].values + umove
+v2km = ds.sel(time=time, zh=zh[iz_2km])['vinterp'][:].values + vmove
+V2km = np.sqrt(u2km**2 + v2km**2)
+w2km = np.mean(ds.sel(time=time, zh=slice(zh[iz_500m],zh[iz_2km+1]))['winterp'][:].values, axis=0)
 
-# # MV criteria - Lasher-Trapp et al. 2023
-# zvort80m = np.mean(ds.variables['zvort'][:].data[0,iz80:iz80+2,:,:], axis=0)
-# DL = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
-# DN = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
-# DH = np.gradient(u80m, xh*1000, axis=1) + np.gradient(v80m, yh*1000, axis=0)
-# OW80m = zvort80m**2 - DL**2 - DN**2
-# WK80m = np.sqrt(zvort80m**2) / np.sqrt(DL**2 + DN**2 + DH**2) #Kinematic vorticity number - Lisa
-# # u1km = ds.variables['uinterp'][:].data[0,iz1+1,:,:] + ds.variables['umove'][:].data[0]
-# # v1km = ds.variables['vinterp'][:].data[0,iz1+1,:,:] + ds.variables['vmove'][:].data[0]
-# # zvort1km = ds.variables['zvort'][:].data[0,iz1+1,:,:]
-# # DL = np.gradient(u1km, xh*1000, axis=1) - np.gradient(v1km, yh*1000, axis=0)
-# # DN = np.gradient(v1km, xh*1000, axis=1) + np.gradient(u1km, yh*1000, axis=0)
-# # DH = np.gradient(u1km, xh*1000, axis=1) + np.gradient(v1km, yh*1000, axis=0)
-# # OW1km = zvort1km**2 - DL**2 - DN**2
-# # WK1km = np.sqrt(zvort1km**2) / np.sqrt(DL**2 + DN**2 + DH**2)
+# MV criteria - Lasher-Trapp et al. 2023
+zvort80m = np.mean(ds.sel(time=time, zh=slice(zh[iz_80m],zh[iz_80m+2]))['zvort'][:].values, axis=0)
+DL = np.gradient(u80m, xh*1000, axis=1) - np.gradient(v80m, yh*1000, axis=0)
+DN = np.gradient(v80m, xh*1000, axis=1) + np.gradient(u80m, yh*1000, axis=0)
+DH = np.gradient(u80m, xh*1000, axis=1) + np.gradient(v80m, yh*1000, axis=0)
+OW80m = zvort80m**2 - DL**2 - DN**2
+WK80m = np.sqrt(zvort80m**2) / np.sqrt(DL**2 + DN**2 + DH**2) #Kinematic vorticity number - Lisa
 
-# # DB criteria
-# w1km = ds.variables['winterp'][:].data[0,iz1,:,:]
-# w_dn_max = np.max(ds.variables['winterp'][:].data[0,:iz5,:,:], axis=0) # changed this from full column to lowest 10 km
+# DB criteria
+w1km = ds.sel(time=time, zh=zh[iz_1km])['winterp'][:].values
+w_dn_max = np.max(ds.sel(time=time, zh=slice(zh[0],zh[iz_5km+1]))['winterp'][:].values, axis=0) # changed this from full column to lowest 10 km
+
+# TLV criteria
+u10m = ds.sel(time=time, zh=zh[0])['uinterp'][:].values + umove
+v10m = ds.sel(time=time, zh=zh[0])['vinterp'][:].values + vmove
+V10m = np.sqrt(u10m**2 + v10m**2)
+zvort10m = ds.sel(time=time, zh=zh[0])['zvort'][:].values
+prspert1km = np.max(ds.sel(time=time, zh=slice(zh[0],zh[iz_1km+1]))['prs'][:].values - ds.sel(time=time, zh=slice(zh[0],zh[iz_1km+1]))['prs0'][:].values, axis=0) / 100
 
 ds.close()
 
 
 
 
-#%% Set criteria
+
+
+
+
+
+#% Set criteria
 
 # try calculating precipitation loading - evaporative cooling
 # RIJ - downward acceleration
@@ -94,6 +96,15 @@ w_thres_db = -5 #DB downdraft
 ow_thres_mv = 0.0001 #MV OW
 wk_thres_mv = 1.2 #Kinematic vorticity number -- Lisa used 1.2 for vorticity-dominated flow in her CWE poster
 
+zv_thres_tlv = 0.3
+V_thres_tlv = 35 #EF0
+pp_thres_tlv = -10
+
+
+
+
+
+
 is_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 V2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #2-km wind speed
 w2_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #0.5-2 km mean w
@@ -103,12 +114,18 @@ sig_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #sig svr 80-m wind
 is_mv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 ow_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #80-m OW
 # ow1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int)
-wk_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #Kinematic vorticity number
+# wk_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #Kinematic vorticity number
 is_db = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 w1_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #1-km w
 wmax_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #max 0-5 km w
 is_mv_rij = np.zeros(shape=(len(yh),len(xh)), dtype=int)
 is_mv_db = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+
+is_tlv = np.zeros(shape=(len(yh),len(xh)), dtype=int)
+zv_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #10 m zvort
+V10_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #10 m wspd
+pp_flag = np.zeros(shape=(len(yh),len(xh)), dtype=int) #0-1 km prspert
+
 
 # Svr/sig svr wind ID
 sub_flag[(V80m >= Vsub_thres)] = 1
@@ -121,12 +138,17 @@ w2_flag[(w2km <= w_thres_rij)] = 1
 
 # MV ID
 ow_flag[(OW80m >= ow_thres_mv)] = 1
-wk_flag[(WK80m > wk_thres_mv)] = 1
+# wk_flag[(WK80m > wk_thres_mv)] = 1
 # ow1_flag[(OW1km > 0)] = 1 #min 0-1 OW greater than 0 - rotation > deformation throughout lowest 1 km
 
 # DB ID
 w1_flag[(w1km <= w_thres_db)] = 1
 wmax_flag[(w_dn_max < 0)] = 1
+
+# TLV ID
+zv_flag[(zvort10m >= zv_thres_tlv)] = 1
+V10_flag[(V10m >= V_thres_tlv)] = 1
+pp_flag[(prspert1km <= pp_thres_tlv)] = 1
 
 
 # Find criteria in a 5 km x 5 km box around each point in the 125-m subgrid
@@ -154,6 +176,10 @@ for j in range(len(yf)):
         # DB criteria
         if (np.max(svr_flag[idy,idx]) > 0) & (np.max(w1_flag[idy,idx]) > 0) & (np.max(wmax_flag[idy,idx]) > 0):
             is_db[iyc,ixc] = 1
+        
+        # TLV criteria
+        if (np.max(svr_flag[idy,idx]) > 0) & (np.max(zv_flag[idy,idx]) > 0) & (np.max(V10_flag[idy,idx]) > 0) & (np.max(pp_flag[idy,idx]) > 0):
+            is_tlv[iyc,ixc] = 1
         
         # MV+RIJ criteria
         if (is_mv[iyc,ixc]) & (is_rij[iyc,ixc]):
@@ -186,14 +212,18 @@ for j in range(len(yf)):
         if (is_mv_rij[iyc,ixc]) | (is_mv_db[iyc,ixc]):
             is_mv[iyc,ixc] = 0
         
+        # if TLV, then not MV
+        if (is_mv[iyc,ixc]) & (is_tlv[iyc,ixc]):
+            is_mv[iyc,ixc] = 0
+        
 
 
 
-
+time = time / np.timedelta64(1, 's')
 
 if False:
-    dbfile = open(fp+f"pkls/wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
-    data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db, 'V80m':V80m}
+    dbfile = open(fp+f"pkls2/wind_mechanisms_{time/60:.0f}min.pkl", 'wb')
+    data = {'is_rij':is_rij, 'is_mv':is_mv, 'is_db':is_db, 'is_mv_rij':is_mv_rij, 'is_mv_db':is_mv_db, 'is_tlv':is_tlv, 'V80m':V80m}
     pickle.dump(data, dbfile)
     dbfile.close()
 
@@ -430,18 +460,18 @@ ds.close()
 
 
 
-dbfile = open(fp+'pkls/wind_mechanisms_60min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_120min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_180min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_240min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_300min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_360min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_420min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_480min.pkl', 'rb'); crit8 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_540min.pkl', 'rb'); crit9 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_600min.pkl', 'rb'); crit10 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_60min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_120min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_180min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_240min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_300min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_360min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_420min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_480min.pkl', 'rb'); crit8 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_540min.pkl', 'rb'); crit9 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_600min.pkl', 'rb'); crit10 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_660min.pkl', 'rb'); crit11 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_720min.pkl', 'rb'); crit12 = pickle.load(dbfile); dbfile.close()
 
 
 crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7, '8':crit8, '9':crit9, '10':crit10, '11':crit11, '12':crit12}
@@ -567,7 +597,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = True
+figsave = False
 
 
 
@@ -772,7 +802,7 @@ elif 'hrdps' in fp:
 
 
 
-figsave = True
+figsave = False
 
 cm = 'HomeyerRainbow'
 
@@ -1064,13 +1094,13 @@ ds.close()
 
 
 
-dbfile = open(fp+'pkls/wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
-dbfile = open(fp+'pkls/wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_360min.pkl', 'rb'); crit1 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_420min.pkl', 'rb'); crit2 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_480min.pkl', 'rb'); crit3 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_540min.pkl', 'rb'); crit4 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_600min.pkl', 'rb'); crit5 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_660min.pkl', 'rb'); crit6 = pickle.load(dbfile); dbfile.close()
+dbfile = open(fp+'pkls2/wind_mechanisms_720min.pkl', 'rb'); crit7 = pickle.load(dbfile); dbfile.close()
 
 
 crit = {'1':crit1, '2':crit2, '3':crit3, '4':crit4, '5':crit5, '6':crit6, '7':crit7}
@@ -1168,7 +1198,7 @@ for i in range(25):
 
 dbz_levs = np.linspace(0,70,15); dbz_cm = "HomeyerRainbow"
 wsp_levs = np.linspace(0,30,31); wsp_cm = "Greys"; wsp_alpha=0.75
-shs_levs = [500]; shs_cols = ['dimgray']; shs_lws = [0.6]
+shs_levs = [500]; shs_cols = ['orange']; shs_lws = [1]
 hail_levs = [0.1]; hail_cols = ['k']; hail_lws = [0.6]
 sws_levs = [25.7]; sws_cols = ['k']; sws_lws = [0.25]
 dmi_levs = [1.0]; dmi_cols = ['k']; dmi_lws = [1]
@@ -1400,13 +1430,13 @@ ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 
 
-figsave = True
+
 
 if figsave:
     plt.savefig(fp+'figs/wspd_wind_mechanisms_6-12H_v2.png', dpi=300)
 
 
-#%%
+#%
 
 
 
@@ -1453,42 +1483,55 @@ ax.contour(xh6, yh6, sws6, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
 ax.contour(xh7, yh7, sws7, levels=sws_levs, colors=sws_cols, linewidths=sws_lws)
 
 
-for i in range(7):
-    is_rij = crit[f"{i+1}"]['is_rij']
-    is_mv = crit[f"{i+1}"]['is_mv']
-    is_db = crit[f"{i+1}"]['is_db']
-    is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
-    is_mv_db = crit[f"{i+1}"]['is_mv_db']
-    wsp = crit[f"{i+1}"]['V80m']
+# for i in range(7):
+#     is_rij = crit[f"{i+1}"]['is_rij']
+#     is_mv = crit[f"{i+1}"]['is_mv']
+#     is_db = crit[f"{i+1}"]['is_db']
+#     is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
+#     is_mv_db = crit[f"{i+1}"]['is_mv_db']
+#     wsp = crit[f"{i+1}"]['V80m']
     
-    rij_mask = (is_rij==0)
-    mv_mask = (is_mv==0)
-    db_mask = (is_db==0) | (is_rij>0)
-    mv_rij_mask = (is_mv_rij==0)
-    mv_db_mask = (is_mv_db==0)
+#     rij_mask = (is_rij==0)
+#     mv_mask = (is_mv==0)
+#     db_mask = (is_db==0) | (is_rij>0)
+#     mv_rij_mask = (is_mv_rij==0)
+#     mv_db_mask = (is_mv_db==0)
     
-    x = xx[f"{i+1}"]
-    y = yy[f"{i+1}"]
+#     x = xx[f"{i+1}"]
+#     y = yy[f"{i+1}"]
     
-    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
+#     plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
+#     plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
     
-    # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
-    # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
-    # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
-    # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
-    # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
+#     # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
+#     # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
+#     # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
     
-    ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
     
     # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
+
+
+
+is_rij_grid = rij_grid + mv_rij_grid
+is_db_grid = db_grid + mv_db_grid
+is_mv_grid = mv_grid + mv_rij_grid + mv_db_grid
+
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_rij_grid, is_rij_grid<1), vmin=0, vmax=1, cmap='bwr', alpha=0.65)
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_db_grid, is_db_grid<1), vmin=0, vmax=1, cmap='bwr_r', alpha=0.65)
+ax.contour(xgrid, ygrid, is_mv_grid, levels=[0.1], colors='violet', linewidths=0.9)
+ax.contour(xgrid, ygrid, V80m_grid, levels=[V_thres], colors='k', linewidths=1)
+
+
 
 ax.set_xlim(xl)
 ax.set_ylim(yl)
@@ -1500,15 +1543,22 @@ ax.set_title(f"Surface dBZ, 10-m wind speed, accum. hail, severe wind mechanisms
 # # ax.legend(handles=[l1,l2], labels=['300 m2/s2','500 m2/s2'], loc='lower right', fontsize=9)
 # ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
 
-l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
-l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
-l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
-l4 = ax.scatter(-1, -1, marker='s', s=15, c='orchid') #magenta
-l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
-l6, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
-l7, = ax.plot([-2,-1], [-2,-1], hail_cols[0], linewidth=1)
-ax.legend(handles=[l1,l2,l3,l4,l5,l6,l7], labels=['RIJ','MV+RIJ','MV','MV+DB','DB','SVR wind','Hail'],
-          loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+# l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
+# l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
+# l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
+# l4 = ax.scatter(-1, -1, marker='s', s=15, c='orchid') #magenta
+# l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
+# l6, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
+# l7, = ax.plot([-2,-1], [-2,-1], hail_cols[0], linewidth=1)
+# ax.legend(handles=[l1,l2,l3,l4,l5,l6,l7], labels=['RIJ','MV+RIJ','MV','MV+DB','DB','SVR wind','Hail'],
+#           loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+l1 = ax.scatter(-1, -1, marker='s', s=15, c='red')
+l2 = ax.scatter(-1, -1, marker='s', s=15, c='b')
+l3, = ax.plot([-2,-1], [-2,-1], 'orchid', linewidth=1)
+l4, = ax.plot([-2,-1], [-2,-1], sws_cols[0], linewidth=1)
+l5, = ax.plot([-2,-1], [-2,-1], hail_cols[0], linewidth=1)
+ax.legend(handles=[l1,l2,l3,l4,l5], labels=['RIJ','DB','MV','SVR wind','Hail'],
+          loc='upper left', fontsize=7, framealpha=0.5)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
@@ -1527,11 +1577,11 @@ if figsave:
 
 
 
-
+#%%
 
 ### Wind speed + UH + max hail size + wind mechanisms
 
-fig,ax = plt.subplots(1, 1, figsize=(7.5,2.75), subplot_kw=dict(aspect=1), layout='constrained')
+fig,ax = plt.subplots(1, 1, figsize=(8,2.75), subplot_kw=dict(aspect=1), layout='constrained')
 # fig,ax = plt.subplots(1, 1, figsize=(10,2.5), subplot_kw=dict(aspect=1), layout='constrained')
 
 c = ax.contourf(xh1, yh1, np.ma.masked_array(wsp1, dbz1<20), levels=wsp_levs, vmin=0, vmax=30, cmap=wsp_cm, alpha=wsp_alpha)
@@ -1544,16 +1594,36 @@ ax.contourf(xh7, yh7, np.ma.masked_array(wsp7, dbz7<20), levels=wsp_levs, vmin=0
 
 cb = plt.colorbar(c, ax=ax, extend='max')
 cb.set_ticks(np.linspace(0,30,7))
-cb.set_label('Wind speed (m/s)', fontsize=10)
+cb.set_label('Wind speed (m/s)', fontsize=8)
+cb.ax.tick_params(labelsize=7.5)
 
 
-ax.contour(xh1, yh1, shs1, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh2, yh2, shs2, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh3, yh3, shs3, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh4, yh4, shs4, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh5, yh5, shs5, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh6, yh6, shs6, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
-ax.contour(xh7, yh7, shs7, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+
+
+# ax.contour(xh1, yh1, shs1, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh2, yh2, shs2, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh3, yh3, shs3, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh4, yh4, shs4, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh5, yh5, shs5, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh6, yh6, shs6, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+# ax.contour(xh7, yh7, shs7, levels=shs_levs, colors=shs_cols, linewidths=shs_lws)
+
+shs_levs = np.arange(500, 1800, 50)
+shs_cm = 'viridis_r'
+shs_alpha = 0.65
+
+c2 = ax.contourf(xh1, yh1, np.ma.masked_array(shs1, shs1<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh2, yh2, np.ma.masked_array(shs2, shs2<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh3, yh3, np.ma.masked_array(shs3, shs3<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh4, yh4, np.ma.masked_array(shs4, shs4<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh5, yh5, np.ma.masked_array(shs5, shs5<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh6, yh6, np.ma.masked_array(shs6, shs6<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+ax.contourf(xh7, yh7, np.ma.masked_array(shs7, shs7<500), levels=shs_levs, vmin=500, vmax=1750, cmap=shs_cm, alpha=shs_alpha)
+
+cb2 = plt.colorbar(c2, ax=ax, extend='max')
+cb2.set_ticks(np.arange(500,2000,250))
+cb2.set_label('Updraft helicity (m2/s2)', fontsize=8)
+cb2.ax.tick_params(labelsize=7.5)
 
 # ax.contour(xh1, yh1, hail1, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
 # ax.contour(xh2, yh2, hail2, levels=hail_levs, colors=hail_cols, linewidths=hail_lws)
@@ -1582,62 +1652,81 @@ ax.contour(xh7, yh7, sdmi7, levels=dmi_levs, colors=dmi_cols, linewidths=dmi_lws
 
 
 
-for i in range(7):
-    is_rij = crit[f"{i+1}"]['is_rij']
-    is_mv = crit[f"{i+1}"]['is_mv']
-    is_db = crit[f"{i+1}"]['is_db']
-    is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
-    is_mv_db = crit[f"{i+1}"]['is_mv_db']
-    wsp = crit[f"{i+1}"]['V80m']
+# for i in range(7):
+#     is_rij = crit[f"{i+1}"]['is_rij']
+#     is_mv = crit[f"{i+1}"]['is_mv']
+#     is_db = crit[f"{i+1}"]['is_db']
+#     is_mv_rij = crit[f"{i+1}"]['is_mv_rij']
+#     is_mv_db = crit[f"{i+1}"]['is_mv_db']
+#     wsp = crit[f"{i+1}"]['V80m']
     
-    rij_mask = (is_rij==0)
-    mv_mask = (is_mv==0)
-    db_mask = (is_db==0) | (is_rij>0)
-    mv_rij_mask = (is_mv_rij==0)
-    mv_db_mask = (is_mv_db==0)
+#     rij_mask = (is_rij==0)
+#     mv_mask = (is_mv==0)
+#     db_mask = (is_db==0) | (is_rij>0)
+#     mv_rij_mask = (is_mv_rij==0)
+#     mv_db_mask = (is_mv_db==0)
     
-    x = xx[f"{i+1}"]
-    y = yy[f"{i+1}"]
+#     x = xx[f"{i+1}"]
+#     y = yy[f"{i+1}"]
     
-    plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
-    plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
-    plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
+#     plot_cfill(x, y, np.ma.masked_array(is_db, db_mask), 'w', ax, datalims=[0,1], cmap='bwr_r', cbar=False, alpha=0.5) #rainbow_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_db, mv_db_mask), 'w', ax, datalims=[0,1], cmap='SCook18_r', cbar=False, alpha=0.5) #spring_r
+#     plot_cfill(x, y, np.ma.masked_array(is_mv, mv_mask), 'w', ax, datalims=[0,1], cmap='vanimo_r', cbar=False, alpha=0.8)
+#     plot_cfill(x, y, np.ma.masked_array(is_mv_rij, mv_rij_mask), 'w', ax, datalims=[0,1], cmap='managua_r', cbar=False, alpha=0.8)
+#     plot_cfill(x, y, np.ma.masked_array(is_rij, rij_mask), 'w', ax, datalims=[0,1], cmap='autumn_r', cbar=False, alpha=0.5)
     
-    # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
-    # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
-    # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
-    # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
-    # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
+#     # ax.contour(x, y, is_db, levels=[0.9], colors='b', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_db, levels=[0.9], colors='mediumorchid', linewidths=0.25)
+#     # ax.contour(x, y, is_mv, levels=[0.9], colors='violet', linewidths=0.25)
+#     # ax.contour(x, y, is_mv_rij, levels=[0.9], colors='gold', linewidths=0.25)
+#     # ax.contour(x, y, is_rij, levels=[0.9], colors='orangered', linewidths=0.25)
     
-    ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
-    ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_db, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_mv_rij, levels=[0.9], colors='k', linewidths=0.25)
+#     ax.contour(x, y, is_rij, levels=[0.9], colors='k', linewidths=0.25)
     
     # ax.contour(x, y, wsp, levels=[V_thres], colors='k', linewidths=1)
 
+
+is_rij_grid = rij_grid + mv_rij_grid
+is_db_grid = db_grid + mv_db_grid
+is_mv_grid = mv_grid + mv_rij_grid + mv_db_grid
+
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_rij_grid, is_rij_grid<1), vmin=0, vmax=1, cmap='bwr', alpha=0.55)
+ax.pcolormesh(xgrid, ygrid, np.ma.masked_array(is_db_grid, is_db_grid<1), vmin=0, vmax=1, cmap='bwr_r', alpha=0.5)
+ax.contour(xgrid, ygrid, is_mv_grid, levels=[0.1], colors='violet', linewidths=1)
+ax.contour(xgrid, ygrid, V80m_grid, levels=[V_thres], colors='k', linewidths=1)
+
+
+
 ax.set_xlim(xl)
 ax.set_ylim(yl)
-ax.set_xlabel('Translated x (km)', fontsize=10)
-ax.set_ylabel('Translated y (km)', fontsize=10)
-ax.set_title(f"80-m & 10-m wind speed, severe wind mechanisms", fontsize=10)
+ax.set_xlabel('Translated x (km)', fontsize=9.5)
+ax.set_ylabel('Translated y (km)', fontsize=9.5)
+ax.set_title(f"80-m wind speed, updraft helicity, max hail diameter, severe wind mechanisms", fontsize=10)
 # l1, = ax.plot([-2,-1], [-2,-1], 'gray', linewidth=0.75)
 # l2, = ax.plot([-2,-1], [-2,-1], 'k', linewidth=1)
 # # ax.legend(handles=[l2], labels=['500 m2/s2'], loc='lower right', fontsize=9)
 # ax.legend(handles=[l2], labels=['SVR'], loc='lower right', fontsize=9)
 
-l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
-l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
-l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
-l4 = ax.scatter(-1, -1, marker='s', s=15, c='orchid') #magenta
-l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
-l6, = ax.plot([-2,-1], [-2,-1], shs_cols[0], linewidth=1)
-l7, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
-ax.legend(handles=[l1,l2,l3,l4,l5,l6,l7], labels=['RIJ','MV+RIJ','MV','MV+DB','DB','UH>500 m2/s2','Hail>1 cm'],
-          loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+# l1 = ax.scatter(-1, -1, marker='s', s=15, c='orangered')
+# l2 = ax.scatter(-1, -1, marker='s', s=15, c='gold')
+# l3 = ax.scatter(-1, -1, marker='s', s=15, c='thistle')
+# l4 = ax.scatter(-1, -1, marker='s', s=15, c='orchid') #magenta
+# l5 = ax.scatter(-1, -1, marker='s', s=15, c='b') #darkviolet
+# l6, = ax.plot([-2,-1], [-2,-1], shs_cols[0], linewidth=1)
+# l7, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
+# ax.legend(handles=[l1,l2,l3,l4,l5,l6,l7], labels=['RIJ','MV+RIJ','MV','MV+DB','DB','UH>500 m2/s2','Hail>1 cm'],
+#           loc='upper left', fontsize=7, ncols=2, framealpha=0.5)
+l1 = ax.scatter(-1, -1, marker='s', s=15, c='red')
+l2 = ax.scatter(-1, -1, marker='s', s=15, c='b')
+l3, = ax.plot([-2,-1], [-2,-1], 'orchid', linewidth=1)
+l4, = ax.plot([-2,-1], [-2,-1], shs_cols[0], linewidth=1)
+l5, = ax.plot([-2,-1], [-2,-1], dmi_cols[0], linewidth=1)
+ax.legend(handles=[l1,l2,l3,l5], labels=['RIJ','DB','MV','Hail>1 cm'],
+          loc='upper left', fontsize=7, framealpha=0.5)
 
 ax.text(xt[0], yt[0], '6 h', fontsize=9, fontweight='bold')
 ax.text(xt[1], yt[1], '7 h', fontsize=9, fontweight='bold')
@@ -1648,6 +1737,6 @@ ax.text(xt[5], yt[5], '11 h', fontsize=9, fontweight='bold')
 ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 
 if figsave:
-    plt.savefig(fp+'figs/wspd_wind_mechanisms_6-12H.png', dpi=300)
+    plt.savefig(fp+'figs/wspd_UH_wind_mechanisms_6-12H.png', dpi=300)
 
 

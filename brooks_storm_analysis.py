@@ -13,20 +13,27 @@ from CM1utils import *
 fp = 'D:/brooks/era5-1_125m_final/'
 figstr = 'ERA5-1_final'
 
-ds = nc.Dataset(fp+'cm1out_000041.nc')
-time = ds.variables['time'][:].data[0]
-xh = ds.variables['xh'][:].data
-yh = ds.variables['yh'][:].data
-zh = ds.variables['zh'][:].data
-dbz = ds.variables['dbz'][:].data[0,0,:,:]
-thpert = ds.variables['th'][:].data[0,0,:,:] - ds.variables['th0'][:].data[0,0,:,:]
-winterp = ds.variables['winterp'][:].data[0,:,:,:]
-uinterp = ds.variables['uinterp'][:].data[0,0,:,:] + ds.variables['umove'][:].data[0]
-vinterp = ds.variables['vinterp'][:].data[0,0,:,:] + ds.variables['vmove'][:].data[0]
-zvort = ds.variables['zvort'][:].data[0,:,:,:]
-umove = ds.variables['umove'][:].data[0]
-vmove = ds.variables['vmove'][:].data[0]
+ds = xr.open_dataset(fp+'cm1out_000041.nc')
+time = ds['time'][:].values[0]
+xh = ds['xh'][:].values
+yh = ds['yh'][:].values
+zh = ds['zh'][:].values
+iz3 = np.argmin(abs(zh-3))
+iz1 = np.argmin(abs(zh-1))
+
+umove = ds['umove'].values
+vmove = ds['vmove'].values
+dbz = ds.sel(time=time, zh=zh[0])['dbz'][:].values
+thpert = ds.sel(time=time, zh=zh[0])['th'][:].values - ds.sel(time=time, zh=zh[0])['th0'][:].values
+winterp = ds.sel(time=time, zh=slice(zh[0],zh[iz3+1]))['winterp'][:].values
+zvort = ds.sel(time=time, zh=slice(z[0],zh[iz3+1]))['zvort'][:].values
+uinterp = ds.sel(time=time, zh=zh[0])['uinterp'][:].values + umove
+vinterp = ds.sel(time=time, zh=zh[0])['vinterp'][:].values + vmove
+
 ds.close()
+
+time = time / np.timedelta64(1, 's')
+
 
 iz = np.where(zh>=3)[0][0]
 wmax = np.max(winterp[0:iz,:,:], axis=0)

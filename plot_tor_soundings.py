@@ -524,8 +524,8 @@ locs = pickle.load(dbfile)
 # locs = locs_all[f"{yyyy}{mm:02.0f}{dd:02.0f}"]
 dbfile.close()
 
-events = ["20210811", "20250623", "20210907", #"20220802",
-          "20220530", "20220521", "20260630", #"20260902", "20260903",
+events = ["20210811", "20250623", "20210907", "20220802",
+          "20220530", "20220521", "20260630", "20260902", "20260903",
           "20250724", "20260703", "20260802"]
 
 t2m = np.zeros((len(events),))
@@ -575,8 +575,8 @@ for i in range(len(events)):
     lati = np.argmin(np.abs(latitude-lattstart))
     loni = np.argmin(np.abs(longitude-lontstart))
     
-    latt = latitude[lati-3:lati+4]
-    lont = longitude[loni-3:loni+4]
+    latt = latitude[lati-1:lati+2]
+    lont = longitude[loni-1:loni+2]
     
     # p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature = extract_data(latt,lont,timt,dsp,dss)
     data = extract_data(latt, lont, timt, datap, datas)
@@ -636,7 +636,7 @@ ax.bar(x3, shear06, color='skyblue', width=wid2, edgecolor='k', label='0-6 km')
 ax.set_ylabel('Bulk wind shear (m/s)', fontsize=12)
 ax.set_xticks(x2, ['11 Aug 2021\n Outbreak ', '23 Jun 2025\n Outbreak ', '7 Sep 2021\n Outbreak ',
                    '30 May 2022\n Sub-outbreak ', '21 May 2022\n Sub-outbreak ', '30 Jun 2026\n Sub-outbreak ',
-                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10)
+                   '24 Jul 2025\n Null ', '3 Jul 2026\n Null ', '2 Aug 2026\n Null '], fontsize=10, rotation=45)
 for i in range(len(x1)):
     ax.text(x1[i], shear01[i], f"{shear01[i]:.0f}", fontsize=12, ha='center', va='bottom')
     ax.text(x2[i], shear03[i], f"{shear03[i]:.0f}", fontsize=12, ha='center', va='bottom')
@@ -925,7 +925,7 @@ if figsave:
 plt.show()
 
 
-#%% Box plots of sounding variable distributions along storm path
+#%% Sounding variable distributions along storm path
 
 from era5utils import *
 
@@ -1156,7 +1156,7 @@ t2m_all = [data_all[events[i]]['t2m'] for i in range(len(events))]
 td2m_all = [data_all[events[i]]['td2m'] for i in range(len(events))]
 downT_all = [data_all[events[i]]['downT'] for i in range(len(events))]
 tdepr_all = [data_all[events[i]]['t2m'] - data_all[events[i]]['td2m'] for i in range(len(events))]
-cpt_all = [data_all[events[i]]['downT'] - data_all[events[i]]['t2m'] for i in range(len(events))]
+cpt_all = [data_all[events[i]]['t2m'] - data_all[events[i]]['downT'] for i in range(len(events))]
 dcape_all = [data_all[events[i]]['dcape'] for i in range(len(events))]
 lr_all = [data_all[events[i]]['lr'] for i in range(len(events))]
 
@@ -1174,7 +1174,7 @@ b = ax.boxplot(shear01_all, tick_labels=labels, patch_artist=True, positions=np.
 #     patch.set_facecolor('indigo')
 # ax.legend([b1['boxes'][0], b3['boxes'][0], b6['boxes'][0]], ['0-1 km', '0-3 km', '0-6 km'], loc='upper right')
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-1 km bulk wind difference')
+ax.set_title('0-1 km bulk shear')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_shear01.png', dpi=300)
@@ -1184,7 +1184,7 @@ fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(shear03_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-3 km bulk wind difference')
+ax.set_title('0-3 km bulk shear')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_shear03.png', dpi=300)
@@ -1194,7 +1194,7 @@ fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(shear06_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Shear [m/s]')
-ax.set_title('0-6 km bulk wind difference')
+ax.set_title('0-6 km bulk shear')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_shear06.png', dpi=300)
@@ -1206,7 +1206,7 @@ fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(cape_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('CAPE [J/kg]')
-ax.set_title('CAPE')
+ax.set_title('Mixed-layer CAPE')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_cape.png', dpi=300)
@@ -1216,7 +1216,7 @@ fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(cin_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('CIN [J/kg]')
-ax.set_title('CIN')
+ax.set_title('Mixed-layer CIN')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_cin.png', dpi=300)
@@ -1236,7 +1236,7 @@ fig,ax = plt.subplots(figsize=(10,5), layout='constrained')
 b = ax.boxplot(lr_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Lapse rate [K/km]')
-ax.set_title('Mid-level lapse rate (700-500 mb)')
+ax.set_title('700-500 mb lapse rate')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_lapserate.png', dpi=300)
@@ -1290,7 +1290,7 @@ fig,ax = plt.subplots(figsize=(10,6), layout='constrained')
 b = ax.boxplot(cpt_all, tick_labels=labels, patch_artist=True, positions=np.arange(len(events))/2, widths=bw, showmeans=False,
                boxprops=boxprops, whiskerprops=whiskerprops, capprops=capprops, medianprops=medianprops, meanprops=meanprops)
 ax.set_ylabel('Temperature [C]')
-ax.set_title('Predicted cold pool temperature deficit')
+ax.set_title('Cold pool strength')
 ax.grid(visible=True, which='both', axis='y', color='lightgray', linewidth=0.75)
 if figsave:
     plt.savefig(fp+'figs/boxplot_events_coldpool.png', dpi=300)
@@ -1373,10 +1373,10 @@ if separate_sig:
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-    cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cpt_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
     dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
@@ -1435,9 +1435,9 @@ else:
     tdepr_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-    cpt_type = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+    cpt_type = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
     dcape_type = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
@@ -1951,7 +1951,7 @@ if figsave:
 # ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 # ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 # ax.set_xlim(xlim)
-# ax.set_ylim([-16,0])
+# ax.set_ylim([0,18])
 # ax.yaxis.set_major_locator(MultipleLocator(2))
 # # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # if figsave:
@@ -1966,14 +1966,14 @@ ax.set_title('Cold pool strength')
 ax.grid(visible=True, which='major', axis='y', color='darkgray', linewidth=0.5)
 ax.grid(visible=True, which='minor', axis='y', color='lightgray', linewidth=0.5)
 ax.set_xlim(xlim)
-ax.set_ylim([-18,0])
+ax.set_ylim([0,18])
 ax.yaxis.set_major_locator(MultipleLocator(2))
 # ax.yaxis.set_minor_locator(MultipleLocator(1))
 # for i in range(len(pos)):
 #     ax.text(pos[i], np.min(cpt_type[i])-0.7, f"Median: {np.median(cpt_type[i]):.1f} C", color='k', fontsize=8, ha='center')
 #     ax.text(pos[i], np.min(cpt_type[i])-1.4, f"Mean: {np.mean(cpt_type[i]):.1f} C", color='r', fontsize=8, ha='center')
 ax.set_xticks(pos, labels)
-add_brackets(ax, ustats['coldpool'], pos, -1.8, 0.3, sig=separate_sig)
+add_brackets(ax, ustats['coldpool'], pos, 16, 0.3, sig=separate_sig)
 if figsave:
     if separate_sig:
         plt.savefig(fp+'figs/violinplot_coldpool_sig.png', dpi=300)
@@ -2228,10 +2228,10 @@ tdepr_type_sig = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[even
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-cpt_type_sig = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cpt_type_sig = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
 dcape_type_sig = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']>=2)])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if (locs[events[i]]['type']=='sub-outbreak') and (locs[events[i]]['maxEF']<2)])),
@@ -2281,9 +2281,9 @@ downT_type_all = [np.concatenate(tuple([data_all[events[i]]['downT'] for i in ra
 tdepr_type_all = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['td2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
-cpt_type_all = [np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
-                np.concatenate(tuple([data_all[events[i]]['downT']-data_all[events[i]]['t2m'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
+cpt_type_all = [np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
+                np.concatenate(tuple([data_all[events[i]]['t2m']-data_all[events[i]]['downT'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
 dcape_type_all = [np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='sub-outbreak'])),
                   np.concatenate(tuple([data_all[events[i]]['dcape'] for i in range(len(events)) if locs[events[i]]['type']=='null']))]
