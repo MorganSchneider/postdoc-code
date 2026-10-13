@@ -1740,3 +1740,28 @@ if figsave:
     plt.savefig(fp+'figs/wspd_UH_wind_mechanisms_6-12H.png', dpi=300)
 
 
+
+#%% Stats
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -121,6 +121,15 @@ def extract_data(latt,lont,timt,data,datas):
         pp = np.array([sfcp] + list(prs[prs<sfcp]))*units.hPa
         tt = np.array([t2m.magnitude] + list(T[prs<sfcp].magnitude))*units.K
         dd = np.array([td2m.magnitude] + list(Td[prs<sfcp].magnitude+273.15))*units.K
+        mlc = mc.mixed_layer_cape_cin(pp, tt, dd)
+        muc = mc.most_unstable_cape_cin(pp, tt, dd)
+        sbc = mc.surface_based_cape_cin(pp, tt, dd)
+        mlcape = mlc[0].magnitude
+        mlcin = mlc[1].magnitude
+        mucape = muc[0].magnitude
+        mucin = muc[1].magnitude
+        sbcape = sbc[0].magnitude
+        sbcin = sbc[1].magnitude
         dc = mc.downdraft_cape(pp, tt, dd)
         dcape = dc[0].magnitude
         # downp = dc[1].magnitude[0]
@@ -131,6 +140,12 @@ def extract_data(latt,lont,timt,data,datas):
         rightm = np.zeros(shape=(2,len(latt),len(lont)))
         leftm = np.zeros(shape=(2,len(latt),len(lont)))
         meanm = np.zeros(shape=(2,len(latt),len(lont)))
+        mlcape = np.zeros(shape=cape.shape)
+        mlcin = np.zeros(shape=cape.shape)
+        mucape = np.zeros(shape=cape.shape)
+        mucin = np.zeros(shape=cape.shape)
+        sbcape = np.zeros(shape=cape.shape)
+        sbcin = np.zeros(shape=cape.shape)
         lcl_pressure = np.zeros(shape=cape.shape)
         lcl_temperature = np.zeros(shape=cape.shape)
         lcl_height = np.zeros(shape=cape.shape)
@@ -183,12 +198,21 @@ def extract_data(latt,lont,timt,data,datas):
                 pp = np.array([sfcp[j,i]] + list(prs[prs<sfcp[j,i]]))*units.hPa
                 tt = np.array([t2m[j,i].magnitude] + list(T[:,j,i][prs<sfcp[j,i]].magnitude))*units.K
                 dd = np.array([td2m[j,i].magnitude] + list(Td[:,j,i][prs<sfcp[j,i]].magnitude+273.15))*units.K
+                mlc = mc.mixed_layer_cape_cin(pp, tt, dd)
+                muc = mc.most_unstable_cape_cin(pp, tt, dd)
+                sbc = mc.surface_based_cape_cin(pp, tt, dd)
+                mlcape[j,i] = mlc[0].magnitude
+                mlcin[j,i] = mlc[1].magnitude
+                mucape[j,i] = muc[0].magnitude
+                mucin[j,i] = muc[1].magnitude
+                sbcape[j,i] = sbc[0].magnitude
+                sbcin[j,i] = sbc[1].magnitude
                 dc = mc.downdraft_cape(pp, tt, dd)
                 dcape[j,i] = dc[0].magnitude
                 # downp[j,i] = dc[1].magnitude[0]
                 downT[j,i] = dc[2].magnitude[0]
                 
-        mask = (cape > 100)
+        mask = (cape > 100) & ~np.isnan(cin)
         z = np.nanmean(z[:,mask], axis=(1,2))
         T = np.nanmean(T[:,mask], axis=(1,2))
         q = np.nanmean(q[:,mask], axis=(1,2))
@@ -206,6 +230,12 @@ def extract_data(latt,lont,timt,data,datas):
         orog = np.nanmean(orog[mask])
         cape = np.nanmean(cape[mask])
         cin = np.nanmean(cin[mask])
+        mlcape = np.nanmean(mlcape[mask])
+        mlcin = np.nanmean(mlcin[mask])
+        mucape = np.nanmean(mucape[mask])
+        mucin = np.nanmean(mucin[mask])
+        sbcape = np.nanmean(sbcape[mask])
+        sbcin = np.nanmean(sbcin[mask])
         sfcp = np.nanmean(sfcp[mask])
         t2m = np.nanmean(t2m[mask])
         td2m = np.nanmean(td2m[mask])
@@ -240,7 +270,8 @@ def extract_data(latt,lont,timt,data,datas):
     # parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
     
     data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
-                'cape':cape, 'cin':cin, 'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m,
+                'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m, 'era5cape':cape, 'era5cin':cin,
+                'mlcape':mlcape, 'mlcin':mlcin, 'mucape':mucape, 'mucin':mucin, 'sbcape':sbcape, 'sbcin':sbcin,
                 'leftm':leftm*units('m/s'), 'meanm':meanm*units('m/s'), 'rightm':rightm*units('m/s'), 'parcel_prof':parcel_prof*units.degC,
                 'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lcl_height':lcl_height*units.m, 'lapse_rate':lapse_rate,
                 'shear06':shear06*units('m/s'), 'shear03':shear03*units('m/s'), 'shear01':shear01*units('m/s'),
