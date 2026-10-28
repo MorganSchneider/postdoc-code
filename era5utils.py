@@ -48,7 +48,8 @@ spc_wspd = ListedColormap(colors, name="spc_wspd")
 
 
 # Extract data at location/time
-def extract_data(latt,lont,timt,data,datas):
+def extract_data(latt, lont, timt, data, datas, use_virtual_temp=False):
+    # use_virtual_temp (bool): Apply virtual temperature correction to CAPE/CIN calculations?
     if (np.ndim(latt) == 0) & (np.ndim(lont) == 0):
         data01 = data.sel(latitude=latt, longitude=lont, valid_time=timt)
         data02 = datas.sel(latitude=latt, longitude=lont, valid_time=timt)
@@ -83,6 +84,8 @@ def extract_data(latt,lont,timt,data,datas):
     direc = mc.wind_direction(u,v)
     q2m  = mc.specific_humidity_from_dewpoint(sfcp*units.hPa, td2m)
     theta2m = mc.potential_temperature(sfcp*units.hPa, t2m)
+    Tv = mc.virtual_temperature(T, q)
+    tv2m = mc.virtual_temperature(t2m, q2m)
     
     if (np.ndim(latt) == 0) & (np.ndim(lont) == 0):
         theta = mc.potential_temperature(p, T)
@@ -105,7 +108,10 @@ def extract_data(latt,lont,timt,data,datas):
         
         dt75 = T[(prs==700)].magnitude - T[(prs==500)].magnitude
         dz75 = (z[(prs==700)] - z[(prs==500)])/1000
-        lapse_rate = -1 * dt75/dz75
+        lr75 = -1 * dt75/dz75
+        dt85 = T[(prs==800)].magnitude - T[(prs==500)].magnitude
+        dz85 = (z[(prs==800)] - z[(prs==500)])/1000
+        lr85 = -1 * dt85/dz85
         
         shear = mc.bulk_shear(p[z>orog], u[z>orog], v[z>orog], height=z[z>orog]*units.m, depth=6000*units.m)
         shear06 = np.sqrt(shear[0].magnitude**2 + shear[1].magnitude**2)
@@ -119,7 +125,10 @@ def extract_data(latt,lont,timt,data,datas):
         srh03 = srh[2].magnitude
         
         pp = np.array([sfcp] + list(prs[prs<sfcp]))*units.hPa
-        tt = np.array([t2m.magnitude] + list(T[prs<sfcp].magnitude))*units.K
+        if use_virtual_temp:
+            tt = np.array([tv2m.magnitude] + list(Tv[prs<sfcp].magnitude))*units.K
+        else:
+            tt = np.array([t2m.magnitude] + list(T[prs<sfcp].magnitude))*units.K
         dd = np.array([td2m.magnitude] + list(Td[prs<sfcp].magnitude+273.15))*units.K
         mlc = mc.mixed_layer_cape_cin(pp, tt, dd)
         muc = mc.most_unstable_cape_cin(pp, tt, dd)
@@ -134,6 +143,7 @@ def extract_data(latt,lont,timt,data,datas):
         dcape = dc[0].magnitude
         # downp = dc[1].magnitude[0]
         downT = dc[2].magnitude[0]
+        downTh = mc.potential_temperature(sfcp*units.hPa, downT*units.K)
         
     else:
         theta = np.zeros(shape=z.shape)
@@ -157,10 +167,16 @@ def extract_data(latt,lont,timt,data,datas):
         srh03 = np.zeros(shape=cape.shape)
         dcape = np.zeros(shape=cape.shape)
         downT = np.zeros(shape=cape.shape)
+        downTh = np.zeros(shape=cape.shape)
         
         dt75 = T[(prs==700),:,:].magnitude - T[(prs==500),:,:].magnitude
         dz75 = (z[(prs==700),:,:] - z[(prs==500),:,:])/1000
-        lapse_rate = -1 * dt75/dz75
+        lr75 = -1 * dt75/dz75
+        lr75 = np.asarray(lr75[0])
+        dt85 = T[(prs==800),:,:].magnitude - T[(prs==500),:,:].magnitude
+        dz85 = (z[(prs==800),:,:] - z[(prs==500),:,:])/1000
+        lr85 = -1 * dt85/dz85
+        lr85 = np.asarray(lr85[0])
         
         for j in range(len(latt)):
             for i in range(len(lont)):
@@ -196,7 +212,10 @@ def extract_data(latt,lont,timt,data,datas):
                 srh03[j,i] = srh[2].magnitude
                 
                 pp = np.array([sfcp[j,i]] + list(prs[prs<sfcp[j,i]]))*units.hPa
-                tt = np.array([t2m[j,i].magnitude] + list(T[:,j,i][prs<sfcp[j,i]].magnitude))*units.K
+                if use_virtual_temp:
+                    tt = np.array([tv2m.magnitude] + list(Tv[prs<sfcp].magnitude))*units.K
+                else:
+                    tt = np.array([t2m[j,i].magnitude] + list(T[:,j,i][prs<sfcp[j,i]].magnitude))*units.K
                 dd = np.array([td2m[j,i].magnitude] + list(Td[:,j,i][prs<sfcp[j,i]].magnitude+273.15))*units.K
                 mlc = mc.mixed_layer_cape_cin(pp, tt, dd)
                 muc = mc.most_unstable_cape_cin(pp, tt, dd)
@@ -211,22 +230,25 @@ def extract_data(latt,lont,timt,data,datas):
                 dcape[j,i] = dc[0].magnitude
                 # downp[j,i] = dc[1].magnitude[0]
                 downT[j,i] = dc[2].magnitude[0]
+                downTh[j,i] = mc.potential_temperature(sfcp[j,i]*units.hPa, downT[j,i]*units.K)
                 
-        mask = (cape > 100) & ~np.isnan(cin)
-        z = np.nanmean(z[:,mask], axis=(1,2))
-        T = np.nanmean(T[:,mask], axis=(1,2))
-        q = np.nanmean(q[:,mask], axis=(1,2))
-        u = np.nanmean(u[:,mask], axis=(1,2))
-        v = np.nanmean(v[:,mask], axis=(1,2))
-        Td = np.nanmean(Td[:,mask], axis=(1,2))
-        theta = np.nanmean(theta[:,mask], axis=(1,2))
-        speed = np.nanmean(speed[:,mask], axis=(1,2))
-        direc = np.nanmean(direc[:,mask], axis=(1,2))
-        parcel_prof = np.nanmean(parcel_prof[:,mask], axis=(1,2))
-        rightm = np.nanmean(rightm[:,mask], axis=(1,2))
-        leftm = np.nanmean(leftm[:,mask], axis=(1,2))
-        meanm = np.nanmean(meanm[:,mask], axis=(1,2))
+        mask = np.tile((cape > 100) & ~np.isnan(cin), (len(prs),1,1))
+        z = np.nanmean(z[mask], axis=(1,2))
+        T = np.nanmean(T[mask], axis=(1,2))
+        q = np.nanmean(q[mask], axis=(1,2))
+        u = np.nanmean(u[mask], axis=(1,2))
+        v = np.nanmean(v[mask], axis=(1,2))
+        Td = np.nanmean(Td[mask], axis=(1,2))
+        Tv = np.nanmean(Tv[mask], axis=(1,2))
+        theta = np.nanmean(theta[mask], axis=(1,2))
+        speed = np.nanmean(speed[mask], axis=(1,2))
+        direc = np.nanmean(direc[mask], axis=(1,2))
+        parcel_prof = np.nanmean(parcel_prof[mask], axis=(1,2))
+        rightm = np.nanmean(rightm[mask], axis=(1,2))
+        leftm = np.nanmean(leftm[mask], axis=(1,2))
+        meanm = np.nanmean(meanm[mask], axis=(1,2))
         
+        mask = (cape > 100) & ~np.isnan(cin)
         orog = np.nanmean(orog[mask])
         cape = np.nanmean(cape[mask])
         cin = np.nanmean(cin[mask])
@@ -243,6 +265,7 @@ def extract_data(latt,lont,timt,data,datas):
         v10 = np.nanmean(v10[mask])
         q2m = np.nanmean(q2m[mask])
         theta2m = np.nanmean(theta2m[mask])
+        tv2m = np.nanmean(tv2m[mask])
         lcl_pressure = np.nanmean(lcl_pressure[mask])
         lcl_temperature = np.nanmean(lcl_temperature[mask])
         lcl_height = np.nanmean(lcl_height[mask])
@@ -251,9 +274,11 @@ def extract_data(latt,lont,timt,data,datas):
         shear01 = np.nanmean(shear01[mask])
         srh03 = np.nanmean(srh03[mask])
         srh01 = np.nanmean(srh01[mask])
-        lapse_rate = np.nanmean(lapse_rate[mask])
+        lr75 = np.nanmean(lr75[mask])
+        lr85 = np.nanmean(lr85[mask])
         dcape = np.nanmean(dcape[mask])
         downT = np.nanmean(downT[mask])
+        downTh = np.nanmean(downTh[mask])
     
     # Calculate the parcel profile.
     # calclow = 0
@@ -269,13 +294,13 @@ def extract_data(latt,lont,timt,data,datas):
     # parcel_prof[z<=orog] = np.nan
     # parcel_prof = mc.parcel_profile(p, T[0], Td[0]).to('degC')
     
-    data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
-                'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m, 'era5cape':cape, 'era5cin':cin,
+    data_out = {'p':p, 'z':z, 'T':T, 'q':q, 'theta':theta, 'Td':Td, 'Tv':Tv, 'u':u, 'v':v, 'u10':u10, 'v10':v10, 'speed':speed, 'direc':direc,
+                'sfcp':sfcp, 'orog':orog, 'q2m':q2m, 'theta2m':theta2m, 'td2m':td2m, 't2m':t2m, 'tv2m':tv2m, 'era5cape':cape, 'era5cin':cin,
                 'mlcape':mlcape, 'mlcin':mlcin, 'mucape':mucape, 'mucin':mucin, 'sbcape':sbcape, 'sbcin':sbcin,
                 'leftm':leftm*units('m/s'), 'meanm':meanm*units('m/s'), 'rightm':rightm*units('m/s'), 'parcel_prof':parcel_prof*units.degC,
-                'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lcl_height':lcl_height*units.m, 'lapse_rate':lapse_rate,
+                'lcl_pressure':lcl_pressure*units.hPa, 'lcl_temperature':lcl_temperature*units.K, 'lcl_height':lcl_height*units.m, 'lr75':lr75, 'lr85':lr85,
                 'shear06':shear06*units('m/s'), 'shear03':shear03*units('m/s'), 'shear01':shear01*units('m/s'),
-                'srh03':srh03*units('m**2/s**2'), 'srh01':srh01*units('m**2/s**2'), 'dcape':dcape, 'downT':downT*units.K}
+                'srh03':srh03*units('m**2/s**2'), 'srh01':srh01*units('m**2/s**2'), 'dcape':dcape, 'downT':downT*units.K, 'downTh':downTh}
     return data_out
     # return p,z,T,q,theta,Td,u,v,u10,v10,speed,direc,cape,cin,sfcp,orog,q2m,theta2m,td2m,t2m,leftm,meanm,rightm,parcel_prof,lcl_pressure,lcl_temperature
 
@@ -1425,13 +1450,16 @@ def plot_violin(data, ax, fc='w', ec='k', lw=1, mc=None, **kwargs):
             v[key].set_colors(mc)
         else:
             v[key].set_colors(ec)
+        if (key == "cmeans") | (key == "cmedians"):
+            v[key].set_zorder(3)
+            # v[key].set_linewidth(1.5)
     
     return v
 
 
 
 # Add statistical significance brackets for pairwise testing
-def add_brackets(ax, ustats, pos, y, h, sig=True):
+def add_brackets(ax, ustats, pos, y, h, sig=False, star=None):
     if sig:
         p1 = ustats['out_sigsub'][1]
         p2 = ustats['out_nonsig'][1]
@@ -1440,24 +1468,28 @@ def add_brackets(ax, ustats, pos, y, h, sig=True):
         p5 = ustats['sigsub_null'][1]
         p6 = ustats['nonsig_null'][1]
         
-        if p1 < 0.05:
+        if p1 <= 0.05:
             ax.plot([pos[0], pos[0], pos[1], pos[1]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
-        if p2 < 0.05:
+        if p2 <= 0.05:
             ax.plot([pos[0], pos[0], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
-        if p3 < 0.05:
+        if p3 <= 0.05:
             ax.plot([pos[0], pos[0], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
-        if p4 < 0.05:
+        if p4 <= 0.05:
             ax.plot([pos[1], pos[1], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
-        if p5 < 0.05:
+        if p5 <= 0.05:
             ax.plot([pos[1], pos[1], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
-        if p6 < 0.05:
+        if p6 <= 0.05:
             ax.plot([pos[2], pos[2], pos[3], pos[3]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
+        
+        if (p1 <= 0.05) & (p2 <= 0.05) & (p3 <= 0.05) & (star is not None):
+            ax.scatter(pos[0], star, s=500, marker='*', fc='gold', ec='k', lw=1, clip_on=False, zorder=3)
+        
     else:
         p1 = ustats['out_sub'][1]
         p2 = ustats['out_null'][1]
@@ -1472,6 +1504,9 @@ def add_brackets(ax, ustats, pos, y, h, sig=True):
         if p3 < 0.05:
             ax.plot([pos[1], pos[1], pos[2], pos[2]], [y, y+h, y+h, y], '-k', linewidth=1)
             y = y + 1.5*h
+        
+        if (p1 <= 0.05) & (p2 <= 0.05) & (star is not None):
+            ax.scatter(pos[0], star, s=500, marker='*', fc='gold', ec='k', lw=1, clip_on=False, zorder=3)
     
     return
 

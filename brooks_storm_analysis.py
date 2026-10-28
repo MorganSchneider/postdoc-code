@@ -10,10 +10,10 @@ from CM1utils import *
 #%% Plot simulations
 
 
-fp = 'D:/brooks/era5-1_125m_final/'
-figstr = 'ERA5-1_final'
+fp = 'D:/brooks/rerun2/'
+# figstr = 'ERA5-1_final'
 
-ds = xr.open_dataset(fp+'cm1out_000041.nc')
+ds = xr.open_dataset(fp+'cm1out_000029.nc')
 time = ds['time'][:].values[0]
 xh = ds['xh'][:].values
 yh = ds['yh'][:].values
@@ -21,18 +21,17 @@ zh = ds['zh'][:].values
 iz3 = np.argmin(abs(zh-3))
 iz1 = np.argmin(abs(zh-1))
 
-umove = ds['umove'].values
-vmove = ds['vmove'].values
+umove = ds['umove'].values[0]
+vmove = ds['vmove'].values[0]
 dbz = ds.sel(time=time, zh=zh[0])['dbz'][:].values
 thpert = ds.sel(time=time, zh=zh[0])['th'][:].values - ds.sel(time=time, zh=zh[0])['th0'][:].values
 winterp = ds.sel(time=time, zh=slice(zh[0],zh[iz3+1]))['winterp'][:].values
-zvort = ds.sel(time=time, zh=slice(z[0],zh[iz3+1]))['zvort'][:].values
-uinterp = ds.sel(time=time, zh=zh[0])['uinterp'][:].values + umove
-vinterp = ds.sel(time=time, zh=zh[0])['vinterp'][:].values + vmove
+zvort = ds.sel(time=time, zh=slice(zh[0],zh[iz1+1]))['zvort'][:].values
+# uinterp = ds.sel(time=time, zh=zh[0])['uinterp'][:].values + umove
+# vinterp = ds.sel(time=time, zh=zh[0])['vinterp'][:].values + vmove
 
 ds.close()
 
-time = time / np.timedelta64(1, 's')
 
 
 iz = np.where(zh>=3)[0][0]
@@ -42,6 +41,9 @@ iz = np.where(zh>=1)[0][0]
 vortmax = np.max(zvort[0:iz,:,:], axis=0)
 
 # xh = xh + 2*time/1000
+
+
+time = time / np.timedelta64(1, 's')
 
 
 figsave = False
@@ -81,7 +83,7 @@ if figsave:
     plt.savefig(fp+f"figs/dbz_{time/60:.0f}min.png", dpi=300)
 
 
-plt.show()
+# plt.show()
 
 
 
@@ -155,7 +157,7 @@ print("-----")
 
 #%% Check stats time series
 
-fp = 'D:/brooks/era5-1_125m_final/'
+fp = 'D:/brooks/rerun1/'
 
 ds = nc.Dataset(fp+'cm1out_stats.nc')
 time = ds.variables['time'][:].data + 120
@@ -166,6 +168,17 @@ vort5km = ds.variables['vort5km'][:].data
 wmax1000 = ds.variables['wmax1000'][:].data
 wmax2500 = ds.variables['wmax2500'][:].data
 wmax5000 = ds.variables['wmax5000'][:].data
+swspmax = ds.variables['swspmax'][:].data
+wsp1max = ds.variables['wsp1max'][:].data
+wsp80max = ds.variables['wsp0max'][:].data
+wsp1min = ds.variables['wsp1min'][:].data
+wsp0min = ds.variables['wsp0min'][:].data
+dmimax = np.max(np.asarray([ds.variables['smaxdmi1'][:].data, ds.variables['smaxdmi2'][:].data, ds.variables['smaxdmi3'][:].data, ds.variables['smaxdmi4'][:].data]), axis=0)
+dhlmax = np.max(np.asarray([ds.variables['smaxdhl1'][:].data, ds.variables['smaxdhl2'][:].data, ds.variables['smaxdhl3'][:].data, ds.variables['smaxdhl4'][:].data]), axis=0)
+# dmimax = np.max(np.asarray([ds.variables['maxdmi1'][:].data, ds.variables['maxdmi2'][:].data, ds.variables['maxdmi3'][:].data, ds.variables['maxdmi4'][:].data]), axis=0)
+# dhlmax = np.max(np.asarray([ds.variables['maxdhl1'][:].data, ds.variables['maxdhl2'][:].data, ds.variables['maxdhl3'][:].data, ds.variables['maxdhl4'][:].data]), axis=0)
+zwmax = ds.variables['zwmax'][:].data
+zvortmax = ds.variables['zvortmax'][:].data
 ds.close()
 
 
@@ -185,10 +198,10 @@ ax.xaxis.set_major_locator(MultipleLocator(30))
 ax.xaxis.set_minor_locator(MultipleLocator(10))
 ax.yaxis.set_major_locator(MultipleLocator(0.04))
 ax.yaxis.set_minor_locator(MultipleLocator(0.01))
-ax.set_xlim([0,240])
+ax.set_xlim([0,420])
 ax.set_ylim([0,0.2])
 ax.legend(handles=[l4,l3,l2,l1], labels=["\u03B6(sfc)", "\u03B6(1 km)", "\u03B6(3 km)", "\u03B6(5 km)"], loc='lower right', fontsize=12, ncols=2)
-ax.set_title("Domain-maximum \u03B6 -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
+ax.set_title("Domain-maximum \u03B6", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel("\u03B6 (1/s)", fontsize=12)
 if figsave:
@@ -205,14 +218,55 @@ ax.xaxis.set_major_locator(MultipleLocator(30))
 ax.xaxis.set_minor_locator(MultipleLocator(10))
 ax.yaxis.set_major_locator(MultipleLocator(5))
 ax.yaxis.set_minor_locator(MultipleLocator(1))
-ax.set_xlim([0,240])
+ax.set_xlim([0,420])
 ax.set_ylim([0,30])
 ax.legend(handles=[l1,l2,l3], labels=['w(1 km)', 'w(2.5 km)', 'w(5 km)'], loc='lower right', fontsize=12)
-ax.set_title("Domain-maximum w -- Max \u03B8'=3 K, dy=30 km", fontsize=14)
+ax.set_title("Domain-maximum w", fontsize=14)
 ax.set_xlabel('Time (min)', fontsize=12)
 ax.set_ylabel('w (m/s)', fontsize=12)
 if figsave:
     plt.savefig(fp+f"figs/wmax_timeseries.png", dpi=300)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
+l1, = ax.plot(time/60, movmean(swspmax,5), 'deepskyblue', linewidth=2)
+l2, = ax.plot(time/60, movmean(wsp80max,5), 'b', linewidth=2)
+l3, = ax.plot(time/60, movmean(wsp1max,5), 'k', linewidth=2)
+ax.plot([0,1000], [25.7,25.7], '--k', linewidth=1)
+ax.grid(visible=True, which='major', color='dimgray', linestyle='-')
+ax.grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax.xaxis.set_major_locator(MultipleLocator(30))
+ax.xaxis.set_minor_locator(MultipleLocator(10))
+ax.yaxis.set_major_locator(MultipleLocator(5))
+ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xlim([0,420])
+ax.set_ylim([0,40])
+ax.legend(handles=[l1,l2,l3], labels=['wsp(10 m)', 'wsp(80 m)', 'wsp(1 km)'], loc='lower right', fontsize=12)
+ax.set_title("Domain-maximum wspd", fontsize=14)
+ax.set_xlabel('Time (min)', fontsize=12)
+ax.set_ylabel('wspd (m/s)', fontsize=12)
+
+
+fig,ax = plt.subplots(1, 1, figsize=(10,4), layout='constrained')
+l1, = ax.plot(time/60, movmean(zwmax/1000,10), 'dimgray', linewidth=2)
+l2, = ax.plot(time/60, movmean(zvortmax/1000,10), 'k', linewidth=2)
+axx = ax.twinx()
+l3, = axx.plot(time/60, movmean(dmimax*100,5), 'r', linewidth=2)
+l4, = axx.plot(time/60, movmean(dhlmax*100,5), 'b', linewidth=2)
+ax.grid(visible=True, which='major', color='dimgray', linestyle='-')
+ax.grid(visible=True, which='minor', color='lightgray', linestyle='-')
+ax.xaxis.set_major_locator(MultipleLocator(30))
+ax.xaxis.set_minor_locator(MultipleLocator(10))
+ax.yaxis.set_major_locator(MultipleLocator(2))
+ax.yaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xlim([0,420])
+ax.set_ylim([0,10])
+axx.set_ylim([0,10])
+ax.legend(handles=[l1,l2,l3,l4], labels=["z(max w)", "z(max \u03B6)", "D$_{ice}$", "D$_{hail}$"], loc='upper right', fontsize=12, ncols=2)
+ax.set_title("Height of max w/\u03B6, max sfc ice and hail diameter", fontsize=14)
+ax.set_xlabel('Time (min)', fontsize=12)
+ax.set_ylabel('Height (km)', fontsize=12)
+axx.set_ylabel('Diameter (cm)', fontsize=12)
 
 plt.show()
 
@@ -1458,6 +1512,173 @@ ax.text(xt[6], yt[6], '12 h', fontsize=9, fontweight='bold')
 if figsave:
     plt.savefig(fp+f"figs/dbz_wind_swath_6-12H.png", dpi=300)
 
+
+
+
+#%% Plot base state sounding
+
+import xarray as xr
+import metpy.calc as mc
+from metpy.units import units
+from metpy.plots import SkewT,Hodograph
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+
+
+figsave = False
+
+
+
+ds = xr.open_dataset("D:/brooks/rerun1/cm1out_000001.nc")
+time = ds['time'][:].values[0]
+xh = ds['xh'][:].values
+yh = ds['yh'][:].values
+zh = ds['zh'][:].values
+umove = ds['umove'].values[0]
+vmove = ds['vmove'].values[0]
+
+u0 = ds.sel(time=time, yh=yh[0], xh=xh[0])['uinterp'].values + umove
+v0 = ds.sel(time=time, yh=yh[0], xh=xh[0])['vinterp'].values + vmove
+th0 = ds.sel(time=time, yh=yh[0], xh=xh[0])['th'].values
+qv0 = ds.sel(time=time, yh=yh[0], xh=xh[0])['qv'].values
+prs0 = ds.sel(time=time, yh=yh[0], xh=xh[0])['prs'].values/100
+ds.close()
+
+
+T0 = th0 * (prs0/1000)**0.286
+e0 = (qv0*prs0) / (0.622+qv0)
+Td0 = 243.5 / ((17.67 / (np.log(e0/6.112))) - 1) + 273.15
+T0_parcel = mc.parcel_profile(prs0*units.hPa, T0[0]*units.K, Td0[0]*units.K)
+lcl_pressure,lcl_temperature = mc.lcl(prs0[0]*units.hPa, T0[0]*units.K, Td0[0]*units.K)
+ip = np.where(prs0<=lcl_pressure.magnitude)[0][0]
+dp = prs0[ip-1] - prs0[ip]
+w1 = (lcl_pressure.magnitude - prs0[ip])/dp
+w2 = (prs0[ip-1] - lcl_pressure.magnitude)/dp
+lcl_height = w1*zh[ip-1] + w2*zh[ip]
+
+[rm,lm,mm] = mc.bunkers_storm_motion(prs0*units.hPa, u0*units('m/s'), v0*units('m/s'), zh*units.km)
+mw = mc.wind_speed(mm[0], mm[1]).magnitude
+s = mc.bulk_shear(prs0*units.hPa, u0*units('m/s'), v0*units('m/s'), zh*1000*units.m, depth=6000*units.m)
+s06 = np.sqrt(s[0].magnitude**2 + s[1].magnitude**2)
+s = mc.bulk_shear(prs0*units.hPa, u0*units('m/s'), v0*units('m/s'), zh*1000*units.m, depth=3000*units.m)
+s03 = np.sqrt(s[0].magnitude**2 + s[1].magnitude**2)
+s = mc.bulk_shear(prs0*units.hPa, u0*units('m/s'), v0*units('m/s'), zh*1000*units.m, depth=1000*units.m)
+s01 = np.sqrt(s[0].magnitude**2 + s[1].magnitude**2)
+s = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=1000*units.m, storm_u=rm[0], storm_v=rm[1])
+srh01 = s[2].magnitude
+s = mc.storm_relative_helicity(zh*1000*units.m, u0*units('m/s'), v0*units('m/s'), depth=3000*units.m, storm_u=rm[0], storm_v=rm[1])
+srh03 = s[2].magnitude
+
+mlcape,mlcin = mc.mixed_layer_cape_cin(prs0*units.hPa, T0*units.K, Td0*units.K)
+mucape,mucin = mc.most_unstable_cape_cin(prs0*units.hPa, T0*units.K, Td0*units.K)
+sbcape,sbcin = mc.surface_based_cape_cin(prs0*units.hPa, T0*units.K, Td0*units.K)
+
+
+u_barbs = []
+v_barbs = []
+p_barbs = []
+for p in np.arange(1000,50,-50):
+    ip = np.where(np.abs(prs0-p) == np.min(np.abs(prs0-p)))[0][0]
+    u_barbs.append(u0[ip])
+    v_barbs.append(v0[ip])
+    p_barbs.append(prs0[ip])
+u_barbs = (np.array(u_barbs)*units('m/s')).to('knots')
+v_barbs = (np.array(v_barbs)*units('m/s')).to('knots')
+p_barbs = np.array(p_barbs)
+
+
+
+
+fig = plt.figure(figsize=(10,9))
+skew = SkewT(fig=fig)
+skew.plot(prs0, (T0-273.15), '-r', linewidth=2)
+skew.plot(prs0, (Td0-273.15), '-g', linewidth=2)
+skew.plot(prs0, np.array(T0_parcel.magnitude[:])-273.15, '-k', linewidth=2)
+
+skew.plot(lcl_pressure, lcl_temperature, 'ko', markerfacecolor='black') # Plot LCL as black dot
+skew.plot_dry_adiabats(linewidths=1)
+skew.plot_moist_adiabats(linewidths=1)
+skew.plot_mixing_lines()
+b = skew.plot_barbs(p_barbs, u_barbs, v_barbs, xloc=1.0)
+b.set_zorder(4)
+skew.shade_cape(prs0, T0-273.15, T0_parcel.magnitude[:]-273.15)
+skew.shade_cin(prs0*units.hPa, T0*units.K, T0_parcel, Td0*units.K)
+
+skew.ax.set_ylim(1000, 100)
+skew.ax.set_xlim(-40, 30)
+skew.ax.set_xlabel("Temperature ($^{\circ}$C)", fontsize=14)
+skew.ax.set_ylabel("Pressure (hPa)", fontsize=14)
+skew.ax.tick_params(axis='both', which='major', labelsize=14)
+# skew.ax.set_title("ERA5 20250820 T21Z (50.75$^{\circ}$,-114.0$^{\circ}$)", fontsize=16)
+
+# ax_hod = inset_axes(skew.ax, '42%', '42%', loc=1)
+# H = Hodograph(ax_hod, component_range=50.)
+# H.add_grid(increment=10)
+# hod = H.plot_colormapped(u0, v0, z, cmap='HomeyerRainbow', linewidth=1.5)
+# H.ax.set_xlim([-20,50])
+# H.ax.set_ylim([-20,50])
+
+iz = np.argmin(abs(zh-12))+1
+
+# ax_hod = skew.ax.inset_axes([0.53, 0.56, 0.42, 0.42])
+# ax_cb = skew.ax.inset_axes([1.0, 0.56, 0.025, 0.42])
+# ax_hod = skew.ax.inset_axes([0.61, 0.65, 0.35, 0.35], zorder=2)
+# ax_cb = skew.ax.inset_axes([1.01, 0.675, 0.024, 0.305])
+ax_hod = skew.ax.inset_axes([0.52, 0.64, 0.35, 0.35], zorder=2)
+H = Hodograph(ax_hod, component_range=50.)
+H.add_grid(increment=10)
+hod = H.plot_colormapped(u0[:iz], v0[:iz], zh[:iz], cmap='HomeyerRainbow', linewidth=3)
+
+ax_hod.scatter(lm.magnitude[0], lm.magnitude[1], s=12, color='k', zorder=3)
+ax_hod.scatter(rm.magnitude[0], rm.magnitude[1], s=12, color='k', zorder=3)
+# ax_hod.scatter(mm.magnitude[0], mm.magnitude[1], s=12, color='k', zorder=3)
+ax_hod.text(lm.magnitude[0], lm.magnitude[1], 'LM ', ha='right', va='center_baseline', fontsize=10, fontweight='bold')
+ax_hod.text(rm.magnitude[0], rm.magnitude[1], ' RM ', ha='left', va='center_baseline', fontsize=10, fontweight='bold')
+# ax_hod.text(mm.magnitude[0], mm.magnitude[1], 'MW ', ha='right', va='center_baseline', fontsize=10, fontweight='bold')
+
+H.ax.set_xlim([-20,40]) # -30,30 for domain relative without umove/vmove
+H.ax.set_ylim([-20,40])
+# H.ax.set_xticks(np.linspace(-30,30,7))
+H.ax.xaxis.set_major_locator(MultipleLocator(20))
+H.ax.xaxis.set_minor_locator(MultipleLocator(10))
+H.ax.yaxis.set_major_locator(MultipleLocator(20))
+H.ax.yaxis.set_minor_locator(MultipleLocator(10))
+H.ax.set_xlabel("u (m s$^{-1}$)", fontsize=12)
+H.ax.set_ylabel("v (m s$^{-1}$)", fontsize=12)
+H.ax.tick_params(axis='both', which='major', labelsize=11)
+
+# cb = plt.colorbar(hod, cax=ax_cb)
+divider = make_axes_locatable(ax_hod)
+cax = divider.append_axes('top', size="5%", pad=0.0)
+cb = plt.colorbar(hod, cax=cax, orientation='horizontal', location='top')
+
+cb.set_label("Height AGL (km)", fontsize=12)
+cb.set_ticks(np.linspace(0,12,7))
+cb.ax.tick_params(labelsize=12)
+
+
+str1 = '\n'.join((
+    "MLCAPE:               %.0f" % (mlcape.magnitude, ),
+    "MLCIN:                  %.0f" % (mlcin.magnitude, ),
+    "SBCAPE:               %.0f" % (sbcape.magnitude, ),
+    "SBCIN:                  %.0f" % (sbcin.magnitude, ),
+    "0-1 km shear:       %.1f" % (s01,),
+    "0-3 km shear:     %.1f" % (s03,),
+    "0-6 km shear:     %.1f" % (s06,),
+    "0-1 km SRH:          %.0f" % (srh01,),
+    "0-3 km SRH:        %.0f" % (srh03,),
+    "LCL height:          %.0f" % (lcl_height*1000,)
+    ))
+props = dict(boxstyle='square', facecolor='w', edgecolor='k')
+skew.ax.text(-39, 950, str1, fontsize=11, bbox=props)
+
+
+
+
+if figsave:
+    plt.savefig("D:/brooks/basestate_domain_relative.png", dpi=300)
 
 
 
